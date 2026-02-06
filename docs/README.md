@@ -3,8 +3,8 @@ layout: home
 permalink: index.html
 
 # Please update this with your repository name and project title
-repository-name: eYY-co2060-project-template
-title: Project Template
+repository-name: e22-co2060-PearlPath
+title: PearlPath
 ---
 
 [comment]: # "This is the standard layout for the project, but you can clean this and use your own template, and add more information required for your own project"
@@ -24,9 +24,10 @@ A HTML template integrated with the given GitHub repository templates, based on 
 ---
 
 ## Team
--  eNumber, Name, [email](mailto:name@email.com)
--  eNumber, Name, [email](mailto:name@email.com)
--  eNumber, Name, [email](mailto:name@email.com)
+-  E/22/124, Name, [e22124@eng.pdn.ac.lk](mailto:e22124@eng.pdn.ac.lk)
+-  E/22/228, Name, [e22228@eng.pdn.ac.lk](mailto:e22228@eng.pdn.ac.lk)
+-  E/22/452, Name, [e22452@eng.pdn.ac.lk](mailto:e22452@eng.pdn.ac.lk)
+-  E/22/232, Name, [e22232@eng.pdn.ac.lk](mailto:e22232@eng.pdn.ac.lk)
 
 <!-- Image (photo/drawing of the final hardware) should be here -->
 
