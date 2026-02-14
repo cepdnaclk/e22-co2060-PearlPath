@@ -93,8 +93,8 @@ cd pearl-path
 ```
 ## Project Team
 
--31 - Team NextDev
----
+31 - Team NextDev
+
 
 
 
