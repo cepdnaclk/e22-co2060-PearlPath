@@ -90,7 +90,9 @@ git clone <repository-url>
 cd pearl-path
 ---
 
+```
 ### Project Team
+
 31 - Team NextDev
 
 ## 📁 Repository Structure (Initial)
