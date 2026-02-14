@@ -1,136 +1,88 @@
-Pearl Path: Sri Lankan Tourism Support Platform
+# Pearl Path – Sri Lankan Tourism Support Platform
 
-Pearl Path is a centralized digital travel support platform designed to simplify travel planning in Sri Lanka. The system integrates hotels, tourist attractions, transport services, and verified tour guides into a single web-based application.
+A centralized digital travel support platform designed to simplify travel planning in Sri Lanka by integrating hotels, attractions, tour guides, and vehicle services into a single system.
 
-This project was developed using the MERN stack (MongoDB, Express.js, React, Node.js) to provide a scalable, responsive, and efficient solution for both local and international tourists.
+This project is developed using the **MERN stack (MongoDB, Express, React, Node.js)** as part of an academic software project.
 
-📌 Project Description
+---
 
-Tourists visiting Sri Lanka often rely on multiple disconnected platforms to plan their trips. This creates confusion, inconsistent information, and potential safety risks.
+## 📌 Project Description
 
-Pearl Path addresses this problem by providing:
+Tourists visiting Sri Lanka often face challenges because they must use multiple disconnected platforms to plan their trips. This leads to confusion, unreliable information, and potential safety risks.
 
-A single unified platform for all travel needs
+**Pearl Path** solves this problem by providing a single unified digital platform that brings together verified travel services.
 
-Verified service providers to ensure safety
+The system provides:
 
-Efficient route planning using real-time map services
+- Centralized search for hotels and attractions  
+- Real-time route planning with map integration  
+- Verified tour guide and transport listings  
+- Safe and reliable travel information  
+- User-friendly travel planning experience  
 
-A user-friendly interface for seamless travel planning
+The platform is designed as a **web-based application** following a **three-tier architecture**.
 
-The platform focuses on reliability, convenience, and security to make travel faster, easier, and safer.
+---
 
-🧱 High-Level Architecture
+## 🧱 High-Level Architecture
 
-The system follows a three-tier architecture supported by cloud infrastructure:
+The system follows a **three-tier architecture**:
 
-Frontend
+### Frontend
+- React-based responsive web application  
+- Provides interactive UI/UX for users  
 
-React-based responsive web application
+### Backend
+- Node.js with Express.js  
+- Handles REST APIs, authentication, and business logic  
 
-Provides intuitive UI/UX for users
+### Database
+- MongoDB for storing:
+  - Service provider listings  
+  - Reviews and ratings  
+  - User profiles  
 
-Backend
+### External Integrations
+- Google Maps API for:
+  - Geolocation services  
+  - Route planning  
+  - Distance calculation  
+  - Attraction search  
 
-Node.js with Express.js
+---
 
-Handles API requests, business logic, and integrations
+## ⚙️ Technology Stack
 
-Database
+- **Frontend:** React  
+- **Backend:** Node.js, Express.js  
+- **Database:** MongoDB  
+- **Maps & Geolocation:** Google Maps API  
+- **Version Control:** Git & GitHub  
 
-MongoDB for storing:
+---
 
-Listings
 
-Reviews
+> The folder structure may expand as development progresses.
 
-User profiles
+---
 
-External Integrations
+## 🌿 Branching Model
 
-Google Maps API for:
+- `main` – Stable production-ready code  
+- `develop` – Active development branch  
+- `feature/*` – Individual feature development branches  
 
-Geolocation
+All features should be merged into `develop` via pull requests.
 
-Route planning
+---
 
-Distance calculation
+## 🚀 Getting Started
 
-Attraction search
+### Clone Repository
 
-⚙️ Technology Stack
+```bash
+git clone <repository-url>
+cd pearl-path
 
-Frontend: React
+## 📁 Repository Structure (Initial)
 
-Backend: Node.js, Express.js
-
-Database: MongoDB
-
-Maps & Geolocation: Google Maps API
-
-Version Control: Git & GitHub
-
-📁 Repository Structure
-/
-├── backend/      # Node.js & Express API
-├── frontend/     # React Application
-├── database/     # MongoDB schemas and scripts
-├── docs/         # API references and setup guides
-└── README.md
-
-🌿 Project Timeline (Current Semester)
-
-Week 9: Finalize UI/UX design & database schema
-
-Week 10: Backend API development & map integration
-
-Week 11: Frontend development & service provider listings
-
-Week 12: Integration testing & bug fixing
-
-Week 13: Deployment & final MVP presentation
-
-🚀 Key Features (MVP)
-🔎 Centralized Search
-
-Find verified hotels and attractions
-
-Filter by city, price, or rating
-
-🗺 Route Planning
-
-Interactive directions
-
-Optimized travel routes
-
-📂 Service Directory
-
-Verified tour guides
-
-Vehicle availability information
-
-🛠 Utility Tools
-
-Digital currency converter
-
-Official exchange rate integration
-
-📄 Additional Notes
-
-Verification:
-All service providers must undergo strict verification to ensure tourist safety.
-
-Performance:
-Built using an event-driven, non-blocking architecture for fast response times.
-
-👥 Project Team
-
-Team Name: NextDev
-
-E/22/124
-
-E/22/232
-
-E/22/228
-
-E/22/452
