@@ -91,9 +91,9 @@ cd pearl-path
 ---
 
 ```
-### Project Team
+## Project Team
 
 31 - Team NextDev
 
-## 📁 Repository Structure (Initial)
+### 📁 Repository Structure (Initial)
 
