@@ -62,27 +62,36 @@ The system follows a **three-tier architecture**:
 ---
 
 
-> The folder structure may expand as development progresses.
+## 📁 Repository Structure (Initial)
+
+```
+root/
+│
+├── code/
+├── docs/
+└── README.md
+```
+
+> The folder structure will be expanded as development progresses.
 
 ---
 
-## 🌿 Branching Model
 
-- `main` – Stable production-ready code  
-- `develop` – Active development branch  
-- `feature/*` – Individual feature development branches  
 
-All features should be merged into `develop` via pull requests.
 
----
 
 ## 🚀 Getting Started
+
 
 ### Clone Repository
 
 ```bash
 git clone <repository-url>
 cd pearl-path
+---
+
+### Project Team
+31 - Team NextDev
 
 ## 📁 Repository Structure (Initial)
 
