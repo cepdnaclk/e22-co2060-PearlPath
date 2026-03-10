@@ -7,6 +7,7 @@ const bookingController = require('../controllers/bookingController');
 // User Auth
 router.post('/signup', userController.signup);
 router.post('/login', userController.login);
+router.get('/users', userController.getUsers);
 
 
 // Hotels

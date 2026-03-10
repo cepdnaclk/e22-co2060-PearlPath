@@ -2,7 +2,7 @@ const User = require('../models/User');
 
 const signup = async (req, res) => {
     try {
-        const { firstName, lastName, email, phone, password } = req.body;
+        const { firstName, lastName, email, phone, password } = req.body || {};
 
         const existingUser = await User.findOne({ email });
         if (existingUser) {
@@ -21,7 +21,7 @@ const signup = async (req, res) => {
 
 const login = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password } = req.body || {};
 
         const user = await User.findOne({ email });
         if (!user) {
@@ -39,4 +39,14 @@ const login = async (req, res) => {
     }
 };
 
-module.exports = { signup, login };
+const getUsers = async (req, res) => {
+    try {
+        const users = await User.find({}, '-password');
+        res.status(200).json(users);
+    } catch (error) {
+        console.error("Error fetching users:", error);
+        res.status(500).json({ message: 'An error occurred while fetching users' });
+    }
+};
+
+module.exports = { signup, login, getUsers };
