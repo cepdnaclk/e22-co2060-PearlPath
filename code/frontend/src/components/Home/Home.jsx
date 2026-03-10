@@ -83,9 +83,9 @@ const Home = () => {
 
       {/* Quick View Modal */}
       {selectedProperty && (
-        <QuickViewModal 
-          property={selectedProperty} 
-          onClose={() => setSelectedProperty(null)} 
+        <QuickViewModal
+          property={selectedProperty}
+          onClose={() => setSelectedProperty(null)}
         />
       )}
 
@@ -93,7 +93,7 @@ const Home = () => {
       <div className="relative h-screen w-full overflow-hidden flex items-center justify-center">
         {/* Abstract Video Background via YouTube iframe overlay */}
         <div className="absolute inset-0 z-0 bg-sunset-dark pointer-events-none">
-           <iframe
+          <iframe
             className="w-[150vw] h-[150vh] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-70"
             src="https://www.youtube-nocookie.com/embed/f-Sdk3Jjp3I?autoplay=1&mute=1&loop=1&playlist=f-Sdk3Jjp3I&controls=0&showinfo=0&rel=0"
             title="Background Video"
@@ -101,7 +101,7 @@ const Home = () => {
             allow="autoplay; encrypted-media"
           ></iframe>
         </div>
-        
+
         {/* Gradient Overlay for Text Readability */}
         <div className="absolute inset-0 z-10 bg-gradient-to-b from-sunset-dark/60 via-transparent to-[#FDFBF7]"></div>
 
@@ -118,7 +118,7 @@ const Home = () => {
 
           {/* Floating Search Widget */}
           <div className="bg-white/95 backdrop-blur-xl p-3 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col md:flex-row items-center gap-2 max-w-2xl mx-auto border border-white/40 transform hover:scale-[1.01] transition-transform">
-            
+
             <div className="flex-1 w-full flex items-center bg-transparent rounded-full px-4 py-2">
               <MapPin className="text-sunset-teal mr-3" size={24} />
               <input type="text" placeholder="Where do you want to go?" className="w-full bg-transparent outline-none text-gray-800 placeholder-gray-400 font-medium text-lg" />
@@ -133,7 +133,7 @@ const Home = () => {
 
       {/* MAIN CONTENT */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 -mt-10 relative z-30">
-        
+
         {/* Category Pills (Interactive Map / Guides / etc) */}
         <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-8 mb-4">
           <button className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-teal/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
@@ -154,19 +154,19 @@ const Home = () => {
         <div className="mb-12">
           <h2 className="text-3xl font-extrabold text-gray-900 mb-2">The Exploration Grid</h2>
           <p className="text-gray-500 mb-8 font-medium">Curated stays matching the Pearl Path standard.</p>
-          
+
           <div className="masonry-grid">
             {properties.map((property) => (
-              <div 
-                key={property.id} 
+              <div
+                key={property.id}
                 className="masonry-item relative group cursor-pointer rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
                 onClick={() => setSelectedProperty(property)}
               >
                 {/* Image */}
                 <div className={`${property.height} w-full bg-gray-200 relative overflow-hidden`}>
-                  <img 
-                    src={property.image} 
-                    alt={property.name} 
+                  <img
+                    src={property.image}
+                    alt={property.name}
                     className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                   />
                   {/* Overlay Gradient */}
@@ -187,7 +187,7 @@ const Home = () => {
                       {property.rating} <Star size={12} className="text-sunset-gold fill-current" />
                     </div>
                   </div>
-                  
+
                   {/* Hover Reveal Price */}
                   <div className="h-0 overflow-hidden group-hover:h-8 transition-all duration-300 flex items-center mt-2">
                     <span className="text-sm text-gray-300">from</span>
