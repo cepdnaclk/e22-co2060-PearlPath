@@ -93,13 +93,14 @@ const Home = () => {
       <div className="relative h-screen w-full overflow-hidden flex items-center justify-center">
         {/* Abstract Video Background via YouTube iframe overlay */}
         <div className="absolute inset-0 z-0 bg-sunset-dark pointer-events-none">
-          <iframe
-            className="w-[150vw] h-[150vh] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-70"
-            src="https://www.youtube-nocookie.com/embed/f-Sdk3Jjp3I?autoplay=1&mute=1&loop=1&playlist=f-Sdk3Jjp3I&controls=0&showinfo=0&rel=0"
-            title="Background Video"
-            frameBorder="0"
-            allow="autoplay; encrypted-media"
-          ></iframe>
+          <video
+            className="w-full h-full object-cover opacity-70"
+            src="/sri-lanka.mp4"
+            autoPlay
+            loop
+            muted
+            playsInline
+          ></video>
         </div>
 
         {/* Gradient Overlay for Text Readability */}

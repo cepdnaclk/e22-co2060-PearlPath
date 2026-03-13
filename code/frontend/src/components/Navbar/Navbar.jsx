@@ -1,10 +1,42 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, Building, MapPin, Footprints, BusFront, UserCheck, DollarSign, Navigation } from 'lucide-react';
+import { Menu, Building, MapPin, Footprints, BusFront, UserCheck, DollarSign, Navigation, User, LogOut, ChevronDown, Plus } from 'lucide-react';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error('Failed to parse user', e);
+      }
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    setUser(null);
+    setIsDropdownOpen(false);
+    window.location.href = '/';
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -15,11 +47,10 @@ const Navbar = () => {
   }, []);
 
   const navItems = [
-    { id: 'stays', label: 'Stays', icon: <Building size={18} fill="currentColor" className="text-sunset-gold" /> },
-    { id: 'flights', label: 'Flights', icon: <Footprints size={18} fill="currentColor" className="text-sunset-orange" /> },
-    { id: 'tours', label: 'Tours', icon: <MapPin size={18} fill="currentColor" className="text-sunset-teal" /> },
+    { id: 'hotels', label: 'Hotels', icon: <Building size={18} fill="currentColor" className="text-sunset-gold" /> },
+    { id: 'tour-guides', label: 'Tour Guides', icon: <UserCheck size={18} fill="currentColor" className="text-sunset-orange" /> },
     { id: 'transport', label: 'Transport', icon: <BusFront size={18} fill="currentColor" className="text-slate-800" /> },
-    { id: 'experiences', label: 'Experiences', icon: <UserCheck size={18} fill="currentColor" className="text-yellow-400" /> },
+    { id: 'destinations', label: 'Destinations', icon: <MapPin size={18} fill="currentColor" className="text-sunset-teal" /> },
   ];
 
   return (
@@ -44,10 +75,69 @@ const Navbar = () => {
             
             <div className="h-6 w-px bg-white/20"></div>
             
-            <Link to="/login" className="text-white font-medium hover:text-sunset-gold transition-colors">Sign in</Link>
-            <Link to="/register" className="bg-gradient-to-r from-sunset-orange to-sunset-gold text-white px-5 py-2 rounded-full font-semibold shadow-lg hover:shadow-sunset-orange/50 transition-all transform hover:-translate-y-0.5">
-              Register
-            </Link>
+            {user ? (
+              <div className="relative" ref={dropdownRef}>
+                <button 
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full border border-white/10 backdrop-blur-sm transition-all focus:outline-none focus:ring-2 focus:ring-sunset-orange/50"
+                  aria-expanded={isDropdownOpen}
+                  aria-haspopup="true"
+                >
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-sunset-orange to-sunset-gold flex items-center justify-center shadow-inner">
+                    <User size={14} className="text-white" />
+                  </div>
+                  <span className="text-white font-medium text-sm hidden sm:block">{user.firstName || user.name || 'User'}</span>
+                  <ChevronDown size={16} className={`text-white transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* Dropdown Menu */}
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-3 w-56 bg-white/95 backdrop-blur-md rounded-xl shadow-2xl border border-white/20 overflow-hidden z-50 transform origin-top-right transition-all animate-slide-up">
+                    <div className="px-4 py-3 bg-gradient-to-br from-slate-50 to-slate-100 border-b border-gray-100">
+                      <p className="text-sm font-bold text-gray-800 truncate">
+                        {user.firstName || user.name || 'User'} {user.lastName || ''}
+                      </p>
+                      {user.email && (
+                        <p className="text-xs text-gray-500 truncate mt-0.5">{user.email}</p>
+                      )}
+                        <p className="text-xs font-medium text-sunset-gold mt-1">
+                        {user.role ? user.role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : 'Tourist'}
+                      </p>
+                    </div>
+                    
+                    <div className="py-1">
+                      <Link 
+                        to="/register"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-sunset-teal flex items-center gap-2 transition-colors"
+                      >
+                        <Plus size={16} />
+                        Add Account
+                      </Link>
+                    </div>
+                    
+                    <hr className="border-gray-100 my-1" />
+                    
+                    <div className="py-1">
+                      <button 
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors font-medium"
+                      >
+                        <LogOut size={16} />
+                        Sign Out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <Link to="/login" className="text-white font-medium hover:text-sunset-gold transition-colors">Sign in</Link>
+                <Link to="/register" className="bg-gradient-to-r from-sunset-orange to-sunset-gold text-white px-5 py-2 rounded-full font-semibold shadow-lg hover:shadow-sunset-orange/50 transition-all transform hover:-translate-y-0.5">
+                  Register
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -80,8 +170,38 @@ const Navbar = () => {
               </button>
             ))}
             <div className="h-px bg-white/10 my-2"></div>
-            <Link to="/login" className="text-center text-white font-medium py-2">Sign in</Link>
-            <Link to="/register" className="text-center bg-gradient-to-r from-sunset-orange to-sunset-gold text-white py-2 rounded-xl font-semibold">Register</Link>
+            {user ? (
+              <>
+                <div className="flex items-center justify-center gap-4 py-3 bg-white/5 rounded-xl border border-white/10 px-4">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sunset-orange to-sunset-gold flex items-center justify-center shrink-0 shadow-inner">
+                    <User size={20} className="text-white" />
+                  </div>
+                  <div className="flex flex-col text-left overflow-hidden">
+                    <span className="text-white font-bold truncate">
+                      {user.firstName || user.name || 'User'} {user.lastName || ''}
+                    </span>
+                    {user.email && (
+                      <span className="text-gray-300 text-xs truncate mt-0.5">{user.email}</span>
+                    )}
+                    <span className="text-sunset-gold text-xs font-medium mt-0.5">
+                      {user.role ? user.role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : 'Tourist'}
+                    </span>
+                  </div>
+                </div>
+                <button 
+                  onClick={handleLogout}
+                  className="w-full text-center bg-white/10 hover:bg-white/20 text-white font-medium py-2 rounded-xl transition-colors flex items-center justify-center gap-2"
+                >
+                  <LogOut size={18} />
+                  <span>Logout</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="text-center text-white font-medium py-2">Sign in</Link>
+                <Link to="/register" className="text-center bg-gradient-to-r from-sunset-orange to-sunset-gold text-white py-2 rounded-xl font-semibold">Register</Link>
+              </>
+            )}
           </div>
         </div>
       )}

@@ -24,7 +24,10 @@ const SignInPage = () => {
 
       if (response.ok) {
         console.log('Login successful:', data);
-        // Successful login! You can redirect or save user state here
+        // Save user state
+        localStorage.setItem('user', JSON.stringify(data.user));
+        if (data.token) localStorage.setItem('token', data.token);
+        
         alert('Welcome back, ' + data.user.firstName + '!');
         window.location.href = '/';
       } else {
