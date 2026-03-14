@@ -12,6 +12,7 @@ router.get('/users', userController.getUsers);
 
 // Hotels
 router.get('/hotels', hotelController.getHotels);
+router.get('/hotels/:id', hotelController.getHotelById);
 router.post('/hotels', hotelController.createHotel);
 
 // Bookings

@@ -47,10 +47,10 @@ const Navbar = () => {
   }, []);
 
   const navItems = [
-    { id: 'hotels', label: 'Hotels', icon: <Building size={18} fill="currentColor" className="text-sunset-gold" /> },
-    { id: 'tour-guides', label: 'Tour Guides', icon: <UserCheck size={18} fill="currentColor" className="text-sunset-orange" /> },
-    { id: 'transport', label: 'Transport', icon: <BusFront size={18} fill="currentColor" className="text-slate-800" /> },
-    { id: 'destinations', label: 'Destinations', icon: <MapPin size={18} fill="currentColor" className="text-sunset-teal" /> },
+    { id: 'hotels', label: 'Hotels', icon: <Building size={18} fill="currentColor" className="text-sunset-gold" />, path: '/hotels' },
+    { id: 'tour-guides', label: 'Tour Guides', icon: <UserCheck size={18} fill="currentColor" className="text-sunset-orange" />, path: '#' },
+    { id: 'transport', label: 'Transport', icon: <BusFront size={18} fill="currentColor" className="text-slate-800" />, path: '#' },
+    { id: 'destinations', label: 'Destinations', icon: <MapPin size={18} fill="currentColor" className="text-sunset-teal" />, path: '#' },
   ];
 
   return (
@@ -151,10 +151,10 @@ const Navbar = () => {
         {/* Categories Tab Bar */}
         <div className="hidden md:flex mt-4 gap-2 overflow-x-auto hide-scrollbar">
           {navItems.map((item) => (
-            <button key={item.id} className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 backdrop-blur-sm transition-all hover:scale-105 group">
+            <Link to={item.path} key={item.id} className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 backdrop-blur-sm transition-all hover:scale-105 group">
               <span className="transform group-hover:scale-110 transition-transform">{item.icon}</span>
               <span className="font-medium text-sm">{item.label}</span>
-            </button>
+            </Link>
           ))}
         </div>
       </div>
@@ -164,10 +164,10 @@ const Navbar = () => {
         <div className="md:hidden absolute top-full left-0 w-full bg-sunset-dark/95 backdrop-blur-lg border-t border-white/10 shadow-2xl">
           <div className="px-4 py-4 flex flex-col gap-4">
             {navItems.map((item) => (
-              <button key={item.id} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-colors">
+              <Link to={item.path} key={item.id} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-colors" onClick={() => setMobileMenuOpen(false)}>
                 {item.icon}
                 <span className="font-medium">{item.label}</span>
-              </button>
+              </Link>
             ))}
             <div className="h-px bg-white/10 my-2"></div>
             {user ? (

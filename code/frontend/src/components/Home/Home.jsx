@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 import QuickViewModal from '../QuickView/QuickViewModal';
-import { Calendar, User, Search, MapPin, Map, Navigation, Star, Compass, Wind } from 'lucide-react';
+import { Calendar, User, Search, MapPin, Map, Navigation, Star, Compass, Wind, Plus } from 'lucide-react';
 
 // Sample Property Data
 const properties = [
@@ -76,6 +77,18 @@ const properties = [
 
 const Home = () => {
   const [selectedProperty, setSelectedProperty] = useState(null);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error('Failed to parse user', e);
+      }
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] font-outfit">
@@ -137,6 +150,13 @@ const Home = () => {
 
         {/* Category Pills (Interactive Map / Guides / etc) */}
         <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-8 mb-4">
+          {user?.role === 'hotel_owner' && (
+            <Link to="/add-property" className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-sunset-gold to-sunset-orange rounded-full shadow-md hover:shadow-lg transition-all text-white whitespace-nowrap group">
+              <Plus className="text-white group-hover:scale-125 transition-transform" />
+              <span className="font-bold">Add Hotels</span>
+            </Link>
+          )}
+
           <button className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-teal/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
             <Compass className="text-sunset-teal group-hover:rotate-45 transition-transform" />
             <span className="font-semibold">Interactive Map</span>

@@ -19,7 +19,9 @@ const createHotel = async (req, res) => {
             location: req.body.location,
             imageUrl: req.body.imageUrl,
             images: req.body.images || [],
-            rooms: req.body.rooms || 1
+            rooms: req.body.rooms || 1,
+            starRating: req.body.starRating || 3,
+            amenities: req.body.amenities || []
         });
 
         await newHotel.save();
@@ -30,4 +32,15 @@ const createHotel = async (req, res) => {
     }
 }
 
-module.exports = { getHotels, createHotel };
+const getHotelById = async (req, res) => {
+    try {
+        const hotel = await Hotel.findById(req.params.id);
+        if (!hotel) return res.status(404).json({ message: 'Hotel not found' });
+        res.status(200).json({ response: hotel });
+    } catch (error) {
+        console.error("Get hotel error:", error);
+        res.status(500).json({ message: 'An error occurred while fetching the hotel' });
+    }
+};
+
+module.exports = { getHotels, createHotel, getHotelById };
