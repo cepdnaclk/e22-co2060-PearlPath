@@ -107,9 +107,25 @@ const Navbar = () => {
                     
                     <div className="py-1">
                       <Link 
-                        to="/register"
+                        to="/profile"
                         onClick={() => setIsDropdownOpen(false)}
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-sunset-teal flex items-center gap-2 transition-colors"
+                      >
+                        <User size={16} />
+                        My Profile
+                      </Link>
+                      <Link 
+                        to="/my-bookings"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-sunset-teal flex items-center gap-2 transition-colors"
+                      >
+                        <Building size={16} />
+                        My Bookings
+                      </Link>
+                      <Link 
+                        to="/register"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-sunset-teal flex items-center gap-2 transition-colors border-t border-gray-50"
                       >
                         <Plus size={16} />
                         Add Account

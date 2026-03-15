@@ -8,6 +8,7 @@ const bookingController = require('../controllers/bookingController');
 router.post('/signup', userController.signup);
 router.post('/login', userController.login);
 router.get('/users', userController.getUsers);
+router.put('/users/:id', userController.updateUser);
 
 
 // Hotels

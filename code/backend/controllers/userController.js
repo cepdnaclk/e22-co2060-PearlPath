@@ -1,5 +1,27 @@
 const User = require('../models/User');
 
+const updateUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { firstName, lastName, phone } = req.body;
+
+        const updatedUser = await User.findByIdAndUpdate(
+            id,
+            { firstName, lastName, phone },
+            { new: true, runValidators: true }
+        ).select('-password'); // Exclude password from the response
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({ message: 'User updated successfully', user: updatedUser });
+    } catch (error) {
+        console.error("Update user error:", error);
+        res.status(500).json({ message: 'An error occurred while updating user profile' });
+    }
+};
+
 const signup = async (req, res) => {
     try {
         const { firstName, lastName, email, phone, password, role } = req.body || {};
@@ -49,4 +71,5 @@ const getUsers = async (req, res) => {
     }
 };
 
-module.exports = { signup, login, getUsers };
+module.exports = { signup, login, getUsers, updateUser };
+
