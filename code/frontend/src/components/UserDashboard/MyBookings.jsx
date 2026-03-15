@@ -19,13 +19,13 @@ const MyBookings = () => {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
 
-        const response = await fetch(`http://127.0.0.1:3001/api/bookings/${parsedUser._id}`);
+        const response = await fetch(`http://127.0.0.1:3001/api/bookings/user/${parsedUser._id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch bookings');
         }
         const data = await response.json();
-        // Sort descending by created checkInDate (or implicit creation order via _id)
-        const sortedBookings = data.response.sort((a,b) => new Date(b.checkInDate) - new Date(a.checkInDate));
+        // Sort descending by created startDate (or implicit creation order via _id)
+        const sortedBookings = data.response.sort((a,b) => new Date(b.startDate) - new Date(a.startDate));
         
         setBookings(sortedBookings);
       } catch (err) {
@@ -58,9 +58,30 @@ const MyBookings = () => {
       return diffDays;
   };
 
-  const isUpcoming = (checkInDate) => {
-      return new Date(checkInDate) > new Date();
+  const isUpcoming = (startDate) => {
+      return new Date(startDate) > new Date();
   }
+
+  const handleCancelBooking = async (bookingId) => {
+    if (!window.confirm('Are you sure you want to cancel this booking?')) return;
+    
+    try {
+        const response = await fetch(`http://127.0.0.1:3001/api/bookings/${bookingId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+             setBookings(bookings.filter(b => b._id !== bookingId));
+             alert('Booking cancelled successfully.');
+        } else {
+             const data = await response.json();
+             alert(data.message || 'Failed to cancel booking.');
+        }
+    } catch (err) {
+        console.error('Cancel booking error:', err);
+        alert('Network error. Could not cancel booking.');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 font-outfit py-12 px-4 sm:px-6 lg:px-8">
@@ -82,7 +103,7 @@ const MyBookings = () => {
                     <div className="bg-orange-50 p-2 rounded-lg text-sunset-orange"><Clock size={20} /></div>
                     <div>
                         <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Upcoming</p>
-                        <p className="text-lg font-bold text-slate-900">{bookings.filter(b => isUpcoming(b.checkInDate)).length}</p>
+                        <p className="text-lg font-bold text-slate-900">{bookings.filter(b => isUpcoming(b.startDate)).length}</p>
                     </div>
                 </div>
                 <div className="bg-white px-5 py-3 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-3">
@@ -118,8 +139,8 @@ const MyBookings = () => {
           <div className="space-y-6">
             {bookings.map((booking) => {
                 const hotel = booking.hotelId;
-                const upcoming = isUpcoming(booking.checkInDate);
-                const nights = getStayDuration(booking.checkInDate, booking.checkOutDate);
+                const upcoming = isUpcoming(booking.startDate);
+                const nights = getStayDuration(booking.startDate, booking.endDate);
 
                 return (
                  <div key={booking._id} className="bg-white border rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative group">
@@ -177,14 +198,14 @@ const MyBookings = () => {
                                   </div>
                              </div>
 
-                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t border-slate-100">
+                             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 pt-6 border-t border-slate-100">
                                   <div>
                                        <p className="text-xs text-slate-400 font-semibold mb-1 uppercase tracking-wider">Check-in</p>
-                                       <p className="font-bold text-slate-800">{formatDate(booking.checkInDate)}</p>
+                                       <p className="font-bold text-slate-800">{formatDate(booking.startDate)}</p>
                                   </div>
                                   <div>
                                        <p className="text-xs text-slate-400 font-semibold mb-1 uppercase tracking-wider">Check-out</p>
-                                       <p className="font-bold text-slate-800">{formatDate(booking.checkOutDate)}</p>
+                                       <p className="font-bold text-slate-800">{formatDate(booking.endDate)}</p>
                                   </div>
                                   <div>
                                        <p className="text-xs text-slate-400 font-semibold mb-1 uppercase tracking-wider">Duration</p>
@@ -194,11 +215,31 @@ const MyBookings = () => {
                                        </p>
                                   </div>
                                   <div>
-                                       <p className="text-xs text-slate-400 font-semibold mb-1 uppercase tracking-wider">Guests</p>
+                                       <p className="text-xs text-slate-400 font-semibold mb-1 uppercase tracking-wider">Rooms/Guests</p>
                                        <p className="text-slate-700 font-medium flex items-center gap-1.5">
                                            <Users size={16} className="text-slate-400" />
-                                           {booking.guests} {booking.guests === 1 ? 'Guest' : 'Guests'}
+                                           {booking.rooms} R / {booking.guests} G
                                        </p>
+                                  </div>
+                                  <div>
+                                       <p className="text-xs text-slate-400 font-semibold mb-1 uppercase tracking-wider">Status</p>
+                                       <div className="flex flex-col items-start gap-2 mt-1">
+                                           <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider ${
+                                               booking.bookingStatus === 'confirmed' ? 'bg-green-100 text-green-700' : 
+                                               booking.bookingStatus === 'cancelled' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
+                                           }`}>
+                                               {booking.bookingStatus}
+                                           </span>
+                                           
+                                           {upcoming && booking.bookingStatus !== 'cancelled' && (
+                                                <button 
+                                                    onClick={() => handleCancelBooking(booking._id)}
+                                                    className="text-xs font-bold text-red-500 hover:text-red-700 hover:underline mt-1 transition-colors"
+                                                >
+                                                    Cancel Booking
+                                                </button>
+                                           )}
+                                       </div>
                                   </div>
                              </div>
                          </div>

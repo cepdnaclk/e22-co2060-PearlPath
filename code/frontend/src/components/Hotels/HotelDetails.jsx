@@ -43,6 +43,15 @@ const getAmenityIcon = (amenity) => {
 const HotelDetails = () => {
   const [hotel, setHotel] = useState(MOCK_HOTEL_DETAIL);
   const [loading, setLoading] = useState(true);
+  
+  // Booking Form State
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [rooms, setRooms] = useState(1);
+  const [guests, setGuests] = useState(2);
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const [bookingError, setBookingError] = useState('');
+  
   const { id } = useParams();
 
   useEffect(() => {
@@ -92,6 +101,78 @@ const HotelDetails = () => {
       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-sunset-teal"></div>
     </div>
   );
+
+  // Dynamic calculations
+  let nights = 0;
+  if (startDate && endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (end > start) {
+       nights = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+    }
+  }
+  const displayNights = nights > 0 ? nights : 1; // Default to 1 for display if no dates selected
+  const totalPrice = hotel.pricePerNight * displayNights * rooms;
+
+  const handleBooking = async () => {
+    setBookingError('');
+    
+    // Validations
+    if (!startDate || !endDate) {
+       setBookingError('Please select check-in and check-out dates.');
+       return;
+    }
+    if (nights <= 0) {
+       setBookingError('Check-out date must be after check-in date.');
+       return;
+    }
+    
+    // Check authentication
+    const storedUser = localStorage.getItem('user');
+    if (!storedUser) {
+       window.location.href = '/login';
+       return;
+    }
+    
+    const user = JSON.parse(storedUser);
+    
+    // Safety check: if hotelId is a mock integer (like '1'), MongoDB throws a CastError (500)
+    // We generate a valid mock ObjectId for testing purposes if it's not a real DB ID string
+    const finalHotelId = (typeof hotel.id === 'string' && hotel.id.length === 24) 
+        ? hotel.id 
+        : '000000000000000000000001';
+        
+    setBookingLoading(true);
+    try {
+        const response = await fetch('http://127.0.0.1:3001/api/bookings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: user._id,
+                hotelId: finalHotelId,
+                startDate,
+                endDate,
+                rooms: parseInt(rooms),
+                guests: parseInt(guests),
+                totalPrice,
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            alert('Booking successful!');
+            window.location.href = '/my-bookings';
+        } else {
+            setBookingError(data.message || 'Booking failed. Please try again.');
+        }
+    } catch (err) {
+        console.error("Booking error:", err);
+        setBookingError('Network error. Is the server running?');
+    } finally {
+        setBookingLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 font-outfit flex flex-col">
@@ -212,37 +293,85 @@ const HotelDetails = () => {
                 </div>
               </div>
 
-              {/* Mock Date Picker Area */}
-              <div className="border border-gray-300 rounded-xl overflow-hidden mb-6 flex divide-x divide-gray-300">
-                <div className="p-3 w-1/2 bg-gray-50/50 hover:bg-gray-100 cursor-pointer transition-colors">
-                  <span className="block text-xs font-bold uppercase text-gray-500 mb-1">Check-in</span>
-                  <span className="text-sm font-medium text-gray-800">Select Date</span>
+              {bookingError && (
+                 <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 font-medium">
+                    {bookingError}
+                 </div>
+              )}
+
+              {/* Date Pickers */}
+              <div className="border border-gray-300 rounded-xl overflow-hidden mb-4 flex divide-x divide-gray-300 focus-within:ring-2 focus-within:ring-sunset-orange focus-within:border-transparent transition-all">
+                <div className="p-3 w-1/2 bg-gray-50/50 hover:bg-white transition-colors">
+                  <label htmlFor="startDate" className="block text-xs font-bold uppercase text-gray-500 mb-1 cursor-pointer">Check-in</label>
+                  <input 
+                    type="date" 
+                    id="startDate"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full bg-transparent text-sm font-medium text-gray-800 outline-none" 
+                  />
                 </div>
-                <div className="p-3 w-1/2 bg-gray-50/50 hover:bg-gray-100 cursor-pointer transition-colors">
-                  <span className="block text-xs font-bold uppercase text-gray-500 mb-1">Check-out</span>
-                  <span className="text-sm font-medium text-gray-800">Select Date</span>
+                <div className="p-3 w-1/2 bg-gray-50/50 hover:bg-white transition-colors">
+                  <label htmlFor="endDate" className="block text-xs font-bold uppercase text-gray-500 mb-1 cursor-pointer">Check-out</label>
+                  <input 
+                    type="date" 
+                    id="endDate"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    min={startDate || new Date().toISOString().split('T')[0]}
+                    className="w-full bg-transparent text-sm font-medium text-gray-800 outline-none" 
+                  />
                 </div>
               </div>
 
-              {/* Mock Guests Picker */}
-              <div className="border border-gray-300 rounded-xl p-3 mb-6 bg-gray-50/50 hover:bg-gray-100 cursor-pointer transition-colors">
-                <span className="block text-xs font-bold uppercase text-gray-500 mb-1">Guests</span>
-                <span className="text-sm font-medium text-gray-800">2 Guests, 1 Room</span>
+              {/* Guests & Rooms Picker */}
+              <div className="border border-gray-300 rounded-xl overflow-hidden mb-6 flex divide-x divide-gray-300 focus-within:ring-2 focus-within:ring-sunset-orange focus-within:border-transparent transition-all">
+                <div className="p-3 w-1/2 bg-gray-50/50 hover:bg-white transition-colors">
+                  <label htmlFor="guests" className="block text-xs font-bold uppercase text-gray-500 mb-1 cursor-pointer">Guests</label>
+                  <input 
+                    type="number" 
+                    id="guests"
+                    min="1"
+                    value={guests}
+                    onChange={(e) => setGuests(e.target.value)}
+                    className="w-full bg-transparent text-sm font-medium text-gray-800 outline-none" 
+                  />
+                </div>
+                <div className="p-3 w-1/2 bg-gray-50/50 hover:bg-white transition-colors">
+                  <label htmlFor="rooms" className="block text-xs font-bold uppercase text-gray-500 mb-1 cursor-pointer">Rooms</label>
+                  <input 
+                    type="number" 
+                    id="rooms"
+                    min="1"
+                    value={rooms}
+                    onChange={(e) => setRooms(e.target.value)}
+                    className="w-full bg-transparent text-sm font-medium text-gray-800 outline-none" 
+                  />
+                </div>
               </div>
 
-              <button className="w-full bg-gradient-to-r from-sunset-orange to-sunset-gold text-white font-bold text-lg py-4 rounded-xl shadow-lg hover:shadow-orange-500/30 transform transition-all hover:-translate-y-0.5 focus:ring-4 focus:ring-orange-500/50 mb-4">
-                Reserve
+              <button 
+                onClick={handleBooking}
+                disabled={bookingLoading}
+                className="w-full bg-gradient-to-r from-sunset-orange to-sunset-gold text-white font-bold text-lg py-4 rounded-xl shadow-lg hover:shadow-orange-500/30 transform transition-all hover:-translate-y-0.5 focus:ring-4 focus:ring-orange-500/50 mb-4 disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {bookingLoading ? 'Processing...' : 'Reserve'}
               </button>
 
               <div className="text-center space-y-2">
                 <p className="text-sm font-medium text-gray-500">You won't be charged yet</p>
-                <div className="flex justify-between items-center text-sm font-medium text-gray-600 border-b border-gray-100 pb-2">
-                  <span className="underline decoration-gray-300 underline-offset-4">LKR {hotel.pricePerNight.toLocaleString()} x 3 nights</span>
-                  <span>LKR {(hotel.pricePerNight * 3).toLocaleString()}</span>
-                </div>
+                {nights > 0 && (
+                  <div className="flex justify-between items-center text-sm font-medium text-gray-600 border-b border-gray-100 pb-2 mt-4">
+                    <span className="underline decoration-gray-300 underline-offset-4">
+                        LKR {hotel.pricePerNight.toLocaleString()} x {rooms} room(s) x {nights} night(s)
+                    </span>
+                    <span>LKR {totalPrice.toLocaleString()}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center font-extrabold text-gray-900 pt-2">
                   <span>Total</span>
-                  <span>LKR {(hotel.pricePerNight * 3).toLocaleString()}</span>
+                  <span>LKR {totalPrice.toLocaleString()}</span>
                 </div>
               </div>
             </div>

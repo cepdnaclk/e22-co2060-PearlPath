@@ -18,6 +18,8 @@ router.post('/hotels', hotelController.createHotel);
 
 // Bookings
 router.post('/bookings', bookingController.createBooking);
-router.get('/bookings/:userId', bookingController.getBookings);
+router.get('/bookings/user/:userId', bookingController.getBookings);
+router.put('/bookings/:id', bookingController.updateBooking);
+router.delete('/bookings/:id', bookingController.cancelBooking);
 
 module.exports = router;
