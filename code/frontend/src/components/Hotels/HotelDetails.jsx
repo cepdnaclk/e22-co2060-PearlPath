@@ -43,7 +43,7 @@ const getAmenityIcon = (amenity) => {
 const HotelDetails = () => {
   const [hotel, setHotel] = useState(MOCK_HOTEL_DETAIL);
   const [loading, setLoading] = useState(true);
-  
+
   // Booking Form State
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -51,7 +51,7 @@ const HotelDetails = () => {
   const [guests, setGuests] = useState(2);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingError, setBookingError] = useState('');
-  
+
   const { id } = useParams();
 
   useEffect(() => {
@@ -108,7 +108,7 @@ const HotelDetails = () => {
     const start = new Date(startDate);
     const end = new Date(endDate);
     if (end > start) {
-       nights = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+      nights = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
     }
   }
   const displayNights = nights > 0 ? nights : 1; // Default to 1 for display if no dates selected
@@ -116,61 +116,61 @@ const HotelDetails = () => {
 
   const handleBooking = async () => {
     setBookingError('');
-    
+
     // Validations
     if (!startDate || !endDate) {
-       setBookingError('Please select check-in and check-out dates.');
-       return;
+      setBookingError('Please select check-in and check-out dates.');
+      return;
     }
     if (nights <= 0) {
-       setBookingError('Check-out date must be after check-in date.');
-       return;
+      setBookingError('Check-out date must be after check-in date.');
+      return;
     }
-    
+
     // Check authentication
     const storedUser = localStorage.getItem('user');
     if (!storedUser) {
-       window.location.href = '/login';
-       return;
+      window.location.href = '/login';
+      return;
     }
-    
+
     const user = JSON.parse(storedUser);
-    
+
     // Safety check: if hotelId is a mock integer (like '1'), MongoDB throws a CastError (500)
     // We generate a valid mock ObjectId for testing purposes if it's not a real DB ID string
-    const finalHotelId = (typeof hotel.id === 'string' && hotel.id.length === 24) 
-        ? hotel.id 
-        : '000000000000000000000001';
-        
+    const finalHotelId = (typeof hotel.id === 'string' && hotel.id.length === 24)
+      ? hotel.id
+      : '000000000000000000000001';
+
     setBookingLoading(true);
     try {
-        const response = await fetch('http://127.0.0.1:3001/api/bookings', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                userId: user._id,
-                hotelId: finalHotelId,
-                startDate,
-                endDate,
-                rooms: parseInt(rooms),
-                guests: parseInt(guests),
-                totalPrice,
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            alert('Booking successful!');
-            window.location.href = '/my-bookings';
-        } else {
-            setBookingError(data.message || 'Booking failed. Please try again.');
-        }
+      const response = await fetch('http://127.0.0.1:3001/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user._id,
+          hotelId: finalHotelId,
+          startDate,
+          endDate,
+          rooms: parseInt(rooms),
+          guests: parseInt(guests),
+          totalPrice,
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('Booking successful!');
+        window.location.href = '/my-bookings';
+      } else {
+        setBookingError(data.message || 'Booking failed. Please try again.');
+      }
     } catch (err) {
-        console.error("Booking error:", err);
-        setBookingError('Network error. Is the server running?');
+      console.error("Booking error:", err);
+      setBookingError('Network error. Is the server running?');
     } finally {
-        setBookingLoading(false);
+      setBookingLoading(false);
     }
   };
 
@@ -184,7 +184,7 @@ const HotelDetails = () => {
       </div>
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 pt-8 pb-24 w-full relative z-10">
-        
+
         {/* Top Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
           <div>
@@ -197,10 +197,10 @@ const HotelDetails = () => {
             </h1>
             <div className="flex items-center gap-1 mt-3">
               {[...Array(5)].map((_, i) => (
-                <Star 
-                  key={i} 
-                  size={18} 
-                  className={i < hotel.starRating ? "text-sunset-gold fill-current" : "text-gray-200"} 
+                <Star
+                  key={i}
+                  size={18}
+                  className={i < hotel.starRating ? "text-sunset-gold fill-current" : "text-gray-200"}
                 />
               ))}
               <span className="ml-2 text-sm text-gray-500 font-medium">({hotel.starRating} Star Property)</span>
@@ -223,9 +223,9 @@ const HotelDetails = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-12 rounded-3xl overflow-hidden shadow-lg h-[500px]">
           {/* Left Hero Image (50%) */}
           <div className="h-full relative group">
-            <img 
-              src={hotel.images[0]} 
-              alt={`${hotel.propertyName} main view`} 
+            <img
+              src={hotel.images[0]}
+              alt={`${hotel.propertyName} main view`}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
           </div>
@@ -234,12 +234,12 @@ const HotelDetails = () => {
           <div className="hidden md:grid grid-cols-2 grid-rows-2 gap-3 h-full">
             {hotel.images.slice(1, 5).map((img, idx) => (
               <div key={idx} className="relative group overflow-hidden">
-                <img 
-                  src={img} 
-                  alt={`${hotel.propertyName} view ${idx + 2}`} 
+                <img
+                  src={img}
+                  alt={`${hotel.propertyName} view ${idx + 2}`}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
-                
+
                 {/* View All Photos Button Overlay (on the last image) */}
                 {idx === 3 && (
                   <button className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm hover:bg-white text-gray-900 px-4 py-2 rounded-xl flex items-center gap-2 font-bold shadow-md transition-colors z-10">
@@ -254,10 +254,10 @@ const HotelDetails = () => {
 
         {/* Two-Column Main Content */}
         <div className="flex flex-col lg:flex-row gap-10">
-          
+
           {/* Left Column (70%) */}
           <div className="lg:w-2/3">
-            
+
             {/* Description */}
             <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">About this property</h2>
@@ -294,33 +294,33 @@ const HotelDetails = () => {
               </div>
 
               {bookingError && (
-                 <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 font-medium">
-                    {bookingError}
-                 </div>
+                <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 font-medium">
+                  {bookingError}
+                </div>
               )}
 
               {/* Date Pickers */}
               <div className="border border-gray-300 rounded-xl overflow-hidden mb-4 flex divide-x divide-gray-300 focus-within:ring-2 focus-within:ring-sunset-orange focus-within:border-transparent transition-all">
                 <div className="p-3 w-1/2 bg-gray-50/50 hover:bg-white transition-colors">
                   <label htmlFor="startDate" className="block text-xs font-bold uppercase text-gray-500 mb-1 cursor-pointer">Check-in</label>
-                  <input 
-                    type="date" 
+                  <input
+                    type="date"
                     id="startDate"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                     min={new Date().toISOString().split('T')[0]}
-                    className="w-full bg-transparent text-sm font-medium text-gray-800 outline-none" 
+                    className="w-full bg-transparent text-sm font-medium text-gray-800 outline-none"
                   />
                 </div>
                 <div className="p-3 w-1/2 bg-gray-50/50 hover:bg-white transition-colors">
                   <label htmlFor="endDate" className="block text-xs font-bold uppercase text-gray-500 mb-1 cursor-pointer">Check-out</label>
-                  <input 
-                    type="date" 
+                  <input
+                    type="date"
                     id="endDate"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     min={startDate || new Date().toISOString().split('T')[0]}
-                    className="w-full bg-transparent text-sm font-medium text-gray-800 outline-none" 
+                    className="w-full bg-transparent text-sm font-medium text-gray-800 outline-none"
                   />
                 </div>
               </div>
@@ -329,29 +329,29 @@ const HotelDetails = () => {
               <div className="border border-gray-300 rounded-xl overflow-hidden mb-6 flex divide-x divide-gray-300 focus-within:ring-2 focus-within:ring-sunset-orange focus-within:border-transparent transition-all">
                 <div className="p-3 w-1/2 bg-gray-50/50 hover:bg-white transition-colors">
                   <label htmlFor="guests" className="block text-xs font-bold uppercase text-gray-500 mb-1 cursor-pointer">Guests</label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     id="guests"
                     min="1"
                     value={guests}
                     onChange={(e) => setGuests(e.target.value)}
-                    className="w-full bg-transparent text-sm font-medium text-gray-800 outline-none" 
+                    className="w-full bg-transparent text-sm font-medium text-gray-800 outline-none"
                   />
                 </div>
                 <div className="p-3 w-1/2 bg-gray-50/50 hover:bg-white transition-colors">
                   <label htmlFor="rooms" className="block text-xs font-bold uppercase text-gray-500 mb-1 cursor-pointer">Rooms</label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     id="rooms"
                     min="1"
                     value={rooms}
                     onChange={(e) => setRooms(e.target.value)}
-                    className="w-full bg-transparent text-sm font-medium text-gray-800 outline-none" 
+                    className="w-full bg-transparent text-sm font-medium text-gray-800 outline-none"
                   />
                 </div>
               </div>
 
-              <button 
+              <button
                 onClick={handleBooking}
                 disabled={bookingLoading}
                 className="w-full bg-gradient-to-r from-sunset-orange to-sunset-gold text-white font-bold text-lg py-4 rounded-xl shadow-lg hover:shadow-orange-500/30 transform transition-all hover:-translate-y-0.5 focus:ring-4 focus:ring-orange-500/50 mb-4 disabled:opacity-70 disabled:cursor-not-allowed"
@@ -364,7 +364,7 @@ const HotelDetails = () => {
                 {nights > 0 && (
                   <div className="flex justify-between items-center text-sm font-medium text-gray-600 border-b border-gray-100 pb-2 mt-4">
                     <span className="underline decoration-gray-300 underline-offset-4">
-                        LKR {hotel.pricePerNight.toLocaleString()} x {rooms} room(s) x {nights} night(s)
+                      LKR {hotel.pricePerNight.toLocaleString()} x {rooms} room(s) x {nights} night(s)
                     </span>
                     <span>LKR {totalPrice.toLocaleString()}</span>
                   </div>
