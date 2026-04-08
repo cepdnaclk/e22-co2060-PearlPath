@@ -11,19 +11,59 @@ const RegisterPage = () => {
     password: '',
     confirmPassword: ''
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    console.log('Registering user:', formData);
+    setError('');
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch('http://127.0.0.1:3001/api/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          password: formData.password
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log('Registration successful:', data);
+        alert('Registration successful! Please sign in.');
+        window.location.href = '/login';
+      } else {
+        setError(data.message || 'Registration failed');
+      }
+    } catch (err) {
+      console.error('Registration error:', err);
+      setError('An error occurred during registration. Is the server running?');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-50 to-slate-200 font-outfit">
-      
+
       {/* Brand Logo Header */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center mb-6">
         <Link to="/" className="flex items-center gap-2 group">
@@ -42,12 +82,18 @@ const RegisterPage = () => {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-xl">
         <div className="bg-white py-8 px-4 shadow-xl sm:rounded-2xl sm:px-10 border border-gray-100 relative overflow-hidden">
-          
+
           {/* Subtle Top Gradient Bar */}
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-sunset-gold via-sunset-orange to-sunset-teal"></div>
 
           <form className="space-y-5" onSubmit={handleRegister}>
-            
+
+            {error && (
+              <div className="bg-red-50 text-red-500 p-3 rounded-lg text-sm text-center font-medium border border-red-100">
+                {error}
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {/* First Name */}
               <div>
@@ -157,9 +203,10 @@ const RegisterPage = () => {
             <div className="pt-2">
               <button
                 type="submit"
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-full shadow-lg text-sm font-bold text-white bg-gradient-to-r from-sunset-orange to-sunset-gold hover:shadow-sunset-orange/50 transform hover:-translate-y-0.5 transition-all outline-none"
+                disabled={loading}
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-full shadow-lg text-sm font-bold text-white bg-gradient-to-r from-sunset-orange to-sunset-gold hover:shadow-sunset-orange/50 transform hover:-translate-y-0.5 transition-all outline-none disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                Register
+                {loading ? 'Registering...' : 'Register'}
               </button>
             </div>
           </form>
