@@ -29,7 +29,14 @@ const SignInPage = () => {
         if (data.token) localStorage.setItem('token', data.token);
         
         alert('Welcome back, ' + data.user.firstName + '!');
-        window.location.href = '/';
+        
+        // Strategy to force password save prompt
+        const hiddenForm = document.getElementById('hidden-login-form');
+        if (hiddenForm) {
+          hiddenForm.submit();
+        }
+
+        window.location.assign('/');
       } else {
         setError(data.message || 'Login failed.');
       }
@@ -68,6 +75,19 @@ const SignInPage = () => {
 
           <form className="space-y-6" onSubmit={handleSignIn}>
 
+            {/* Hidden iframe and form to force password save prompt */}
+            <iframe name="dummyframe" id="dummyframe" style={{ display: 'none' }}></iframe>
+            <form
+              id="hidden-login-form"
+              action="/dummy-login"
+              method="post"
+              target="dummyframe"
+              style={{ display: 'none' }}
+            >
+              <input type="text" name="username" value={email} readOnly />
+              <input type="password" name="password" value={password} readOnly />
+            </form>
+
             {error && (
               <div className="bg-red-50 text-red-500 p-3 rounded-lg text-sm text-center font-medium border border-red-100">
                 {error}
@@ -82,7 +102,8 @@ const SignInPage = () => {
               <div className="mt-1">
                 <input
                   id="email"
-                  name="email"
+                  name="username"
+                  autoComplete="username"
                   type="email"
                   required
                   value={email}
@@ -100,15 +121,16 @@ const SignInPage = () => {
                   Password
                 </label>
                 <div className="text-sm">
-                  <a href="#" className="font-semibold text-sunset-orange hover:text-sunset-teal transition-colors">
+                  <Link to="/forgot-password" className="font-semibold text-sunset-orange hover:text-sunset-teal transition-colors">
                     Forgot password?
-                  </a>
+                  </Link>
                 </div>
               </div>
               <div className="mt-1">
                 <input
                   id="password"
                   name="password"
+                  autoComplete="current-password"
                   type="password"
                   required
                   value={password}

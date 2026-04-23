@@ -86,7 +86,7 @@ const Navbar = () => {
                   <div className="w-7 h-7 rounded-full bg-gradient-to-br from-sunset-orange to-sunset-gold flex items-center justify-center shadow-inner">
                     <User size={14} className="text-white" />
                   </div>
-                  <span className="text-white font-medium text-sm hidden sm:block">{user.firstName || user.name || 'User'}</span>
+                  <span className="text-white font-medium text-sm hidden sm:block">{user.firstName || user.name || user.username || 'User'}</span>
                   <ChevronDown size={16} className={`text-white transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
 
@@ -95,7 +95,7 @@ const Navbar = () => {
                   <div className="absolute right-0 mt-3 w-56 bg-white/95 backdrop-blur-md rounded-xl shadow-2xl border border-white/20 overflow-hidden z-50 transform origin-top-right transition-all animate-slide-up">
                     <div className="px-4 py-3 bg-gradient-to-br from-slate-50 to-slate-100 border-b border-gray-100">
                       <p className="text-sm font-bold text-gray-800 truncate">
-                        {user.firstName || user.name || 'User'} {user.lastName || ''}
+                        {user.firstName || user.name || user.username || 'User'} {user.lastName || ''}
                       </p>
                       {user.email && (
                         <p className="text-xs text-gray-500 truncate mt-0.5">{user.email}</p>
@@ -194,7 +194,7 @@ const Navbar = () => {
                   </div>
                   <div className="flex flex-col text-left overflow-hidden">
                     <span className="text-white font-bold truncate">
-                      {user.firstName || user.name || 'User'} {user.lastName || ''}
+                      {user.firstName || user.name || user.username || 'User'} {user.lastName || ''}
                     </span>
                     {user.email && (
                       <span className="text-gray-300 text-xs truncate mt-0.5">{user.email}</span>
