@@ -6,7 +6,6 @@ const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [user, setUser] = useState(null);
 
   useEffect(() => {
     const fetchUserAndBookings = async () => {
@@ -17,7 +16,6 @@ const MyBookings = () => {
           return;
         }
         const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
 
         const response = await fetch(`http://127.0.0.1:3001/api/bookings/user/${parsedUser._id}`);
         if (!response.ok) {

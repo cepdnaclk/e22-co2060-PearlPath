@@ -77,18 +77,18 @@ const properties = [
 
 const Home = () => {
   const [selectedProperty, setSelectedProperty] = useState(null);
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
+  const [user] = useState(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       try {
-        setUser(JSON.parse(storedUser));
+        return JSON.parse(storedUser);
       } catch (e) {
         console.error('Failed to parse user', e);
+        return null;
       }
     }
-  }, []);
+    return null;
+  });
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] font-outfit">
