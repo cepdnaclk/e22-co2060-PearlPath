@@ -47,12 +47,12 @@ const updateBooking = async (req, res) => {
     try {
         const { id } = req.params;
         const updates = req.body;
-        
+
         const booking = await Booking.findByIdAndUpdate(id, updates, { new: true, runValidators: true });
         if (!booking) {
             return res.status(404).json({ message: 'Booking not found' });
         }
-        
+
         res.status(200).json({ message: 'Booking updated successfully', booking });
     } catch (error) {
         console.error("Update booking error:", error);
@@ -65,11 +65,11 @@ const cancelBooking = async (req, res) => {
         const { id } = req.params;
         // Just hard delete for now, or could update status to 'cancelled'
         const booking = await Booking.findByIdAndDelete(id);
-        
+
         if (!booking) {
-             return res.status(404).json({ message: 'Booking not found' });
+            return res.status(404).json({ message: 'Booking not found' });
         }
-        
+
         res.status(200).json({ message: 'Booking cancelled successfully' });
     } catch (error) {
         console.error("Cancel booking error:", error);

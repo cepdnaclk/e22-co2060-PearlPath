@@ -23,6 +23,17 @@ const RegisterPage = () => {
     e.preventDefault();
     setError('');
 
+    if (!formData.email.toLowerCase().endsWith('@gmail.com')) {
+      setError("Only valid Gmail addresses (@gmail.com) are accepted.");
+      return;
+    }
+
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!strongPasswordRegex.test(formData.password)) {
+      setError("Password must be at least 8 characters long and include an uppercase letter, lowercase letter, number, and a special character.");
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
       return;
