@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const userRouter = require('./routers/userRouter');
 const hotelRouter = require('./routers/hotelRouter');
 const bookingRouter = require('./routers/bookingRouter');
+const tourGuideRouter = require('./routers/tourGuideRouter');
 
 
 app.use(cors());
@@ -29,5 +30,6 @@ const server = app.listen(3001, '127.0.0.1', () => {
 app.use('/api', userRouter);
 app.use('/api', hotelRouter);
 app.use('/api', bookingRouter);
+app.use('/api', tourGuideRouter);
 
 

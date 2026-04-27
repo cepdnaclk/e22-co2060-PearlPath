@@ -11,6 +11,9 @@ import Profile from './components/UserDashboard/Profile'
 import MyBookings from './components/UserDashboard/MyBookings'
 
 import ForgotPassword from './components/Auth/ForgotPassword'
+import TourGuides from './components/TourGuides/TourGuides'
+import TourGuideDetails from './components/TourGuides/TourGuideDetails'
+import EditProfile from './components/TourGuideDashboard/EditProfile'
 
 
 function App() {
@@ -27,6 +30,10 @@ function App() {
         <Route path="/hotel/preview" element={<HotelDetails />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/my-bookings" element={<MyBookings />} />
+
+        <Route path="/tour-guides" element={<TourGuides />} />
+        <Route path="/tour-guide/:id" element={<TourGuideDetails />} />
+        <Route path="/tour-guide/edit-profile" element={<EditProfile />} />
 
         <Route path="/forgot-password" element={<ForgotPassword />} />
 

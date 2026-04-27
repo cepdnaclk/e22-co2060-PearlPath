@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const TourGuide = require('../models/TourGuide');
 
 const updateUser = async (req, res) => {
     try {
@@ -33,6 +34,20 @@ const signup = async (req, res) => {
 
         const newUser = new User({ firstName, lastName, email, phone, password, role: role || 'tourist' });
         await newUser.save();
+
+        // Auto-create TourGuide profile
+        if (newUser.role === 'tour_guide') {
+            const newGuide = new TourGuide({
+                userId: newUser._id,
+                name: `${newUser.firstName} ${newUser.lastName}`,
+                location: 'City, Country',
+                contactEmail: newUser.email,
+                pricePerDay: 0,
+                experienceYears: 0,
+                languages: ["English"]
+            });
+            await newGuide.save();
+        }
 
         res.status(201).json({ message: 'User created successfully', user: { _id: newUser._id, firstName: newUser.firstName, lastName: newUser.lastName, email: newUser.email, role: newUser.role } });
     } catch (error) {

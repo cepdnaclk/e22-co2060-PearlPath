@@ -48,7 +48,7 @@ const Navbar = () => {
 
   const navItems = [
     { id: 'hotels', label: 'Hotels', icon: <Building size={18} fill="currentColor" className="text-sunset-gold" />, path: '/hotels' },
-    { id: 'tour-guides', label: 'Tour Guides', icon: <UserCheck size={18} fill="currentColor" className="text-sunset-orange" />, path: '#' },
+    { id: 'tour-guides', label: 'Tour Guides', icon: <UserCheck size={18} fill="currentColor" className="text-sunset-orange" />, path: '/tour-guides' },
     { id: 'transport', label: 'Transport', icon: <BusFront size={18} fill="currentColor" className="text-slate-800" />, path: '#' },
     { id: 'destinations', label: 'Destinations', icon: <MapPin size={18} fill="currentColor" className="text-sunset-teal" />, path: '#' },
   ];
@@ -122,7 +122,18 @@ const Navbar = () => {
                         <Building size={16} />
                         My Bookings
                       </Link>
+                      {user.role === 'tour_guide' && (
+                        <Link 
+                          to="/tour-guide/edit-profile"
+                          onClick={() => setIsDropdownOpen(false)}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-sunset-teal flex items-center gap-2 transition-colors"
+                        >
+                          <UserCheck size={16} />
+                          Tour Guide Dashboard
+                        </Link>
+                      )}
                       <Link 
+
                         to="/register"
                         onClick={() => setIsDropdownOpen(false)}
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-sunset-teal flex items-center gap-2 transition-colors border-t border-gray-50"
