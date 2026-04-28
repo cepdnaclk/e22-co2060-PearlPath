@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Navigation, User, Building, MapPin } from 'lucide-react';
+import { Navigation, User, Building, MapPin, Car } from 'lucide-react';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -28,9 +28,9 @@ const RegisterPage = () => {
       return;
     }
 
-    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z0-9\W]).{8,}$/;
     if (!strongPasswordRegex.test(formData.password)) {
-      setError("Password must be at least 8 characters long and include an uppercase letter, lowercase letter, number, and a special character.");
+      setError("Password must be at least 8 characters, contain a lowercase letter, and include an uppercase letter, number, or special character.");
       return;
     }
 
@@ -93,7 +93,7 @@ const RegisterPage = () => {
         </p>
       </div>
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-xl">
+      <div className="sm:mx-auto sm:w-full sm:max-w-2xl">
         <div className="bg-white py-8 px-4 shadow-xl sm:rounded-2xl sm:px-10 border border-gray-100 relative overflow-hidden">
 
           {/* Subtle Top Gradient Bar */}
@@ -112,12 +112,12 @@ const RegisterPage = () => {
               <label className="block text-sm font-semibold text-gray-700 mb-3">
                 I am signing up as a...
               </label>
-              <div className="flex flex-wrap gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {/* Tourist Role */}
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, role: 'tourist' })}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all ${
+                  className={`flex items-center justify-center gap-2 px-2 py-2.5 rounded-xl border transition-all ${
                     formData.role === 'tourist'
                       ? 'border-sunset-orange bg-orange-50/50 shadow-sm text-sunset-orange font-bold'
                       : 'border-gray-200 hover:border-sunset-orange/50 hover:bg-gray-50 text-gray-600 font-medium'
@@ -131,7 +131,7 @@ const RegisterPage = () => {
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, role: 'hotel_owner' })}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all ${
+                  className={`flex items-center justify-center gap-2 px-2 py-2.5 rounded-xl border transition-all ${
                     formData.role === 'hotel_owner'
                       ? 'border-sunset-gold bg-yellow-50/50 shadow-sm text-sunset-gold font-bold'
                       : 'border-gray-200 hover:border-sunset-gold/50 hover:bg-gray-50 text-gray-600 font-medium'
@@ -145,7 +145,7 @@ const RegisterPage = () => {
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, role: 'tour_guide' })}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all ${
+                  className={`flex items-center justify-center gap-2 px-2 py-2.5 rounded-xl border transition-all ${
                     formData.role === 'tour_guide'
                       ? 'border-sunset-teal bg-teal-50/50 shadow-sm text-sunset-teal font-bold'
                       : 'border-gray-200 hover:border-sunset-teal/50 hover:bg-gray-50 text-gray-600 font-medium'
@@ -153,6 +153,20 @@ const RegisterPage = () => {
                 >
                   <MapPin size={18} />
                   <span>Tour Guide</span>
+                </button>
+
+                {/* Vehicle Owner Role */}
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, role: 'vehicle_owner' })}
+                  className={`flex items-center justify-center gap-2 px-2 py-2.5 rounded-xl border transition-all ${
+                    formData.role === 'vehicle_owner'
+                      ? 'border-indigo-500 bg-indigo-50/50 shadow-sm text-indigo-500 font-bold'
+                      : 'border-gray-200 hover:border-indigo-500/50 hover:bg-gray-50 text-gray-600 font-medium'
+                  }`}
+                >
+                  <Car size={18} />
+                  <span>Vehicle Owner</span>
                 </button>
               </div>
             </div>

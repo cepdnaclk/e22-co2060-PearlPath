@@ -5,78 +5,11 @@ import Footer from '../Footer/Footer';
 import QuickViewModal from '../QuickView/QuickViewModal';
 import { Calendar, User, Search, MapPin, Map, Navigation, Star, Compass, Wind, Plus } from 'lucide-react';
 
-// Sample Property Data
-const properties = [
-  {
-    id: 1,
-    name: "Cinnamon Lodge Authentic Resort",
-    location: "Habarana",
-    price: "45,000",
-    rating: "4.9",
-    image: "https://images.unsplash.com/photo-1588610580916-2deac38cf945?q=80&w=600&auto=format&fit=crop",
-    description: "Spread over 27 acres of lush forested land, this 5-star resort offers air-conditioned comfort with sweeping views of the Habarana Lake.",
-    amenities: ["Pool", "Spa", "Wild Safari", "Free WiFi"],
-    height: "h-96", // For masonry layout variation
-  },
-  {
-    id: 2,
-    name: "Galle Fort Heritage Villa",
-    location: "Galle",
-    price: "32,000",
-    rating: "4.7",
-    image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=600&auto=format&fit=crop",
-    description: "Experience the Dutch colonial era in this beautifully restored villa located right in the heart of the historic Galle Fort.",
-    amenities: ["Ocean View", "Historical", "Breakfast"],
-    height: "h-64",
-  },
-  {
-    id: 3,
-    name: "Ella Jungle Resort",
-    location: "Ella",
-    price: "28,000",
-    rating: "4.8",
-    image: "https://images.unsplash.com/photo-1625736300986-628d09ca0818?q=80&w=600&auto=format&fit=crop",
-    description: "Surrounded by wild jungles, bubbling streams and waterfalls. Perfect for the ultimate nature retreat and digital detox.",
-    amenities: ["Nature Walks", "Vegan Food", "Yoga"],
-    height: "h-80",
-  },
-  {
-    id: 4,
-    name: "Shangri-La Colombo",
-    location: "Colombo",
-    price: "65,000",
-    rating: "4.9",
-    image: "https://images.unsplash.com/photo-1587397750796-039cff28bc63?q=80&w=800&auto=format&fit=crop",
-    description: "Experience the pinnacle of luxury at the heart of the capital with panoramic views of the Indian Ocean.",
-    amenities: ["Infinity Pool", "Gym", "Fine Dining"],
-    height: "h-72",
-  },
-  {
-    id: 5,
-    name: "Kandy View Hotel",
-    location: "Kandy",
-    price: "15,000",
-    rating: "4.5",
-    image: "https://images.unsplash.com/photo-1580971597148-9b882eb75bce?q=80&w=800&auto=format&fit=crop",
-    description: "A cozy retreat overlooking the ancient city and the Temple of the Sacred Tooth Relic.",
-    amenities: ["City View", "Restaurant"],
-    height: "h-80",
-  },
-  {
-    id: 6,
-    name: "Mirissa Beach Cabanas",
-    location: "Mirissa",
-    price: "22,000",
-    rating: "4.6",
-    image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=400&auto=format&fit=crop",
-    description: "Wake up to the sound of crashing waves in these rustic yet comfortable beachfront cabanas.",
-    amenities: ["Beachfront", "Surfing", "Bar"],
-    height: "h-64",
-  }
-];
-
+// Removed mock properties
 const Home = () => {
   const [selectedProperty, setSelectedProperty] = useState(null);
+  const [properties, setProperties] = useState([]);
+  
   const [user] = useState(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
@@ -89,6 +22,17 @@ const Home = () => {
     }
     return null;
   });
+
+  useEffect(() => {
+    fetch('http://127.0.0.1:3001/api/hotels')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.response) {
+          setProperties(data.response);
+        }
+      })
+      .catch(err => console.error("Error fetching hotels:", err));
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] font-outfit">
@@ -157,6 +101,13 @@ const Home = () => {
             </Link>
           )}
 
+          {user?.role === 'vehicle_owner' && (
+            <Link to="/add-vehicle" className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-sunset-orange to-sunset-gold rounded-full shadow-md hover:shadow-lg transition-all text-white whitespace-nowrap group">
+              <Plus className="text-white group-hover:scale-125 transition-transform" />
+              <span className="font-bold">Add Vehicles</span>
+            </Link>
+          )}
+
           <button className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-teal/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
             <Compass className="text-sunset-teal group-hover:rotate-45 transition-transform" />
             <span className="font-semibold">Interactive Map</span>
@@ -177,16 +128,20 @@ const Home = () => {
           <p className="text-gray-500 mb-8 font-medium">Curated stays matching the Pearl Path standard.</p>
 
           <div className="masonry-grid">
-            {properties.map((property) => (
+            {properties.map((property, index) => {
+              const heights = ["h-96", "h-64", "h-80", "h-72", "h-80", "h-64"];
+              const propertyHeight = property.height || heights[index % heights.length];
+              
+              return (
               <div
-                key={property.id}
+                key={property._id || property.id}
                 className="masonry-item relative group cursor-pointer rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
                 onClick={() => setSelectedProperty(property)}
               >
                 {/* Image */}
-                <div className={`${property.height} w-full bg-gray-200 relative overflow-hidden`}>
+                <div className={`${propertyHeight} w-full bg-gray-200 relative overflow-hidden`}>
                   <img
-                    src={property.image}
+                    src={property.imageUrl || (property.images && property.images[0]) || "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=400&auto=format&fit=crop"}
                     alt={property.name}
                     className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                   />
@@ -205,14 +160,14 @@ const Home = () => {
                       <h3 className="text-xl font-bold leading-tight">{property.name}</h3>
                     </div>
                     <div className="bg-white/20 backdrop-blur px-2 py-1 rounded-lg text-sm font-bold border border-white/30 flex items-center gap-1">
-                      {property.rating} <Star size={12} className="text-sunset-gold fill-current" />
+                      {property.starRating || property.rating || "4.5"} <Star size={12} className="text-sunset-gold fill-current" />
                     </div>
                   </div>
 
                   {/* Hover Reveal Price */}
                   <div className="h-0 overflow-hidden group-hover:h-8 transition-all duration-300 flex items-center mt-2">
                     <span className="text-sm text-gray-300">from</span>
-                    <span className="text-lg font-bold text-sunset-gold ml-2">LKR {property.price}</span>
+                    <span className="text-lg font-bold text-sunset-gold ml-2">LKR {property.pricePerNight ? property.pricePerNight.toLocaleString() : property.price}</span>
                   </div>
                 </div>
 
@@ -221,7 +176,7 @@ const Home = () => {
                   <Navigation size={20} className="transform rotate-45" />
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         </div>
 

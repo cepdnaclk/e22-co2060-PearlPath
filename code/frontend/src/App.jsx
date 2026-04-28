@@ -11,6 +11,8 @@ import Profile from './components/UserDashboard/Profile'
 import MyBookings from './components/UserDashboard/MyBookings'
 
 import ForgotPassword from './components/Auth/ForgotPassword'
+import Vehicles from './components/Vehicles/Vehicles'
+import AddVehicle from './components/OwnerDashboard/AddVehicle'
 
 
 function App() {
@@ -27,6 +29,8 @@ function App() {
         <Route path="/hotel/preview" element={<HotelDetails />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/my-bookings" element={<MyBookings />} />
+        <Route path="/vehicles" element={<Vehicles />} />
+        <Route path="/add-vehicle" element={<AddVehicle />} />
 
         <Route path="/forgot-password" element={<ForgotPassword />} />
 

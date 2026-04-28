@@ -5,59 +5,7 @@ import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 import HotelCard from './HotelCard';
 
-// Mock Data
-const MOCK_HOTELS = [
-  {
-    id: 1,
-    propertyName: "Grand Galle Fort Hotel",
-    city: "Galle",
-    starRating: 5,
-    pricePerNight: 45000,
-    amenities: ["Free WiFi", "Pool", "Breakfast Included", "Spa", "Ocean View"],
-    description: "Experience the ultimate luxury in the heart of the historic Galle Fort. Our restored Dutch-colonial villa offers world-class amenities and breathtaking views of the Indian Ocean.",
-    imageUrl: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop"
-  },
-  {
-    id: 2,
-    propertyName: "Ella Jungle Resort",
-    city: "Ella",
-    starRating: 4,
-    pricePerNight: 28000,
-    amenities: ["Free WiFi", "Breakfast Included", "Nature Trails", "Restaurant"],
-    description: "Nestled deep within the lush mountains of Ella, this eco-resort provides a serene escape surrounded by waterfalls, mist, and tropical flora.",
-    imageUrl: "https://images.unsplash.com/photo-1625736300986-628d09ca0818?q=80&w=800&auto=format&fit=crop"
-  },
-  {
-    id: 3,
-    propertyName: "Kandy View Boutique",
-    city: "Kandy",
-    starRating: 4,
-    pricePerNight: 22000,
-    amenities: ["Free WiFi", "Pool", "City View", "Restaurant", "Room Service"],
-    description: "Overlooking the majestic Kandy Lake and the Temple of the Tooth, this boutique hotel combines traditional Kandyan architecture with modern comforts.",
-    imageUrl: "https://images.unsplash.com/photo-1580971597148-9b882eb75bce?q=80&w=800&auto=format&fit=crop"
-  },
-  {
-    id: 4,
-    propertyName: "Mirissa Beach Cabanas",
-    city: "Mirissa",
-    starRating: 3,
-    pricePerNight: 15000,
-    amenities: ["Free WiFi", "Beachfront", "Bar", "A/C"],
-    description: "Step right out of your secluded cabana onto the golden sands of Mirissa beach. Ideal for surfers, beach lovers, and whale watchers.",
-    imageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=800&auto=format&fit=crop"
-  },
-  {
-    id: 5,
-    propertyName: "Sigiriya Rock Haven",
-    city: "Sigiriya",
-    starRating: 5,
-    pricePerNight: 35000,
-    amenities: ["Free WiFi", "Pool", "Spa", "Breakfast Included", "Safari Arranged"],
-    description: "Located just minutes from the ancient Lion Rock, this premium resort features a sprawling pool, ayurvedic spa, and stunning views of the fortress.",
-    imageUrl: "https://images.unsplash.com/photo-1588610580916-2deac38cf945?q=80&w=800&auto=format&fit=crop"
-  }
-];
+// Removed Mock Hotels
 
 const AMENITY_FILTERS = ["Free WiFi", "Pool", "Breakfast Included", "Spa", "Ocean View", "Beachfront", "A/C"];
 
@@ -65,8 +13,8 @@ const Hotels = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const [hotels, setHotels] = useState(MOCK_HOTELS);
-  const [filteredHotels, setFilteredHotels] = useState(MOCK_HOTELS);
+  const [hotels, setHotels] = useState([]);
+  const [filteredHotels, setFilteredHotels] = useState([]);
 
   const [searchCity, setSearchCity] = useState('');
   const [minPrice, setMinPrice] = useState('');
@@ -97,8 +45,8 @@ const Hotels = () => {
           imageUrl: h.imageUrl || "https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop"
         }));
         
-        setHotels([...MOCK_HOTELS, ...backendHotels]);
-        setFilteredHotels([...MOCK_HOTELS, ...backendHotels]);
+        setHotels(backendHotels);
+        setFilteredHotels(backendHotels);
       } catch (error) {
         console.error("Failed to fetch hotels:", error);
       } finally {
