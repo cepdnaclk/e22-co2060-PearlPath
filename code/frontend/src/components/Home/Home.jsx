@@ -157,6 +157,13 @@ const Home = () => {
             </Link>
           )}
 
+          {user?.role === 'tour_guide' && (
+            <Link to="/tour-guide/edit-profile" className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-sunset-teal to-sunset-dark rounded-full shadow-md hover:shadow-lg transition-all text-white whitespace-nowrap group">
+              <Plus className="text-white group-hover:scale-125 transition-transform" />
+              <span className="font-bold">Edit Tour Profile</span>
+            </Link>
+          )}
+
           <button className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-teal/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
             <Compass className="text-sunset-teal group-hover:rotate-45 transition-transform" />
             <span className="font-semibold">Interactive Map</span>

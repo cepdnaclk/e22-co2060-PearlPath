@@ -5,37 +5,14 @@ import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 import TourGuideCard from './TourGuideCard';
 
-const MOCK_GUIDES = [
-  {
-    id: 'mock1',
-    name: "Kamal Perera",
-    location: "Kandy",
-    pricePerDay: 5000,
-    experienceYears: 8,
-    languages: ["English", "Sinhala", "German"],
-    bio: "Certified local tour guide in the Kandy and central province region. I specialize in historical temple tours, trekking in the Knuckles range, and providing an authentic local culinary experience.",
-    profilePictureUrl: "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=800&auto=format&fit=crop"
-  },
-  {
-    id: 'mock2',
-    name: "Samanthi Silva",
-    location: "Galle",
-    pricePerDay: 4000,
-    experienceYears: 5,
-    languages: ["English", "Sinhala", "French"],
-    bio: "Passionate about the southern coast! I offer guided walking tours through the UNESCO World Heritage Galle Fort, pointing out secret spots and sharing the rich colonial history.",
-    profilePictureUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800&auto=format&fit=crop"
-  }
-];
-
 const LANGUAGE_FILTERS = ["English", "Sinhala", "Tamil", "French", "German", "Spanish", "Russian"];
 
 const TourGuides = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const [guides, setGuides] = useState(MOCK_GUIDES);
-  const [filteredGuides, setFilteredGuides] = useState(MOCK_GUIDES);
+  const [guides, setGuides] = useState([]);
+  const [filteredGuides, setFilteredGuides] = useState([]);
 
   const [searchLocation, setSearchLocation] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
@@ -67,8 +44,8 @@ const TourGuides = () => {
           }));
         }
         
-        setGuides([...MOCK_GUIDES, ...backendGuides]);
-        setFilteredGuides([...MOCK_GUIDES, ...backendGuides]);
+        setGuides(backendGuides);
+        setFilteredGuides(backendGuides);
       } catch (error) {
         console.error("Failed to fetch tour guides:", error);
       } finally {

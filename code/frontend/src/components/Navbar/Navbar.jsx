@@ -122,16 +122,6 @@ const Navbar = () => {
                         <Building size={16} />
                         My Bookings
                       </Link>
-                      {user.role === 'tour_guide' && (
-                        <Link 
-                          to="/tour-guide/edit-profile"
-                          onClick={() => setIsDropdownOpen(false)}
-                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-sunset-teal flex items-center gap-2 transition-colors"
-                        >
-                          <UserCheck size={16} />
-                          Tour Guide Dashboard
-                        </Link>
-                      )}
                       <Link 
 
                         to="/register"

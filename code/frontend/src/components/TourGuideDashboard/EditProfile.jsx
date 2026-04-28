@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
-import { User, MapPin, DollarSign, Camera, Check } from 'lucide-react';
+import { User, MapPin, DollarSign, Camera, Check, UploadCloud, X } from 'lucide-react';
 
 const EditProfile = () => {
   const [user, setUser] = useState(null);
@@ -64,6 +64,25 @@ const EditProfile = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      const file = files[0];
+      const previewUrl = URL.createObjectURL(file);
+      setFormData(prev => ({
+        ...prev,
+        profilePictureUrl: previewUrl
+      }));
+    }
+  };
+
+  const removeImage = () => {
+    setFormData(prev => ({
+      ...prev,
+      profilePictureUrl: ''
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -169,15 +188,38 @@ const EditProfile = () => {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-bold text-gray-700 mb-2">Profile Picture Image URL</label>
-                <div className="relative">
-                  <Camera size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input name="profilePictureUrl" value={formData.profilePictureUrl} onChange={handleChange} type="url" className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-sunset-teal focus:ring-2 focus:ring-sunset-teal/20 transition-all outline-none" placeholder="https://source.unsplash.com/your-image.jpg" />
+                <label className="block text-sm font-bold text-gray-700 mb-2">Profile Picture Image</label>
+                
+                <div className="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:bg-gray-50 transition-colors relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <div className="flex flex-col items-center justify-center pointer-events-none">
+                    <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-4">
+                      <UploadCloud size={32} />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-700 mb-1">Drag & Drop your photo here</h3>
+                    <p className="text-sm text-gray-500">or click to browse from your computer</p>
+                    <p className="text-xs text-gray-400 mt-4">High-quality JPG or PNG. Max 5MB.</p>
+                  </div>
                 </div>
+
                 {formData.profilePictureUrl && (
-                  <div className="mt-4 flex items-center gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
-                    <img src={formData.profilePictureUrl} alt="Preview" className="w-16 h-16 object-cover rounded-full shadow-sm" />
-                    <span className="text-sm font-bold text-gray-600">Picture Preview</span>
+                  <div className="mt-6">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3 text-center">Selected Image</h4>
+                    <div className="relative group w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg mx-auto">
+                      <img src={formData.profilePictureUrl} alt="Preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={removeImage}
+                        className="absolute inset-0 bg-black/40 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-black/60"
+                      >
+                        <X size={32} strokeWidth={2} />
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>

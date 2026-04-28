@@ -34,23 +34,7 @@ const TourGuideDetails = () => {
       }
     };
     
-    // For mock IDs, we simulate
-    if (id && id.startsWith('mock')) {
-       setGuide({
-          id: id,
-          name: "Kamal Perera",
-          location: "Kandy",
-          pricePerDay: 5000,
-          experienceYears: 8,
-          languages: ["English", "Sinhala"],
-          bio: "Certified local tour guide in the Kandy region.",
-          profilePictureUrl: "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=800&auto=format&fit=crop",
-          contactEmail: "kamal@example.com"
-       });
-       setLoading(false);
-    } else {
-       fetchGuide();
-    }
+    fetchGuide();
   }, [id]);
 
   if (loading) return (
