@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Filter, SlidersHorizontal, Lock } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 import HotelCard from './HotelCard';
 
-// Removed Mock Hotels
-
 const AMENITY_FILTERS = ["Free WiFi", "Pool", "Breakfast Included", "Spa", "Ocean View", "Beachfront", "A/C"];
 
 const Hotels = () => {
-  const [user, setUser] = useState(null);
+  const { user, authFetch } = useAuth();
   const [loading, setLoading] = useState(true);
 
   const [hotels, setHotels] = useState([]);
@@ -23,14 +22,15 @@ const Hotels = () => {
   const [sortBy, setSortBy] = useState('recommended');
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-
     const fetchHotels = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:3001/api/hotels');
+        let response;
+        if (user && user.role === 'hotel_owner') {
+          response = await authFetch('http://127.0.0.1:3001/api/hotels/provider');
+        } else {
+          response = await fetch('http://127.0.0.1:3001/api/hotels');
+        }
+        
         const data = await response.json();
         
         // Map backend to frontend schema
@@ -55,7 +55,7 @@ const Hotels = () => {
     };
     
     fetchHotels();
-  }, []);
+  }, [user]);
 
   // Filtering Logic
   useEffect(() => {
@@ -140,8 +140,8 @@ const Hotels = () => {
       <div className="pt-28 pb-10 bg-sunset-dark text-white shadow-md relative overflow-hidden">
         <div className="absolute inset-0 z-0 bg-gradient-to-r from-sunset-dark to-sunset-teal/80"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <h1 className="text-4xl font-extrabold mb-2">Find Your Perfect Stay</h1>
-          <p className="text-xl text-gray-300 font-light">Explore handpicked hotels, villas, and resorts across Sri Lanka.</p>
+          <h1 className="text-4xl font-extrabold mb-2">{user?.role === 'hotel_owner' ? 'My Properties' : 'Find Your Perfect Stay'}</h1>
+          <p className="text-xl text-gray-300 font-light">{user?.role === 'hotel_owner' ? 'Manage your hotel, villa, and resort listings.' : 'Explore handpicked hotels, villas, and resorts across Sri Lanka.'}</p>
         </div>
       </div>
 

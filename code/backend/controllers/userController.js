@@ -70,7 +70,7 @@ const signup = async (req, res) => {
         });
     } catch (error) {
         console.error("Signup error:", error);
-        res.status(500).json({ message: 'An error occurred during signup' });
+        res.status(500).json({ message: 'An error occurred during signup', error: error.message, stack: error.stack });
     }
 };
 

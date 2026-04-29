@@ -39,7 +39,23 @@ export const AuthProvider = ({ children }) => {
         if (token) {
             options.headers['Authorization'] = `Bearer ${token}`;
         }
-        return fetch(url, options);
+        // Prevent aggressive browser caching for API requests
+        if (!options.cache) {
+            options.cache = 'no-store';
+        }
+        const response = await fetch(url, options);
+        
+        // If we get a 401, our token is stale/invalid — auto-logout
+        if (response.status === 401) {
+            console.warn('Received 401 — session expired or invalid. Logging out.');
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+            setUser(null);
+            setToken(null);
+            window.location.href = '/login';
+        }
+        
+        return response;
     };
 
     return (

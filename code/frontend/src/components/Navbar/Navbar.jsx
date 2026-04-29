@@ -55,6 +55,17 @@ const Navbar = () => {
     { id: 'destinations', label: 'Destination', icon: <MapPin size={16} /> },
   ];
 
+  const getFilteredNavItems = () => {
+    if (!user || user.role === 'tourist') return navItems;
+    if (user.role === 'admin') return [];
+    if (user.role === 'hotel_owner') return navItems.filter(item => ['home', 'hotels'].includes(item.id));
+    if (user.role === 'vehicle_owner') return navItems.filter(item => ['home', 'transport'].includes(item.id));
+    if (user.role === 'tour_guide') return navItems.filter(item => ['home', 'routes', 'destinations'].includes(item.id));
+    return navItems;
+  };
+
+  const filteredNavItems = getFilteredNavItems();
+
   return (
     <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-[#0f0f11]/95 backdrop-blur-md border-b border-gray-800 shadow-lg py-3' : 'bg-transparent py-5'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -70,7 +81,7 @@ const Navbar = () => {
 
           {/* Desktop Nav Items (Center) */}
           <div className="hidden md:flex items-center gap-8">
-            {navItems.map((item) => {
+            {filteredNavItems.map((item) => {
               const path = item.id === 'transport' ? '/vehicles' : item.id === 'home' ? '/home' : `/${item.id}`;
               const isActive = location.pathname === path || (item.id === 'home' && location.pathname === '/');
               return (
@@ -129,6 +140,36 @@ const Navbar = () => {
                     </div>
 
                     <div className="py-1">
+                      {user.role === 'admin' && (
+                        <Link
+                          to="/admin/dashboard"
+                          onClick={() => setIsDropdownOpen(false)}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-emerald-400 flex items-center gap-2 transition-colors"
+                        >
+                          <Building size={16} />
+                          Admin Dashboard
+                        </Link>
+                      )}
+                      {(user.role === 'hotel_owner' || user.role === 'vehicle_owner' || user.role === 'tour_guide') && (
+                        <Link
+                          to="/provider-bookings"
+                          onClick={() => setIsDropdownOpen(false)}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-emerald-400 flex items-center gap-2 transition-colors"
+                        >
+                          <Building size={16} />
+                          Provider Dashboard
+                        </Link>
+                      )}
+                      {user.role === 'hotel_owner' && (
+                        <Link
+                          to="/add-property"
+                          onClick={() => setIsDropdownOpen(false)}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-emerald-400 flex items-center gap-2 transition-colors"
+                        >
+                          <Plus size={16} />
+                          Add Property
+                        </Link>
+                      )}
                       <Link
                         to="/register"
                         onClick={() => setIsDropdownOpen(false)}
@@ -176,7 +217,7 @@ const Navbar = () => {
       {mobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 w-full bg-[#0f0f11] border-t border-gray-800 shadow-2xl">
           <div className="px-4 py-4 flex flex-col gap-2">
-            {navItems.map((item) => {
+            {filteredNavItems.map((item) => {
               const path = item.id === 'transport' ? '/vehicles' : item.id === 'home' ? '/home' : `/${item.id}`;
               const isActive = location.pathname === path || (item.id === 'home' && location.pathname === '/');
               return (
@@ -191,7 +232,7 @@ const Navbar = () => {
                 </Link>
               );
             })}
-            <div className="h-px bg-gray-800 my-2"></div>
+            {filteredNavItems.length > 0 && <div className="h-px bg-gray-800 my-2"></div>}
             {user ? (
               <>
                 <div className="flex items-center justify-center gap-4 py-3 bg-gray-800/30 rounded-xl border border-gray-800 px-4">
@@ -210,6 +251,37 @@ const Navbar = () => {
                     </span>
                   </div>
                 </div>
+
+                {user.role === 'admin' && (
+                  <Link
+                    to="/admin/dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full text-center bg-gray-800 hover:bg-gray-700 text-white font-medium py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Building size={18} />
+                    <span>Admin Dashboard</span>
+                  </Link>
+                )}
+                {(user.role === 'hotel_owner' || user.role === 'vehicle_owner' || user.role === 'tour_guide') && (
+                  <Link
+                    to="/provider-bookings"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full text-center bg-gray-800 hover:bg-gray-700 text-white font-medium py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Building size={18} />
+                    <span>Provider Dashboard</span>
+                  </Link>
+                )}
+                {user.role === 'hotel_owner' && (
+                  <Link
+                    to="/add-property"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full text-center bg-gray-800 hover:bg-gray-700 text-white font-medium py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Plus size={18} />
+                    <span>Add Property</span>
+                  </Link>
+                )}
                 <button
                   onClick={handleLogout}
                   className="w-full text-center bg-gray-800 hover:bg-gray-700 text-white font-medium py-3 rounded-xl transition-colors flex items-center justify-center gap-2"

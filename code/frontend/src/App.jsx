@@ -5,8 +5,8 @@ import SignInPage from './components/Auth/SignInPage'
 import RegisterPage from './components/Auth/RegisterPage'
 import ForgotPassword from './components/Auth/ForgotPassword'
 import { VehicleProvider } from './context/VehicleContext'
-import VehicleSelector from './components/Vehicle/VehicleSelector'
 import Vehicles from './components/Vehicles/Vehicles'
+import VehicleDetails from './components/Vehicles/VehicleDetails'
 import AddVehicle from './components/OwnerDashboard/AddVehicle'
 import ProviderBookings from './components/OwnerDashboard/ProviderBookings'
 import AdminDashboard from './components/Admin/AdminDashboard'
@@ -38,8 +38,8 @@ function App() {
           <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
           <Route path="/provider-bookings" element={<ProtectedRoute roles={['hotel_owner', 'vehicle_owner', 'tour_guide']}><ProviderBookings /></ProtectedRoute>} />
           
-          <Route path="/vehicles" element={<VehicleSelector />} />
-          <Route path="/all-vehicles" element={<Vehicles />} />
+          <Route path="/vehicles" element={<Vehicles />} />
+          <Route path="/vehicle/:id" element={<VehicleDetails />} />
           <Route path="/add-vehicle" element={<ProtectedRoute roles={['vehicle_owner']}><AddVehicle /></ProtectedRoute>} />
 
         </Routes>

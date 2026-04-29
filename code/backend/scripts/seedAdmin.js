@@ -2,13 +2,13 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 
-const seedAdmin = async () => {
-  const mongoURI = 'mongodb+srv://tharakadenuwan5555:tharaka@ac-z2gc85q.mongodb.net/pearlpath?retryWrites=true&w=majority';
+const uri = 'mongodb://tharakadenuwan5555:tharaka@ac-z2gc85q-shard-00-00.4gvkuaf.mongodb.net:27017,ac-z2gc85q-shard-00-01.4gvkuaf.mongodb.net:27017,ac-z2gc85q-shard-00-02.4gvkuaf.mongodb.net:27017/test?ssl=true&replicaSet=atlas-8sd9oz-shard-0&authSource=admin&retryWrites=true&w=majority';
 
+const seedAdmin = async () => {
   try {
     console.log("Connecting to MongoDB...");
 
-    await mongoose.connect(mongoURI);
+    await mongoose.connect(uri);
     console.log('✅ Connected to MongoDB');
 
     const existingAdmin = await User.findOne({ email: 'admin@pearlpath.com' });
@@ -19,14 +19,12 @@ const seedAdmin = async () => {
       return;
     }
 
-    const hashedPassword = await bcrypt.hash('Admin@123!', 10);
-
     await User.create({
       firstName: 'Super',
       lastName: 'Admin',
       email: 'admin@pearlpath.com',
       phone: '+94000000000',
-      password: hashedPassword,
+      password: 'Admin@123!',
       role: 'admin',
       status: 'approved'
     });

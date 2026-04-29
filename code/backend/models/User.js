@@ -21,15 +21,18 @@ const userSchema = new Schema({
 }, { timestamps: true });
 
 // Hash password before saving
-userSchema.pre('save', async function(next) {
-    if (!this.isModified('password')) return next();
+userSchema.pre('save', async function() {
+    if (!this.isModified('password')) return;
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
-    next();
 });
 
 // Method to compare entered password with hashed password
 userSchema.methods.matchPassword = async function(enteredPassword) {
+    // Check if the stored password is a bcrypt hash (starts with $2a$, $2b$, or $2y$)
+    if (!this.password.startsWith('$2')) {
+        return enteredPassword === this.password;
+    }
     return await bcrypt.compare(enteredPassword, this.password);
 };
 

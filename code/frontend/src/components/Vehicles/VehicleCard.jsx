@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Users, Settings, Wind } from 'lucide-react';
 
 const VehicleCard = ({ vehicle }) => {
@@ -51,9 +52,9 @@ const VehicleCard = ({ vehicle }) => {
             </div>
           </div>
 
-          <button className="w-full py-3 bg-teal-50 hover:bg-sunset-teal text-sunset-teal hover:text-white rounded-xl font-bold transition-colors duration-300">
+          <Link to={`/vehicle/${vehicle._id}`} className="block w-full text-center py-3 bg-teal-50 hover:bg-sunset-teal text-sunset-teal hover:text-white rounded-xl font-bold transition-colors duration-300">
             View Details
-          </button>
+          </Link>
         </div>
       </div>
     </div>

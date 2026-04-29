@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Hotel = require('../models/Hotel');
 const Vehicle = require('../models/Vehicle');
 const Tour = require('../models/Tour');
+const Booking = require('../models/Booking');
 
 // Get all pending users
 const getPendingUsers = async (req, res) => {
@@ -98,10 +99,47 @@ const updateListingStatus = async (req, res) => {
     }
 };
 
+// Get comprehensive role data
+const getRoleData = async (req, res) => {
+    try {
+        const { role } = req.params;
+        
+        // Find all users of this role
+        const users = await User.find({ role }, '-password').lean();
+        console.log(`getRoleData called for ${role}. Found ${users.length} users.`);
+
+        // Attach related data based on role
+        for (let user of users) {
+            if (role === 'tourist') {
+                const bookings = await Booking.find({ userId: user._id })
+                    .populate('hotelId', 'name')
+                    .populate('vehicleId', 'name')
+                    .populate('tourId', 'name');
+                user.bookings = bookings;
+            } else if (role === 'hotel_owner') {
+                const hotels = await Hotel.find({ ownerId: user._id });
+                user.listings = hotels;
+            } else if (role === 'vehicle_owner') {
+                const vehicles = await Vehicle.find({ ownerId: user._id });
+                user.listings = vehicles;
+            } else if (role === 'tour_guide') {
+                const tours = await Tour.find({ ownerId: user._id });
+                user.listings = tours;
+            }
+        }
+
+        res.status(200).json(users);
+    } catch (error) {
+        console.error("Error fetching role data:", error);
+        res.status(500).json({ message: 'Error fetching role data' });
+    }
+};
+
 module.exports = {
     getPendingUsers,
     updateUserStatus,
     getStats,
     getPendingListings,
-    updateListingStatus
+    updateListingStatus,
+    getRoleData
 };

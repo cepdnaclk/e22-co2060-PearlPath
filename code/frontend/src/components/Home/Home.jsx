@@ -1,91 +1,14 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 import QuickViewModal from '../QuickView/QuickViewModal';
-<<<<<<< HEAD
 import { VehicleContext } from '../../context/VehicleContext';
-import { Calendar, User, Search, MapPin, Map, Navigation, Star, Compass, Wind, CarFront } from 'lucide-react';
+import { Calendar, User, Search, MapPin, Map, Navigation, Star, Compass, Wind, CarFront, Plus, Building, Car, ClipboardList } from 'lucide-react';
 
-// Sample Property Data
-const properties = [
-  {
-    id: 1,
-    name: "Cinnamon Lodge Authentic Resort",
-    location: "Habarana",
-    price: "45,000",
-    rating: "4.9",
-    image: "https://images.unsplash.com/photo-1588610580916-2deac38cf945?q=80&w=600&auto=format&fit=crop",
-    description: "Spread over 27 acres of lush forested land, this 5-star resort offers air-conditioned comfort with sweeping views of the Habarana Lake.",
-    amenities: ["Pool", "Spa", "Wild Safari", "Free WiFi"],
-    height: "h-96", // For masonry layout variation
-  },
-  {
-    id: 2,
-    name: "Galle Fort Heritage Villa",
-    location: "Galle",
-    price: "32,000",
-    rating: "4.7",
-    image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=600&auto=format&fit=crop",
-    description: "Experience the Dutch colonial era in this beautifully restored villa located right in the heart of the historic Galle Fort.",
-    amenities: ["Ocean View", "Historical", "Breakfast"],
-    height: "h-64",
-  },
-  {
-    id: 3,
-    name: "Ella Jungle Resort",
-    location: "Ella",
-    price: "28,000",
-    rating: "4.8",
-    image: "https://images.unsplash.com/photo-1625736300986-628d09ca0818?q=80&w=600&auto=format&fit=crop",
-    description: "Surrounded by wild jungles, bubbling streams and waterfalls. Perfect for the ultimate nature retreat and digital detox.",
-    amenities: ["Nature Walks", "Vegan Food", "Yoga"],
-    height: "h-80",
-  },
-  {
-    id: 4,
-    name: "Shangri-La Colombo",
-    location: "Colombo",
-    price: "65,000",
-    rating: "4.9",
-    image: "https://images.unsplash.com/photo-1587397750796-039cff28bc63?q=80&w=800&auto=format&fit=crop",
-    description: "Experience the pinnacle of luxury at the heart of the capital with panoramic views of the Indian Ocean.",
-    amenities: ["Infinity Pool", "Gym", "Fine Dining"],
-    height: "h-72",
-  },
-  {
-    id: 5,
-    name: "Kandy View Hotel",
-    location: "Kandy",
-    price: "15,000",
-    rating: "4.5",
-    image: "https://images.unsplash.com/photo-1580971597148-9b882eb75bce?q=80&w=800&auto=format&fit=crop",
-    description: "A cozy retreat overlooking the ancient city and the Temple of the Sacred Tooth Relic.",
-    amenities: ["City View", "Restaurant"],
-    height: "h-80",
-  },
-  {
-    id: 6,
-    name: "Mirissa Beach Cabanas",
-    location: "Mirissa",
-    price: "22,000",
-    rating: "4.6",
-    image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=400&auto=format&fit=crop",
-    description: "Wake up to the sound of crashing waves in these rustic yet comfortable beachfront cabanas.",
-    amenities: ["Beachfront", "Surfing", "Bar"],
-    height: "h-64",
-  }
-];
-=======
-import { Calendar, User, Search, MapPin, Map, Navigation, Star, Compass, Wind, Plus, Building, Car } from 'lucide-react';
->>>>>>> origin/update-backend1
-
-// Removed mock properties
 const Home = () => {
   const [selectedProperty, setSelectedProperty] = useState(null);
-<<<<<<< HEAD
   const { selectedVehicle } = useContext(VehicleContext);
-=======
   const [properties, setProperties] = useState([]);
   
   const [user] = useState(() => {
@@ -100,7 +23,6 @@ const Home = () => {
     }
     return null;
   });
->>>>>>> origin/update-backend1
 
   useEffect(() => {
     fetch('http://127.0.0.1:3001/api/hotels')
@@ -153,67 +75,95 @@ const Home = () => {
             Experience the vibrant sunsets, ancient cities, and untamed wildlife of Sri Lanka. Handpicked stays for the modern explorer.
           </p>
 
-          {/* Floating Search Widget */}
-          <div className="bg-white/95 backdrop-blur-xl p-3 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col md:flex-row items-center gap-2 max-w-2xl mx-auto border border-white/40 transform hover:scale-[1.01] transition-transform">
-
-            <div className="flex-1 w-full flex items-center bg-transparent rounded-full px-4 py-2">
-              <MapPin className="text-sunset-teal mr-3" size={24} />
-              <input type="text" placeholder="Where do you want to go?" className="w-full bg-transparent outline-none text-gray-800 placeholder-gray-400 font-medium text-lg" />
+          {/* Floating Search Widget - Only for Tourists */}
+          {(!user || user.role === 'tourist') && (
+            <div className="bg-white/95 backdrop-blur-xl p-3 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col md:flex-row items-center gap-2 max-w-2xl mx-auto border border-white/40 transform hover:scale-[1.01] transition-transform">
+              <div className="flex-1 w-full flex items-center bg-transparent rounded-full px-4 py-2">
+                <MapPin className="text-sunset-teal mr-3" size={24} />
+                <input type="text" placeholder="Where do you want to go?" className="w-full bg-transparent outline-none text-gray-800 placeholder-gray-400 font-medium text-lg" />
+              </div>
+              <button className="w-full md:w-auto bg-gradient-to-r from-sunset-orange to-sunset-gold text-white p-4 rounded-full shadow-lg hover:shadow-sunset-orange/50 transform hover:-translate-y-0.5 transition-all">
+                <Search size={24} />
+              </button>
             </div>
-
-            <button className="w-full md:w-auto bg-gradient-to-r from-sunset-orange to-sunset-gold text-white p-4 rounded-full shadow-lg hover:shadow-sunset-orange/50 transform hover:-translate-y-0.5 transition-all">
-              <Search size={24} />
-            </button>
-          </div>
+          )}
         </div>
       </div>
 
       {/* MAIN CONTENT */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 -mt-10 relative z-30">
-
-        {/* Selected Vehicle Banner */}
-        <div className="mb-8">
-          {selectedVehicle ? (
-            <div className="bg-white rounded-2xl shadow-lg border border-sunset-gold/30 p-4 flex flex-col sm:flex-row items-center gap-6 animate-slide-up">
-              <div className="w-full sm:w-48 h-32 rounded-xl overflow-hidden shrink-0">
-                <img src={selectedVehicle.image} alt={selectedVehicle.name} className="w-full h-full object-cover" />
-              </div>
-              <div className="flex-1 text-center sm:text-left">
-                <div className="flex items-center justify-center sm:justify-start gap-2 text-sunset-orange font-bold text-sm mb-1 uppercase tracking-wider">
-                  <CarFront size={16} />
-                  <span>Your Selected Ride</span>
+        
+        {/* Provider Portal View */}
+        {user && ['hotel_owner', 'vehicle_owner', 'tour_guide'].includes(user.role) ? (
+          <div className="bg-white rounded-3xl shadow-xl p-10 border border-gray-100 animate-slide-up">
+            <h2 className="text-3xl font-extrabold text-gray-900 mb-2">Welcome back, {user.firstName || 'Partner'}!</h2>
+            <p className="text-gray-500 mb-8 font-medium">Manage your {user.role.replace('_', ' ')} business efficiently on PearlPath.</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Dashboard Link */}
+              <Link to="/provider-bookings" className="bg-gradient-to-br from-sunset-dark to-[#1a2f3a] p-8 rounded-2xl text-white hover:shadow-2xl hover:-translate-y-1 transition-all group flex flex-col justify-between h-48">
+                <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <ClipboardList size={24} className="text-white" />
                 </div>
-                <h3 className="text-2xl font-extrabold text-gray-900 mb-1">{selectedVehicle.name}</h3>
-                <p className="text-gray-500 text-sm mb-3">{selectedVehicle.type} • {selectedVehicle.capacity}</p>
-              </div>
-              <div className="shrink-0">
-                <Link to="/vehicles" className="inline-block bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-2 rounded-full font-bold transition-colors">
-                  Change Vehicle
-                </Link>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-white/80 backdrop-blur rounded-2xl shadow-md border border-gray-200 p-6 flex flex-col sm:flex-row items-center justify-between gap-4 animate-slide-up">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-sunset-orange shrink-0">
-                  <CarFront size={24} />
+                <div>
+                  <h3 className="text-xl font-bold mb-1">Provider Dashboard</h3>
+                  <p className="text-sm text-gray-400">View and manage all your incoming booking requests.</p>
                 </div>
-                <div className="text-center sm:text-left">
-                  <h3 className="text-lg font-bold text-gray-900">Need a ride?</h3>
-                  <p className="text-gray-500 text-sm">Please select a vehicle for your journey.</p>
-                </div>
-              </div>
-              <Link to="/vehicles" className="bg-gradient-to-r from-sunset-orange to-sunset-gold text-white px-6 py-2.5 rounded-full font-bold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all whitespace-nowrap">
-                Browse Vehicles
               </Link>
-            </div>
-          )}
-        </div>
 
-        {/* Category Pills (Interactive Map / Guides / etc) */}
+              {/* Add Property/Vehicle Link */}
+              {user.role === 'hotel_owner' && (
+                <Link to="/add-property" className="bg-gradient-to-br from-sunset-gold to-sunset-orange p-8 rounded-2xl text-white hover:shadow-2xl hover:-translate-y-1 transition-all group flex flex-col justify-between h-48">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Plus size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-1">Add New Hotel</h3>
+                    <p className="text-sm text-white/80">List a new property to attract more tourists.</p>
+                  </div>
+                </Link>
+              )}
+              {user.role === 'vehicle_owner' && (
+                <Link to="/add-vehicle" className="bg-gradient-to-br from-sunset-orange to-red-500 p-8 rounded-2xl text-white hover:shadow-2xl hover:-translate-y-1 transition-all group flex flex-col justify-between h-48">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Plus size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-1">Add New Vehicle</h3>
+                    <p className="text-sm text-white/80">List a new vehicle for tourists to rent.</p>
+                  </div>
+                </Link>
+              )}
+
+              {/* My Properties/Vehicles Link */}
+              {user.role === 'hotel_owner' && (
+                <Link to="/hotels" className="bg-gradient-to-br from-sunset-teal to-emerald-500 p-8 rounded-2xl text-white hover:shadow-2xl hover:-translate-y-1 transition-all group flex flex-col justify-between h-48">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Building size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-1">My Hotels</h3>
+                    <p className="text-sm text-white/80">View and manage your current hotel listings.</p>
+                  </div>
+                </Link>
+              )}
+              {user.role === 'vehicle_owner' && (
+                <Link to="/vehicles" className="bg-gradient-to-br from-sunset-teal to-emerald-500 p-8 rounded-2xl text-white hover:shadow-2xl hover:-translate-y-1 transition-all group flex flex-col justify-between h-48">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <CarFront size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-1">My Vehicles</h3>
+                    <p className="text-sm text-white/80">View and manage your current vehicle fleet.</p>
+                  </div>
+                </Link>
+              )}
+            </div>
+          </div>
+        ) : (
+          <>
+
         <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-8 mb-4">
-<<<<<<< HEAD
-=======
           {user?.role === 'hotel_owner' && (
             <Link to="/add-property" className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-sunset-gold to-sunset-orange rounded-full shadow-md hover:shadow-lg transition-all text-white whitespace-nowrap group">
               <Plus className="text-white group-hover:scale-125 transition-transform" />
@@ -227,8 +177,6 @@ const Home = () => {
               <span className="font-bold">Add Vehicles</span>
             </Link>
           )}
-
->>>>>>> origin/update-backend1
           <button className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-teal/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
             <Compass className="text-sunset-teal group-hover:rotate-45 transition-transform" />
             <span className="font-semibold">Interactive Map</span>
@@ -369,6 +317,8 @@ const Home = () => {
               </div>
             </div>
           </div>
+        )}
+        </>
         )}
 
       </main>

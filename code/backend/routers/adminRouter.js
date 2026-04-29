@@ -6,7 +6,8 @@ const {
     updateUserStatus,
     getStats,
     getPendingListings,
-    updateListingStatus
+    updateListingStatus,
+    getRoleData
 } = require('../controllers/adminController');
 
 // All admin routes are protected and require 'admin' role
@@ -20,5 +21,6 @@ router.get('/admin/listings/pending', getPendingListings);
 router.put('/admin/listings/:type/:id/status', updateListingStatus);
 
 router.get('/admin/stats', getStats);
+router.get('/admin/roles/:role', getRoleData);
 
 module.exports = router;

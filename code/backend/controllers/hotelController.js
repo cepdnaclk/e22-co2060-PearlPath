@@ -44,4 +44,14 @@ const getHotelById = async (req, res) => {
     }
 };
 
-module.exports = { getHotels, createHotel, getHotelById };
+const getProviderHotels = async (req, res) => {
+    try {
+        const hotels = await Hotel.find({ ownerId: req.user._id });
+        res.status(200).json({ response: hotels });
+    } catch (error) {
+        console.error("Get provider hotels error:", error);
+        res.status(500).json({ message: 'An error occurred while fetching provider hotels' });
+    }
+};
+
+module.exports = { getHotels, createHotel, getHotelById, getProviderHotels };

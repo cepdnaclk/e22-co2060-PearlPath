@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import Navbar from '../Navbar/Navbar';
 import VehicleCard from './VehicleCard';
 import { Filter, SlidersHorizontal } from 'lucide-react';
 
 const Vehicles = () => {
+  const { user, authFetch } = useAuth();
   const [vehicles, setVehicles] = useState([]);
   const [filters, setFilters] = useState({
     type: 'All',
@@ -13,11 +15,24 @@ const Vehicles = () => {
   });
 
   useEffect(() => {
-    fetch('http://127.0.0.1:3001/api/vehicles')
-      .then(res => res.json())
-      .then(data => setVehicles(data))
-      .catch(err => console.error("Error fetching vehicles:", err));
-  }, []);
+    const fetchVehicles = async () => {
+      try {
+        let response;
+        if (user && user.role === 'vehicle_owner') {
+          response = await authFetch('http://127.0.0.1:3001/api/vehicles/owner');
+        } else {
+          response = await fetch('http://127.0.0.1:3001/api/vehicles');
+        }
+        
+        const data = await response.json();
+        setVehicles(data);
+      } catch (err) {
+        console.error("Error fetching vehicles:", err);
+      }
+    };
+    
+    fetchVehicles();
+  }, [user]);
 
   const handleFilterChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -43,10 +58,10 @@ const Vehicles = () => {
       <div className="bg-gradient-to-r from-sunset-orange to-sunset-gold pt-32 pb-16 px-4">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-black text-white mb-6 tracking-tight">
-            Find Your Perfect Ride
+            {user?.role === 'vehicle_owner' ? 'My Fleet' : 'Find Your Perfect Ride'}
           </h1>
           <p className="text-white/90 text-lg md:text-xl max-w-2xl mx-auto">
-            From affordable TukTuks to luxury vans, explore our wide range of vehicles for your Sri Lankan adventure.
+            {user?.role === 'vehicle_owner' ? 'Manage your registered vehicles and rentals.' : 'From affordable TukTuks to luxury vans, explore our wide range of vehicles for your Sri Lankan adventure.'}
           </p>
         </div>
       </div>
