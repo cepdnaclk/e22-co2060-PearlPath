@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-<<<<<<< HEAD
 import { Menu, Building, MapPin, Map, BusFront, Navigation, User, LogOut, ChevronDown, Plus, Home } from 'lucide-react';
-=======
-import { Menu, Building, MapPin, Footprints, BusFront, UserCheck, DollarSign, Navigation, User, LogOut, ChevronDown, Plus } from 'lucide-react';
->>>>>>> origin/update-backend1
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -51,12 +47,7 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const location = useLocation();
-  const isHome = location.pathname === '/';
-  const isSolid = scrolled || !isHome;
-
   const navItems = [
-<<<<<<< HEAD
     { id: 'home', label: 'Home', icon: <Home size={16} /> },
     { id: 'hotels', label: 'Hotels', icon: <Building size={16} /> },
     { id: 'routes', label: 'Routes', icon: <Map size={16} /> },
@@ -66,16 +57,6 @@ const Navbar = () => {
 
   return (
     <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-[#0f0f11]/95 backdrop-blur-md border-b border-gray-800 shadow-lg py-3' : 'bg-transparent py-5'}`}>
-=======
-    { id: 'hotels', label: 'Hotels', icon: <Building size={18} fill="currentColor" className="text-sunset-gold" />, path: '/hotels' },
-    { id: 'tour-guides', label: 'Tour Guides', icon: <UserCheck size={18} fill="currentColor" className="text-sunset-orange" />, path: '#' },
-    { id: 'transport', label: 'Transport', icon: <BusFront size={18} fill="currentColor" className="text-slate-800" />, path: '/vehicles' },
-    { id: 'destinations', label: 'Destinations', icon: <MapPin size={18} fill="currentColor" className="text-sunset-teal" />, path: '#' },
-  ];
-
-  return (
-    <nav className={`fixed w-full z-50 transition-all duration-300 ${isSolid ? 'bg-sunset-dark/95 backdrop-blur-md shadow-lg py-3' : 'bg-transparent py-5'}`}>
->>>>>>> origin/update-backend1
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-12">
 
