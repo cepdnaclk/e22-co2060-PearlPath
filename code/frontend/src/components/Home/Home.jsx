@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 import QuickViewModal from '../QuickView/QuickViewModal';
+<<<<<<< HEAD
 import { VehicleContext } from '../../context/VehicleContext';
 import { Calendar, User, Search, MapPin, Map, Navigation, Star, Compass, Wind, CarFront } from 'lucide-react';
 
@@ -75,10 +76,42 @@ const properties = [
     height: "h-64",
   }
 ];
+=======
+import { Calendar, User, Search, MapPin, Map, Navigation, Star, Compass, Wind, Plus, Building, Car } from 'lucide-react';
+>>>>>>> origin/update-backend1
 
+// Removed mock properties
 const Home = () => {
   const [selectedProperty, setSelectedProperty] = useState(null);
+<<<<<<< HEAD
   const { selectedVehicle } = useContext(VehicleContext);
+=======
+  const [properties, setProperties] = useState([]);
+  
+  const [user] = useState(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        return JSON.parse(storedUser);
+      } catch (e) {
+        console.error('Failed to parse user', e);
+        return null;
+      }
+    }
+    return null;
+  });
+>>>>>>> origin/update-backend1
+
+  useEffect(() => {
+    fetch('http://127.0.0.1:3001/api/hotels')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.response) {
+          setProperties(data.response);
+        }
+      })
+      .catch(err => console.error("Error fetching hotels:", err));
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] font-outfit">
@@ -179,10 +212,45 @@ const Home = () => {
 
         {/* Category Pills (Interactive Map / Guides / etc) */}
         <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-8 mb-4">
+<<<<<<< HEAD
+=======
+          {user?.role === 'hotel_owner' && (
+            <Link to="/add-property" className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-sunset-gold to-sunset-orange rounded-full shadow-md hover:shadow-lg transition-all text-white whitespace-nowrap group">
+              <Plus className="text-white group-hover:scale-125 transition-transform" />
+              <span className="font-bold">Add Hotels</span>
+            </Link>
+          )}
+
+          {user?.role === 'vehicle_owner' && (
+            <Link to="/add-vehicle" className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-sunset-orange to-sunset-gold rounded-full shadow-md hover:shadow-lg transition-all text-white whitespace-nowrap group">
+              <Plus className="text-white group-hover:scale-125 transition-transform" />
+              <span className="font-bold">Add Vehicles</span>
+            </Link>
+          )}
+
+>>>>>>> origin/update-backend1
           <button className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-teal/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
             <Compass className="text-sunset-teal group-hover:rotate-45 transition-transform" />
             <span className="font-semibold">Interactive Map</span>
           </button>
+          
+          {!user && (
+            <>
+              <Link to="/register?role=hotel_owner" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-gold/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
+                <Building className="text-sunset-gold group-hover:scale-110 transition-transform" />
+                <span className="font-semibold">Become a Hotel Owner</span>
+              </Link>
+              <Link to="/register?role=tour_guide" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-teal/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
+                <MapPin className="text-sunset-teal group-hover:scale-110 transition-transform" />
+                <span className="font-semibold">Become a Tour Guide</span>
+              </Link>
+              <Link to="/register?role=vehicle_owner" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-orange/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
+                <Car className="text-sunset-orange group-hover:scale-110 transition-transform" />
+                <span className="font-semibold">List Your Vehicle</span>
+              </Link>
+            </>
+          )}
+
           <button className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-orange/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
             <Star className="text-sunset-orange group-hover:scale-110 transition-transform" />
             <span className="font-semibold">Top Rated</span>
@@ -199,16 +267,20 @@ const Home = () => {
           <p className="text-gray-500 mb-8 font-medium">Curated stays matching the Pearl Path standard.</p>
 
           <div className="masonry-grid">
-            {properties.map((property) => (
+            {properties.map((property, index) => {
+              const heights = ["h-96", "h-64", "h-80", "h-72", "h-80", "h-64"];
+              const propertyHeight = property.height || heights[index % heights.length];
+              
+              return (
               <div
-                key={property.id}
+                key={property._id || property.id}
                 className="masonry-item relative group cursor-pointer rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
                 onClick={() => setSelectedProperty(property)}
               >
                 {/* Image */}
-                <div className={`${property.height} w-full bg-gray-200 relative overflow-hidden`}>
+                <div className={`${propertyHeight} w-full bg-gray-200 relative overflow-hidden`}>
                   <img
-                    src={property.image}
+                    src={property.imageUrl || (property.images && property.images[0]) || "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=400&auto=format&fit=crop"}
                     alt={property.name}
                     className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                   />
@@ -227,14 +299,14 @@ const Home = () => {
                       <h3 className="text-xl font-bold leading-tight">{property.name}</h3>
                     </div>
                     <div className="bg-white/20 backdrop-blur px-2 py-1 rounded-lg text-sm font-bold border border-white/30 flex items-center gap-1">
-                      {property.rating} <Star size={12} className="text-sunset-gold fill-current" />
+                      {property.starRating || property.rating || "4.5"} <Star size={12} className="text-sunset-gold fill-current" />
                     </div>
                   </div>
 
                   {/* Hover Reveal Price */}
                   <div className="h-0 overflow-hidden group-hover:h-8 transition-all duration-300 flex items-center mt-2">
                     <span className="text-sm text-gray-300">from</span>
-                    <span className="text-lg font-bold text-sunset-gold ml-2">LKR {property.price}</span>
+                    <span className="text-lg font-bold text-sunset-gold ml-2">LKR {property.pricePerNight ? property.pricePerNight.toLocaleString() : property.price}</span>
                   </div>
                 </div>
 
@@ -243,9 +315,61 @@ const Home = () => {
                   <Navigation size={20} className="transform rotate-45" />
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         </div>
+
+        {/* Join Our Platform CTA Section */}
+        {!user && (
+          <div className="mb-12 mt-20 bg-gradient-to-br from-sunset-dark to-[#1a2f3a] rounded-[2rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
+            {/* Background Decoration */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-sunset-orange/10 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-sunset-teal/10 rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
+            
+            <div className="relative z-10 text-center max-w-3xl mx-auto">
+              <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4">Partner with Pearl Path</h2>
+              <p className="text-gray-300 text-lg mb-10">Expand your reach and grow your business by listing your services on Sri Lanka's premier travel platform.</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Add Hotel */}
+                <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl hover:bg-white/20 transition-all group flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-sunset-gold/20 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <Building size={32} className="text-sunset-gold" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">Can you add a Hotel?</h3>
+                  <p className="text-gray-400 text-sm mb-6 flex-grow">List your property and reach thousands of travelers looking for the perfect stay.</p>
+                  <Link to="/register?role=hotel_owner" className="w-full py-3 px-4 bg-sunset-gold text-sunset-dark font-bold rounded-xl hover:bg-white transition-colors">
+                    Register Hotel
+                  </Link>
+                </div>
+
+                {/* Add Guide */}
+                <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl hover:bg-white/20 transition-all group flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-sunset-teal/20 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <MapPin size={32} className="text-sunset-teal" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">Can you add a Guide?</h3>
+                  <p className="text-gray-400 text-sm mb-6 flex-grow">Share your local expertise and guide tourists through unforgettable experiences.</p>
+                  <Link to="/register?role=tour_guide" className="w-full py-3 px-4 bg-sunset-teal text-white font-bold rounded-xl hover:bg-white hover:text-sunset-teal transition-colors">
+                    Register Guide
+                  </Link>
+                </div>
+
+                {/* Add Vehicle */}
+                <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl hover:bg-white/20 transition-all group flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-sunset-orange/20 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <Car size={32} className="text-sunset-orange" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">Can you add a Vehicle?</h3>
+                  <p className="text-gray-400 text-sm mb-6 flex-grow">Provide transportation services and help travelers navigate the island comfortably.</p>
+                  <Link to="/register?role=vehicle_owner" className="w-full py-3 px-4 bg-sunset-orange text-white font-bold rounded-xl hover:bg-white hover:text-sunset-orange transition-colors">
+                    Register Vehicle
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
       </main>
 

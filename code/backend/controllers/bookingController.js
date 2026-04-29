@@ -2,7 +2,8 @@ const Booking = require('../models/Booking');
 
 const createBooking = async (req, res) => {
     try {
-        const { userId, hotelId, startDate, endDate, rooms, guests, totalPrice } = req.body;
+        const { hotelId, vehicleId, tourId, providerId, startDate, endDate, rooms, guests, totalPrice } = req.body;
+        const userId = req.user._id;
 
         // Validation for dates and numbers
         const start = new Date(startDate);
@@ -16,7 +17,10 @@ const createBooking = async (req, res) => {
 
         const booking = new Booking({
             userId,
+            providerId,
             hotelId,
+            vehicleId,
+            tourId,
             startDate,
             endDate,
             rooms,
@@ -34,8 +38,11 @@ const createBooking = async (req, res) => {
 
 const getBookings = async (req, res) => {
     try {
-        const { userId } = req.params;
-        const bookings = await Booking.find({ userId }).populate('hotelId');
+        const userId = req.user._id;
+        const bookings = await Booking.find({ userId })
+            .populate('hotelId')
+            .populate('vehicleId')
+            .populate('tourId');
         res.status(200).json({ response: bookings });
     } catch (error) {
         console.error("Get bookings error:", error);
@@ -47,12 +54,12 @@ const updateBooking = async (req, res) => {
     try {
         const { id } = req.params;
         const updates = req.body;
-        
+
         const booking = await Booking.findByIdAndUpdate(id, updates, { new: true, runValidators: true });
         if (!booking) {
             return res.status(404).json({ message: 'Booking not found' });
         }
-        
+
         res.status(200).json({ message: 'Booking updated successfully', booking });
     } catch (error) {
         console.error("Update booking error:", error);
@@ -65,11 +72,11 @@ const cancelBooking = async (req, res) => {
         const { id } = req.params;
         // Just hard delete for now, or could update status to 'cancelled'
         const booking = await Booking.findByIdAndDelete(id);
-        
+
         if (!booking) {
-             return res.status(404).json({ message: 'Booking not found' });
+            return res.status(404).json({ message: 'Booking not found' });
         }
-        
+
         res.status(200).json({ message: 'Booking cancelled successfully' });
     } catch (error) {
         console.error("Cancel booking error:", error);
@@ -77,4 +84,19 @@ const cancelBooking = async (req, res) => {
     }
 };
 
-module.exports = { createBooking, getBookings, updateBooking, cancelBooking };
+const getProviderBookings = async (req, res) => {
+    try {
+        const providerId = req.user._id;
+        const bookings = await Booking.find({ providerId })
+            .populate('userId', 'firstName lastName email phone')
+            .populate('hotelId')
+            .populate('vehicleId')
+            .populate('tourId');
+        res.status(200).json({ response: bookings });
+    } catch (error) {
+        console.error("Get provider bookings error:", error);
+        res.status(500).json({ message: 'An error occurred while fetching provider bookings' });
+    }
+};
+
+module.exports = { createBooking, getBookings, getProviderBookings, updateBooking, cancelBooking };

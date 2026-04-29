@@ -2,7 +2,7 @@ const Hotel = require('../models/Hotel');
 
 const getHotels = async (req, res) => {
     try {
-        const hotels = await Hotel.find();
+        const hotels = await Hotel.find({ status: 'approved' });
         res.status(200).json({ response: hotels });
     } catch (error) {
         console.error("Get hotels error:", error);
@@ -13,6 +13,7 @@ const getHotels = async (req, res) => {
 const createHotel = async (req, res) => {
     try {
         const newHotel = new Hotel({
+            ownerId: req.user._id,
             name: req.body.name,
             description: req.body.description,
             pricePerNight: req.body.pricePerNight,
