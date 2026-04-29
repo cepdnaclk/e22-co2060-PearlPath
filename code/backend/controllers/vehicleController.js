@@ -3,6 +3,7 @@ const Vehicle = require('../models/Vehicle');
 // Create a new vehicle
 const createVehicle = async (req, res) => {
     try {
+        req.body.ownerId = req.user._id;
         const newVehicle = new Vehicle(req.body);
         const savedVehicle = await newVehicle.save();
         res.status(201).json(savedVehicle);
@@ -15,7 +16,7 @@ const createVehicle = async (req, res) => {
 // Get all vehicles (for Tourists discovery page)
 const getAllVehicles = async (req, res) => {
     try {
-        const vehicles = await Vehicle.find({ isAvailable: true }).populate('ownerId', 'firstName lastName email');
+        const vehicles = await Vehicle.find({ isAvailable: true, status: 'approved' }).populate('ownerId', 'firstName lastName email');
         res.status(200).json(vehicles);
     } catch (error) {
         console.error('Error fetching all vehicles:', error);
@@ -26,10 +27,7 @@ const getAllVehicles = async (req, res) => {
 // Get vehicles by owner ID (for Owner Dashboard)
 const getVehiclesByOwner = async (req, res) => {
     try {
-        // Assuming the owner's ID is passed as a URL parameter, e.g., /api/vehicles/owner/:ownerId
-        // In a real application, you might extract this from the authenticated user's token (req.user._id)
-        const { ownerId } = req.params;
-        const vehicles = await Vehicle.find({ ownerId });
+        const vehicles = await Vehicle.find({ ownerId: req.user._id });
         res.status(200).json(vehicles);
     } catch (error) {
         console.error('Error fetching vehicles by owner:', error);

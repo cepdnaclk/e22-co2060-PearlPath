@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 import QuickViewModal from '../QuickView/QuickViewModal';
-import { Calendar, User, Search, MapPin, Map, Navigation, Star, Compass, Wind, Plus } from 'lucide-react';
+import { Calendar, User, Search, MapPin, Map, Navigation, Star, Compass, Wind, Plus, Building, Car } from 'lucide-react';
 
 // Removed mock properties
 const Home = () => {
@@ -112,6 +112,24 @@ const Home = () => {
             <Compass className="text-sunset-teal group-hover:rotate-45 transition-transform" />
             <span className="font-semibold">Interactive Map</span>
           </button>
+          
+          {!user && (
+            <>
+              <Link to="/register?role=hotel_owner" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-gold/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
+                <Building className="text-sunset-gold group-hover:scale-110 transition-transform" />
+                <span className="font-semibold">Become a Hotel Owner</span>
+              </Link>
+              <Link to="/register?role=tour_guide" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-teal/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
+                <MapPin className="text-sunset-teal group-hover:scale-110 transition-transform" />
+                <span className="font-semibold">Become a Tour Guide</span>
+              </Link>
+              <Link to="/register?role=vehicle_owner" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-orange/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
+                <Car className="text-sunset-orange group-hover:scale-110 transition-transform" />
+                <span className="font-semibold">List Your Vehicle</span>
+              </Link>
+            </>
+          )}
+
           <button className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-orange/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
             <Star className="text-sunset-orange group-hover:scale-110 transition-transform" />
             <span className="font-semibold">Top Rated</span>
@@ -179,6 +197,58 @@ const Home = () => {
             )})}
           </div>
         </div>
+
+        {/* Join Our Platform CTA Section */}
+        {!user && (
+          <div className="mb-12 mt-20 bg-gradient-to-br from-sunset-dark to-[#1a2f3a] rounded-[2rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
+            {/* Background Decoration */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-sunset-orange/10 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-sunset-teal/10 rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
+            
+            <div className="relative z-10 text-center max-w-3xl mx-auto">
+              <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4">Partner with Pearl Path</h2>
+              <p className="text-gray-300 text-lg mb-10">Expand your reach and grow your business by listing your services on Sri Lanka's premier travel platform.</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Add Hotel */}
+                <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl hover:bg-white/20 transition-all group flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-sunset-gold/20 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <Building size={32} className="text-sunset-gold" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">Can you add a Hotel?</h3>
+                  <p className="text-gray-400 text-sm mb-6 flex-grow">List your property and reach thousands of travelers looking for the perfect stay.</p>
+                  <Link to="/register?role=hotel_owner" className="w-full py-3 px-4 bg-sunset-gold text-sunset-dark font-bold rounded-xl hover:bg-white transition-colors">
+                    Register Hotel
+                  </Link>
+                </div>
+
+                {/* Add Guide */}
+                <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl hover:bg-white/20 transition-all group flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-sunset-teal/20 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <MapPin size={32} className="text-sunset-teal" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">Can you add a Guide?</h3>
+                  <p className="text-gray-400 text-sm mb-6 flex-grow">Share your local expertise and guide tourists through unforgettable experiences.</p>
+                  <Link to="/register?role=tour_guide" className="w-full py-3 px-4 bg-sunset-teal text-white font-bold rounded-xl hover:bg-white hover:text-sunset-teal transition-colors">
+                    Register Guide
+                  </Link>
+                </div>
+
+                {/* Add Vehicle */}
+                <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl hover:bg-white/20 transition-all group flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-sunset-orange/20 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <Car size={32} className="text-sunset-orange" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">Can you add a Vehicle?</h3>
+                  <p className="text-gray-400 text-sm mb-6 flex-grow">Provide transportation services and help travelers navigate the island comfortably.</p>
+                  <Link to="/register?role=vehicle_owner" className="w-full py-3 px-4 bg-sunset-orange text-white font-bold rounded-xl hover:bg-white hover:text-sunset-orange transition-colors">
+                    Register Vehicle
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
       </main>
 

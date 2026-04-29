@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Navigation } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+
 
 const SignInPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSignIn = async (e) => {
     e.preventDefault();
@@ -23,20 +27,26 @@ const SignInPage = () => {
       const data = await response.json();
 
       if (response.ok) {
+        if (data.user.status === 'pending') {
+          setError('Your account is pending admin approval. Please try again later.');
+          return;
+        }
+        if (data.user.status === 'rejected') {
+          setError('Your account has been rejected by the admin.');
+          return;
+        }
+
         console.log('Login successful:', data);
-        // Save user state
-        localStorage.setItem('user', JSON.stringify(data.user));
-        if (data.token) localStorage.setItem('token', data.token);
+        
+        login(data.user, data.token);
         
         alert('Welcome back, ' + data.user.firstName + '!');
         
-        // Strategy to force password save prompt
-        const hiddenForm = document.getElementById('hidden-login-form');
-        if (hiddenForm) {
-          hiddenForm.submit();
+        if (data.user.role === 'admin') {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/');
         }
-
-        window.location.assign('/');
       } else {
         setError(data.message || 'Login failed.');
       }

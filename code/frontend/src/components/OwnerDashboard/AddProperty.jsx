@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UploadCloud, MapPin, Building, Star, FileText, DollarSign, Check, X } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const AMENITIES_LIST = [
   'Free WiFi',
@@ -33,6 +34,7 @@ const AddProperty = () => {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [isPublished, setIsPublished] = useState(false);
   const navigate = useNavigate();
+  const { authFetch } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -90,7 +92,7 @@ const AddProperty = () => {
         amenities: formData.amenities
       };
 
-      await fetch('http://127.0.0.1:3001/api/hotels', {
+      await authFetch('http://127.0.0.1:3001/api/hotels', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

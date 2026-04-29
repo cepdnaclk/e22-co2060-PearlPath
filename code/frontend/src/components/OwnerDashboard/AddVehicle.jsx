@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Upload, Car, Users, DollarSign, Settings, Wind } from 'lucide-react';
 import Navbar from '../Navbar/Navbar';
+import { useAuth } from '../../context/AuthContext';
 
 const AddVehicle = () => {
   const [formData, setFormData] = useState({
@@ -14,6 +15,7 @@ const AddVehicle = () => {
 
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
+  const { authFetch } = useAuth();
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -39,14 +41,7 @@ const AddVehicle = () => {
     setIsSubmitted(true);
     
     try {
-      const userStr = localStorage.getItem('user');
-      let ownerId = null;
-      if (userStr) {
-         ownerId = JSON.parse(userStr)._id;
-      }
-      
       const payload = {
-        ownerId: ownerId || "60d0fe4f5311236168a109ca", // Use logged in user or a dummy ID if testing without auth
         makeAndModel: formData.makeModel,
         vehicleType: formData.type,
         seats: Number(formData.seats),
@@ -56,7 +51,7 @@ const AddVehicle = () => {
         images: imagePreview ? [imagePreview] : ["https://images.unsplash.com/photo-1590362891991-f776e747a58f?q=80&w=800&auto=format&fit=crop"]
       };
 
-      await fetch('http://127.0.0.1:3001/api/vehicles', {
+      await authFetch('http://127.0.0.1:3001/api/vehicles', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

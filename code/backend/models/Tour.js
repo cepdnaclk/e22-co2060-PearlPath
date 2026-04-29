@@ -1,37 +1,30 @@
 const mongoose = require('mongoose');
 
-const vehicleSchema = new mongoose.Schema({
+const tourSchema = new mongoose.Schema({
     ownerId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
-    makeAndModel: {
+    title: {
         type: String,
         required: true
     },
-    vehicleType: {
+    description: {
         type: String,
-        enum: ['Car', 'Van', 'TukTuk', 'Scooter'],
         required: true
     },
-    seats: {
-        type: Number,
-        required: true,
-        default: 4
-    },
-    pricePerDay: {
+    price: {
         type: Number,
         required: true
     },
-    transmission: {
+    duration: {
         type: String,
-        enum: ['Auto', 'Manual'],
         required: true
     },
-    hasAC: {
-        type: Boolean,
-        default: true
+    location: {
+        type: String,
+        required: true
     },
     images: {
         type: [String],
@@ -48,4 +41,4 @@ const vehicleSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Vehicle', vehicleSchema);
+module.exports = mongoose.model('Tour', tourSchema);
