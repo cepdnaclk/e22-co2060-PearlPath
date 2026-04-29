@@ -59,7 +59,7 @@ const Navbar = () => {
     <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-[#0f0f11]/95 backdrop-blur-md border-b border-gray-800 shadow-lg py-3' : 'bg-transparent py-5'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-12">
-          
+
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group shrink-0">
             <div className="w-10 h-10 bg-gradient-to-br from-sunset-gold to-sunset-orange rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-transform shadow-lg">
@@ -74,14 +74,13 @@ const Navbar = () => {
               const path = item.id === 'transport' ? '/vehicles' : item.id === 'home' ? '/home' : `/${item.id}`;
               const isActive = location.pathname === path || (item.id === 'home' && location.pathname === '/');
               return (
-                <Link 
-                  key={item.id} 
+                <Link
+                  key={item.id}
                   to={path}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm transition-all hover:scale-105 group font-medium text-sm border ${
-                    isActive 
-                      ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400 shadow-sm' 
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm transition-all hover:scale-105 group font-medium text-sm border ${isActive
+                      ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400 shadow-sm'
                       : 'bg-white/5 hover:bg-white/10 text-gray-300 border-white/5 hover:border-white/10'
-                  }`}
+                    }`}
                 >
                   <span className={`transition-transform transform group-hover:scale-110 ${isActive ? 'text-emerald-400' : 'text-gray-400 group-hover:text-emerald-400'}`}>{item.icon}</span>
                   <span>{item.label}</span>
@@ -96,12 +95,12 @@ const Navbar = () => {
               <button className="text-gray-300 hover:text-emerald-400 font-medium text-sm transition-colors">LKR</button>
               <button className="text-gray-300 hover:text-emerald-400 font-medium text-sm transition-colors">EN</button>
             </div>
-            
+
             <div className="h-6 w-px bg-gray-700"></div>
-            
+
             {user ? (
               <div className="relative" ref={dropdownRef}>
-                <button 
+                <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-full border border-gray-700 transition-all focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
                   aria-expanded={isDropdownOpen}
@@ -124,13 +123,13 @@ const Navbar = () => {
                       {user.email && (
                         <p className="text-xs text-gray-400 truncate mt-0.5">{user.email}</p>
                       )}
-                        <p className="text-xs font-medium text-emerald-400 mt-1">
+                      <p className="text-xs font-medium text-emerald-400 mt-1">
                         {user.role ? user.role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : 'Tourist'}
                       </p>
                     </div>
-                    
+
                     <div className="py-1">
-                      <Link 
+                      <Link
                         to="/register"
                         onClick={() => setIsDropdownOpen(false)}
                         className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-emerald-400 flex items-center gap-2 transition-colors"
@@ -139,11 +138,11 @@ const Navbar = () => {
                         Add Account
                       </Link>
                     </div>
-                    
+
                     <hr className="border-gray-800 my-1" />
-                    
+
                     <div className="py-1">
-                      <button 
+                      <button
                         onClick={handleLogout}
                         className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-400/10 flex items-center gap-2 transition-colors font-medium"
                       >
@@ -181,8 +180,8 @@ const Navbar = () => {
               const path = item.id === 'transport' ? '/vehicles' : item.id === 'home' ? '/home' : `/${item.id}`;
               const isActive = location.pathname === path || (item.id === 'home' && location.pathname === '/');
               return (
-                <Link 
-                  key={item.id} 
+                <Link
+                  key={item.id}
                   to={path}
                   onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors group ${isActive ? 'bg-gray-800 text-emerald-400' : 'bg-gray-800/50 hover:bg-gray-800 text-gray-300 hover:text-emerald-400'}`}
@@ -211,7 +210,7 @@ const Navbar = () => {
                     </span>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={handleLogout}
                   className="w-full text-center bg-gray-800 hover:bg-gray-700 text-white font-medium py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
                 >
