@@ -2,7 +2,7 @@ const Hotel = require('../models/Hotel');
 
 const getHotels = async (req, res) => {
     try {
-        const hotels = await Hotel.find({ status: 'approved' });
+        const hotels = await Hotel.find({ status: 'approved' }).select('-images').lean();
         res.status(200).json({ response: hotels });
     } catch (error) {
         console.error("Get hotels error:", error);
@@ -46,7 +46,7 @@ const getHotelById = async (req, res) => {
 
 const getProviderHotels = async (req, res) => {
     try {
-        const hotels = await Hotel.find({ ownerId: req.user._id });
+        const hotels = await Hotel.find({ ownerId: req.user._id }).select('-images').lean();
         res.status(200).json({ response: hotels });
     } catch (error) {
         console.error("Get provider hotels error:", error);
