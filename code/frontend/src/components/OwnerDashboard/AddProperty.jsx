@@ -58,14 +58,17 @@ const AddProperty = () => {
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
     
-    // In a real app we'd also store the File objects in formData.images for sending
-    // For this UI mockup, we'll generate preview URLs
-    const newPreviews = files.map(file => URL.createObjectURL(file));
-    
-    setImagePreviews(prev => [...prev, ...newPreviews]);
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreviews(prev => [...prev, reader.result]);
+      };
+      reader.readAsDataURL(file);
+    });
+
     setFormData(prev => ({
       ...prev,
-      images: [...prev.images, ...files] // Store file objects for future backend upload
+      images: [...prev.images, ...files] 
     }));
   };
 
@@ -92,17 +95,23 @@ const AddProperty = () => {
         amenities: formData.amenities
       };
 
-      await authFetch('http://127.0.0.1:3001/api/hotels', {
+      const response = await authFetch('http://127.0.0.1:3001/api/hotels', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Server error occurred');
+      }
 
       setTimeout(() => {
         navigate('/hotels');
       }, 2000);
     } catch (error) {
       console.error("Error publishing property:", error);
+      alert(`Failed to publish property: ${error.message}`);
       setIsPublished(false);
     }
   };

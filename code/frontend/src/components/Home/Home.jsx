@@ -25,14 +25,75 @@ const Home = () => {
   });
 
   useEffect(() => {
-    fetch('http://127.0.0.1:3001/api/hotels')
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.response) {
-          setProperties(data.response);
-        }
-      })
-      .catch(err => console.error("Error fetching hotels:", err));
+    const beautifulPlaces = [
+      {
+        _id: 'place1',
+        name: 'Sigiriya Rock Fortress',
+        location: 'Sigiriya',
+        image: 'https://images.unsplash.com/photo-1588614959060-4d144f28b2ea?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        imageUrl: 'https://images.unsplash.com/photo-1588614959060-4d144f28b2ea?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        rating: '4.9',
+        description: 'An ancient rock fortress and palace ruin situated in the central Matale District of Sri Lanka. It is a UNESCO World Heritage Site.',
+        amenities: ['Historical Site', 'Hiking', 'Photography', 'Viewpoint'],
+        price: 'Ticketed'
+      },
+      {
+        _id: 'place2',
+        name: 'Nine Arches Bridge',
+        location: 'Ella',
+        image: 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        imageUrl: 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        rating: '4.8',
+        description: 'The Nine Arches Bridge also called the Bridge in the Sky, is a viaduct bridge in Sri Lanka. It is one of the best examples of colonial-era railway construction in the country.',
+        amenities: ['Sightseeing', 'Photography', 'Nature Walk'],
+        price: 'Free'
+      },
+      {
+        _id: 'place3',
+        name: 'Yala National Park',
+        location: 'Yala',
+        image: 'https://images.unsplash.com/photo-1544839848-1db253457a41?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        imageUrl: 'https://images.unsplash.com/photo-1544839848-1db253457a41?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        rating: '4.7',
+        description: 'Yala is the most visited and second largest national park in Sri Lanka, bordering the Indian Ocean. Known for its high density of leopards.',
+        amenities: ['Safari', 'Wildlife', 'Photography', 'Nature Tour'],
+        price: 'Ticketed'
+      },
+      {
+        _id: 'place4',
+        name: 'Galle Dutch Fort',
+        location: 'Galle',
+        image: 'https://images.unsplash.com/photo-1586514781444-24e03b4dcb62?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        imageUrl: 'https://images.unsplash.com/photo-1586514781444-24e03b4dcb62?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        rating: '4.8',
+        description: 'Galle Fort, in the Bay of Galle on the south west coast of Sri Lanka, was built first in 1588 by the Portuguese.',
+        amenities: ['Historical Site', 'Shopping', 'Dining', 'Sunset View'],
+        price: 'Free'
+      },
+      {
+        _id: 'place5',
+        name: 'Temple of the Tooth',
+        location: 'Kandy',
+        image: 'https://images.unsplash.com/photo-1625732152203-b0e6fb36c0a0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        imageUrl: 'https://images.unsplash.com/photo-1625732152203-b0e6fb36c0a0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        rating: '4.9',
+        description: 'Sri Dalada Maligawa or the Temple of the Sacred Tooth Relic is a Buddhist temple in the city of Kandy, Sri Lanka.',
+        amenities: ['Religious Site', 'Cultural', 'Museum'],
+        price: 'Ticketed'
+      },
+      {
+        _id: 'place6',
+        name: 'Mirissa Beach',
+        location: 'Mirissa',
+        image: 'https://images.unsplash.com/photo-1578330756770-b88a75e0df79?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        imageUrl: 'https://images.unsplash.com/photo-1578330756770-b88a75e0df79?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        rating: '4.7',
+        description: 'Mirissa and its breathtaking sandy beach pretty much transforms your dreams and visions of a tropical paradise into an everyday reality.',
+        amenities: ['Beach', 'Surfing', 'Whale Watching', 'Nightlife'],
+        price: 'Free'
+      }
+    ];
+    setProperties(beautifulPlaces);
   }, []);
 
   return (
@@ -212,18 +273,15 @@ const Home = () => {
               <h2 className="text-3xl font-extrabold text-gray-900 mb-2">The Exploration Grid</h2>
               <p className="text-gray-500 mb-8 font-medium">Curated stays matching the Pearl Path standard.</p>
 
-              <div className="masonry-grid">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {properties.map((property, index) => {
-                  const heights = ["h-96", "h-64", "h-80", "h-72", "h-80", "h-64"];
-                  const propertyHeight = property.height || heights[index % heights.length];
-
                   return (
                     <div
                       key={property._id || property.id}
-                      className="masonry-item relative group cursor-pointer rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+                      className="relative group cursor-pointer rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col"
                       onClick={() => setSelectedProperty(property)}
                     >
-                      <div className={`${propertyHeight} w-full bg-gray-200 relative overflow-hidden`}>
+                      <div className="h-80 w-full bg-gray-200 relative overflow-hidden">
                         <img
                           src={property.imageUrl || (property.images && property.images[0]) || "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=400&auto=format&fit=crop"}
                           alt={property.name}
@@ -241,14 +299,14 @@ const Home = () => {
                             </div>
                             <h3 className="text-xl font-bold leading-tight">{property.name}</h3>
                           </div>
-                          <div className="bg-white/20 backdrop-blur px-2 py-1 rounded-lg text-sm font-bold border border-white/30 flex items-center gap-1">
+                          <div className="bg-white/20 backdrop-blur px-2 py-1 rounded-lg text-sm font-bold border border-white/30 flex items-center gap-1 shrink-0">
                             {property.starRating || property.rating || "4.5"} <Star size={12} className="text-sunset-gold fill-current" />
                           </div>
                         </div>
 
                         <div className="h-0 overflow-hidden group-hover:h-8 transition-all duration-300 flex items-center mt-2">
-                          <span className="text-sm text-gray-300">from</span>
-                          <span className="text-lg font-bold text-sunset-gold ml-2">LKR {property.pricePerNight ? property.pricePerNight.toLocaleString() : property.price}</span>
+                          {property.pricePerNight && <span className="text-sm text-gray-300 mr-2">from</span>}
+                          <span className="text-lg font-bold text-sunset-gold">{property.pricePerNight ? `LKR ${property.pricePerNight.toLocaleString()}` : property.price}</span>
                         </div>
                       </div>
 

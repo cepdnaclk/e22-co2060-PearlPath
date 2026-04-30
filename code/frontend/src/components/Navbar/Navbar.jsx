@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, Building, MapPin, Map, BusFront, Navigation, User, LogOut, ChevronDown, Plus, Home } from 'lucide-react';
+import { Menu, Building, MapPin, Map, BusFront, Navigation, User, LogOut, ChevronDown, Plus, Home, Calendar } from 'lucide-react';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -150,6 +150,16 @@ const Navbar = () => {
                           Admin Dashboard
                         </Link>
                       )}
+                      {(!user.role || user.role === 'tourist') && (
+                        <Link
+                          to="/my-bookings"
+                          onClick={() => setIsDropdownOpen(false)}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-emerald-400 flex items-center gap-2 transition-colors"
+                        >
+                          <Calendar size={16} />
+                          My Bookings
+                        </Link>
+                      )}
                       {(user.role === 'hotel_owner' || user.role === 'vehicle_owner' || user.role === 'tour_guide') && (
                         <Link
                           to="/provider-bookings"
@@ -260,6 +270,16 @@ const Navbar = () => {
                   >
                     <Building size={18} />
                     <span>Admin Dashboard</span>
+                  </Link>
+                )}
+                {(!user.role || user.role === 'tourist') && (
+                  <Link
+                    to="/my-bookings"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full text-center bg-gray-800 hover:bg-gray-700 text-white font-medium py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Calendar size={18} />
+                    <span>My Bookings</span>
                   </Link>
                 )}
                 {(user.role === 'hotel_owner' || user.role === 'vehicle_owner' || user.role === 'tour_guide') && (

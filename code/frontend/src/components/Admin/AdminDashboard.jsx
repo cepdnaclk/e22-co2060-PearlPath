@@ -142,7 +142,7 @@ const AdminDashboard = () => {
         // Extract all pending listings from approved users for easy approval
         let pendingListings = [];
         if (['hotel_owner', 'vehicle_owner', 'tour_guide'].includes(activeTab)) {
-            approvedUsers.forEach(user => {
+            roleData.forEach(user => {
                 if (user.listings && user.listings.length > 0) {
                     user.listings.forEach(listing => {
                         if (listing.status === 'pending') {
