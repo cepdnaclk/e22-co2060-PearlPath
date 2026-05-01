@@ -12,6 +12,7 @@ import ProviderBookings from './components/OwnerDashboard/ProviderBookings'
 import AdminDashboard from './components/Admin/AdminDashboard'
 import ProtectedRoute from './components/Auth/ProtectedRoute'
 import AddProperty from './components/OwnerDashboard/AddProperty'
+import EditProperty from './components/OwnerDashboard/EditProperty'
 import Hotels from './components/Hotels/Hotels'
 import HotelDetails from './components/Hotels/HotelDetails'
 import Profile from './components/Profile/Profile'
@@ -31,6 +32,7 @@ function App() {
           <Route path="/admin/dashboard" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
 
           <Route path="/add-property" element={<ProtectedRoute roles={['hotel_owner']}><AddProperty /></ProtectedRoute>} />
+          <Route path="/edit-property/:id" element={<ProtectedRoute roles={['hotel_owner']}><EditProperty /></ProtectedRoute>} />
           <Route path="/hotels" element={<Hotels />} />
           <Route path="/hotel/:id" element={<HotelDetails />} />
           <Route path="/hotel/preview" element={<HotelDetails />} />

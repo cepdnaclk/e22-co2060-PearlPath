@@ -247,7 +247,7 @@ const Hotels = () => {
             <div className="space-y-6">
               {filteredHotels.length > 0 ? (
                 filteredHotels.map(hotel => (
-                  <HotelCard key={hotel.id} hotel={hotel} />
+                  <HotelCard key={hotel.id} hotel={hotel} isOwnerView={user?.role === 'hotel_owner'} />
                 ))
               ) : (
                 <div className="bg-white p-12 rounded-3xl text-center border border-gray-100 shadow-sm">

@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Star, Wifi, Coffee, Wind, Waves } from 'lucide-react';
 
-const HotelCard = ({ hotel }) => {
+const HotelCard = ({ hotel, isOwnerView }) => {
   // Helper to render amenity icons based on name
   const renderAmenityIcon = (amenity) => {
     switch (amenity) {
@@ -63,12 +63,22 @@ const HotelCard = ({ hotel }) => {
               LKR {hotel.pricePerNight ? hotel.pricePerNight.toLocaleString() : 'N/A'}
             </div>
           </div>
-          <Link 
-            to={`/hotel/${hotel.id}`}
-            className="bg-gray-900 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-sunset-teal transition-colors text-sm"
-          >
-            View Details
-          </Link>
+          <div className="flex gap-2">
+            {isOwnerView && (
+              <Link 
+                to={`/edit-property/${hotel.id}`}
+                className="bg-sunset-gold text-white px-5 py-2.5 rounded-xl font-bold hover:bg-yellow-600 transition-colors text-sm shadow-sm"
+              >
+                Edit
+              </Link>
+            )}
+            <Link 
+              to={`/hotel/${hotel.id}`}
+              className="bg-gray-900 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-sunset-teal transition-colors text-sm"
+            >
+              View Details
+            </Link>
+          </div>
         </div>
       </div>
     </div>
