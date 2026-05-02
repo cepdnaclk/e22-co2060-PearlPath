@@ -17,7 +17,7 @@ const MyBookings = () => {
       try {
         const response = await authFetch('http://127.0.0.1:3001/api/bookings/user');
         const data = await response.json();
-        
+
         if (response.ok) {
           // Sort bookings by createdAt descending
           const sortedBookings = (data.response || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -41,8 +41,8 @@ const MyBookings = () => {
       case 'confirmed': return 'bg-green-100 text-green-700 border-green-200';
       case 'rejected': return 'bg-red-100 text-red-700 border-red-200';
       case 'cancelled': return 'bg-gray-100 text-gray-700 border-gray-200';
-      case 'pending': 
-      default: 
+      case 'pending':
+      default:
         return 'bg-yellow-100 text-yellow-700 border-yellow-200';
     }
   };
@@ -130,103 +130,103 @@ const MyBookings = () => {
             ) : (
               <div className="space-y-6">
                 {filteredBookings.map((booking) => {
-              const isHotel = !!booking.hotelId;
-              const isVehicle = !!booking.vehicleId;
-              const isTour = !!booking.tourId;
-              
-              let title = 'Booking';
-              let Icon = Calendar;
-              let image = null;
-              let location = null;
-              let targetLink = '#';
-              
-              if (isHotel && booking.hotelId) {
-                title = booking.hotelId.name;
-                Icon = Home;
-                image = booking.hotelId.imageUrl;
-                location = booking.hotelId.location;
-                targetLink = `/hotel/${booking.hotelId._id}`;
-              } else if (isVehicle && booking.vehicleId) {
-                title = `${booking.vehicleId.make} ${booking.vehicleId.model}`;
-                Icon = Car;
-                image = booking.vehicleId.images?.[0] || booking.vehicleId.imageUrl;
-                location = booking.vehicleId.location;
-                targetLink = `/vehicle/${booking.vehicleId._id}`;
-              } else if (isTour && booking.tourId) {
-                title = booking.tourId.name || 'Tour Booking';
-                Icon = User;
-                // Add tour specifics if applicable
-              }
+                  const isHotel = !!booking.hotelId;
+                  const isVehicle = !!booking.vehicleId;
+                  const isTour = !!booking.tourId;
 
-              return (
-                <div key={booking._id} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
-                  <div className="flex flex-col md:flex-row">
-                    {/* Thumbnail */}
-                    <div className="md:w-64 h-48 md:h-auto flex-shrink-0 bg-gray-200 relative">
-                      {image ? (
-                        <img src={image} alt={title} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-100">
-                          <Icon size={48} />
-                        </div>
-                      )}
-                      <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-2 rounded-lg shadow-sm text-sunset-orange">
-                        <Icon size={20} />
-                      </div>
-                    </div>
-                    
-                    {/* Content */}
-                    <div className="p-6 flex-1 flex flex-col justify-between">
-                      <div>
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
-                          <span className={`px-4 py-1.5 rounded-full text-sm font-bold border capitalize ${getStatusStyle(booking.bookingStatus)}`}>
-                            {booking.bookingStatus}
-                          </span>
-                        </div>
-                        
-                        {location && (
-                          <div className="flex items-center gap-1.5 text-gray-500 mb-4 font-medium">
-                            <MapPin size={16} className="text-sunset-orange" />
-                            {location}
-                          </div>
-                        )}
-                        
-                        <div className="grid grid-cols-2 gap-4 mb-4">
-                          <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
-                            <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Dates</span>
-                            <span className="font-semibold text-gray-800">{formatDate(booking.startDate)} - {formatDate(booking.endDate)}</span>
-                          </div>
-                          <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
-                            <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Details</span>
-                            <span className="font-semibold text-gray-800">
-                              {isHotel ? `${booking.rooms} Room(s), ${booking.guests} Guest(s)` : 
-                               isVehicle ? `${booking.guests || 1} Day(s)` : 'Booking Info'}
-                            </span>
+                  let title = 'Booking';
+                  let Icon = Calendar;
+                  let image = null;
+                  let location = null;
+                  let targetLink = '#';
+
+                  if (isHotel && booking.hotelId) {
+                    title = booking.hotelId.name;
+                    Icon = Home;
+                    image = booking.hotelId.imageUrl;
+                    location = booking.hotelId.location;
+                    targetLink = `/hotel/${booking.hotelId._id}`;
+                  } else if (isVehicle && booking.vehicleId) {
+                    title = `${booking.vehicleId.make} ${booking.vehicleId.model}`;
+                    Icon = Car;
+                    image = booking.vehicleId.images?.[0] || booking.vehicleId.imageUrl;
+                    location = booking.vehicleId.location;
+                    targetLink = `/vehicle/${booking.vehicleId._id}`;
+                  } else if (isTour && booking.tourId) {
+                    title = booking.tourId.name || 'Tour Booking';
+                    Icon = User;
+                    // Add tour specifics if applicable
+                  }
+
+                  return (
+                    <div key={booking._id} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
+                      <div className="flex flex-col md:flex-row">
+                        {/* Thumbnail */}
+                        <div className="md:w-64 h-48 md:h-auto flex-shrink-0 bg-gray-200 relative">
+                          {image ? (
+                            <img src={image} alt={title} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-100">
+                              <Icon size={48} />
+                            </div>
+                          )}
+                          <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-2 rounded-lg shadow-sm text-sunset-orange">
+                            <Icon size={20} />
                           </div>
                         </div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-10 h-10 rounded-full bg-sunset-orange/10 flex items-center justify-center text-sunset-orange">
-                            <CreditCard size={18} />
-                          </div>
+
+                        {/* Content */}
+                        <div className="p-6 flex-1 flex flex-col justify-between">
                           <div>
-                            <span className="block text-xs font-medium text-gray-500">Total Price</span>
-                            <span className="text-lg font-bold text-gray-900">LKR {booking.totalPrice?.toLocaleString()}</span>
+                            <div className="flex justify-between items-start mb-2">
+                              <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
+                              <span className={`px-4 py-1.5 rounded-full text-sm font-bold border capitalize ${getStatusStyle(booking.bookingStatus)}`}>
+                                {booking.bookingStatus}
+                              </span>
+                            </div>
+
+                            {location && (
+                              <div className="flex items-center gap-1.5 text-gray-500 mb-4 font-medium">
+                                <MapPin size={16} className="text-sunset-orange" />
+                                {location}
+                              </div>
+                            )}
+
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                              <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Dates</span>
+                                <span className="font-semibold text-gray-800">{formatDate(booking.startDate)} - {formatDate(booking.endDate)}</span>
+                              </div>
+                              <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Details</span>
+                                <span className="font-semibold text-gray-800">
+                                  {isHotel ? `${booking.rooms} Room(s), ${booking.guests} Guest(s)` :
+                                    isVehicle ? `${booking.guests || 1} Day(s)` : 'Booking Info'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-10 h-10 rounded-full bg-sunset-orange/10 flex items-center justify-center text-sunset-orange">
+                                <CreditCard size={18} />
+                              </div>
+                              <div>
+                                <span className="block text-xs font-medium text-gray-500">Total Price</span>
+                                <span className="text-lg font-bold text-gray-900">LKR {booking.totalPrice?.toLocaleString()}</span>
+                              </div>
+                            </div>
+
+                            <Link to={targetLink} className="flex items-center gap-1 text-sunset-orange font-bold hover:text-sunset-orange/80 transition-colors">
+                              View Details <ChevronRight size={18} />
+                            </Link>
                           </div>
                         </div>
-                        
-                        <Link to={targetLink} className="flex items-center gap-1 text-sunset-orange font-bold hover:text-sunset-orange/80 transition-colors">
-                          View Details <ChevronRight size={18} />
-                        </Link>
                       </div>
                     </div>
-                  </div>
-                </div>
-              );
-            })}
+                  );
+                })}
               </div>
             )}
           </div>
