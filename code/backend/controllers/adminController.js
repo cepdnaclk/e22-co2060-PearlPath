@@ -45,6 +45,13 @@ const getStats = async (req, res) => {
         const pendingVehiclesCount = await Vehicle.countDocuments({ status: 'pending' });
         const pendingToursCount = await Tour.countDocuments({ status: 'pending' });
 
+        // Totals for all models
+        const totalUsers = await User.countDocuments();
+        const totalHotels = await Hotel.countDocuments();
+        const totalVehicles = await Vehicle.countDocuments();
+        const totalTours = await Tour.countDocuments();
+        const totalBookings = await Booking.countDocuments();
+
         res.status(200).json({
             userStats,
             pendingRequests: {
@@ -52,10 +59,79 @@ const getStats = async (req, res) => {
                 hotels: pendingHotelsCount,
                 vehicles: pendingVehiclesCount,
                 tours: pendingToursCount
+            },
+            modelTotals: {
+                users: totalUsers,
+                hotels: totalHotels,
+                vehicles: totalVehicles,
+                tours: totalTours,
+                bookings: totalBookings
             }
         });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching stats' });
+    }
+};
+
+// Generic model fetcher for Super Admin
+const getModelData = async (req, res) => {
+    try {
+        const { modelName } = req.params;
+        let data = [];
+
+        switch (modelName) {
+            case 'users':
+                data = await User.find({}, '-password').sort({ createdAt: -1 });
+                break;
+            case 'hotels':
+                data = await Hotel.find().populate('ownerId', 'email').sort({ createdAt: -1 });
+                break;
+            case 'vehicles':
+                data = await Vehicle.find().populate('ownerId', 'email').sort({ createdAt: -1 });
+                break;
+            case 'tours':
+                data = await Tour.find().populate('ownerId', 'email').sort({ createdAt: -1 });
+                break;
+            case 'bookings':
+                data = await Booking.find()
+                    .populate('userId', 'email')
+                    .populate('hotelId', 'name')
+                    .populate('vehicleId', 'name')
+                    .populate('tourId', 'name')
+                    .sort({ createdAt: -1 });
+                break;
+            default:
+                return res.status(400).json({ message: 'Invalid model name' });
+        }
+
+        res.status(200).json(data);
+    } catch (error) {
+        console.error(`Error fetching model ${req.params.modelName}:`, error);
+        res.status(500).json({ message: 'Error fetching data' });
+    }
+};
+
+// Generic model deleter for Super Admin
+const deleteModelData = async (req, res) => {
+    try {
+        const { modelName, id } = req.params;
+        let Model;
+
+        switch (modelName) {
+            case 'users': Model = User; break;
+            case 'hotels': Model = Hotel; break;
+            case 'vehicles': Model = Vehicle; break;
+            case 'tours': Model = Tour; break;
+            case 'bookings': Model = Booking; break;
+            default: return res.status(400).json({ message: 'Invalid model name' });
+        }
+
+        const deleted = await Model.findByIdAndDelete(id);
+        if (!deleted) return res.status(404).json({ message: 'Item not found' });
+
+        res.status(200).json({ message: 'Deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting item' });
     }
 };
 
@@ -180,5 +256,8 @@ module.exports = {
     updateListingStatus,
     getRoleData,
     deleteUser,
-    updateUserAdmin
+    updateUserAdmin,
+    getModelData,
+    deleteModelData
 };
+

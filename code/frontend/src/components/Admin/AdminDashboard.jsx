@@ -154,6 +154,7 @@ const AdminDashboard = () => {
                             <option value="vehicle_owner" ${user.role === 'vehicle_owner' ? 'selected' : ''}>Vehicle Owner</option>
                             <option value="tour_guide" ${user.role === 'tour_guide' ? 'selected' : ''}>Tour Guide</option>
                             <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                            <option value="super_admin" ${user.role === 'super_admin' ? 'selected' : ''}>Super Admin</option>
                         </select>
                     </div>
                 </div>

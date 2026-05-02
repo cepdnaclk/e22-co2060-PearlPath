@@ -9,12 +9,14 @@ const {
     updateListingStatus,
     getRoleData,
     deleteUser,
-    updateUserAdmin
+    updateUserAdmin,
+    getModelData,
+    deleteModelData
 } = require('../controllers/adminController');
 
-// All admin routes are protected and require 'admin' role
+// All admin routes are protected and require 'admin' or 'super_admin' role
 router.use(protect);
-router.use(authorize('admin'));
+router.use(authorize('admin', 'super_admin'));
 
 router.get('/admin/users/pending', getPendingUsers);
 router.put('/admin/users/:id/status', updateUserStatus);
@@ -26,5 +28,9 @@ router.put('/admin/listings/:type/:id/status', updateListingStatus);
 
 router.get('/admin/stats', getStats);
 router.get('/admin/roles/:role', getRoleData);
+
+// Generic model routes for Super Admin
+router.get('/admin/models/:modelName', getModelData);
+router.delete('/admin/models/:modelName/:id', deleteModelData);
 
 module.exports = router;

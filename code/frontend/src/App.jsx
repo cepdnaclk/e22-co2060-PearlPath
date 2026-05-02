@@ -10,6 +10,7 @@ import VehicleDetails from './components/Vehicles/VehicleDetails'
 import AddVehicle from './components/OwnerDashboard/AddVehicle'
 import ProviderBookings from './components/OwnerDashboard/ProviderBookings'
 import AdminDashboard from './components/Admin/AdminDashboard'
+import SuperAdminDashboard from './components/Admin/SuperAdminDashboard'
 import ProtectedRoute from './components/Auth/ProtectedRoute'
 import AddProperty from './components/OwnerDashboard/AddProperty'
 import EditProperty from './components/OwnerDashboard/EditProperty'
@@ -29,7 +30,8 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
 
-          <Route path="/admin/dashboard" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/dashboard" element={<ProtectedRoute roles={['admin', 'super_admin']}><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/super-admin/dashboard" element={<ProtectedRoute roles={['super_admin']}><SuperAdminDashboard /></ProtectedRoute>} />
 
           <Route path="/add-property" element={<ProtectedRoute roles={['hotel_owner']}><AddProperty /></ProtectedRoute>} />
           <Route path="/edit-property/:id" element={<ProtectedRoute roles={['hotel_owner']}><EditProperty /></ProtectedRoute>} />
