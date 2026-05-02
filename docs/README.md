@@ -59,7 +59,7 @@ Detailed designs with many sub-sections
 
 ## Testing
 
-Testing done on software : detailed + summarized results
+Testin done on software : detailed + summarized results
 
 ## Conclusion
 
