@@ -3,14 +3,15 @@ import { useAuth } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
-import { Calendar, Home, Car, User, MapPin, CreditCard, ChevronRight } from 'lucide-react';
+import { Calendar, Home, Car, User, MapPin, CreditCard, ChevronRight, Trash2, X, Hash, Clock } from 'lucide-react';
 
 const MyBookings = () => {
   const { authFetch } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeFilter, setActiveFilter] = useState('all');
+  const [activeFilter, setActiveFilter] = useState('hotels');
+  const [selectedBooking, setSelectedBooking] = useState(null);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -36,6 +37,24 @@ const MyBookings = () => {
     fetchBookings();
   }, [authFetch]);
 
+  const handleRemove = async (bookingId) => {
+    if (!window.confirm('Are you sure you want to remove this booking?')) return;
+    try {
+      const response = await authFetch(`http://127.0.0.1:3001/api/bookings/${bookingId}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        setBookings(prev => prev.filter(b => b._id !== bookingId));
+      } else {
+        const data = await response.json();
+        alert(data.message || 'Failed to remove booking.');
+      }
+    } catch (err) {
+      console.error('Error removing booking:', err);
+      alert('An error occurred. Please try again.');
+    }
+  };
+
   const getStatusStyle = (status) => {
     switch (status) {
       case 'confirmed': return 'bg-green-100 text-green-700 border-green-200';
@@ -53,14 +72,12 @@ const MyBookings = () => {
   };
 
   const filters = [
-    { id: 'all', label: 'All Bookings', icon: Calendar },
     { id: 'hotels', label: 'Hotels', icon: Home },
     { id: 'vehicles', label: 'Vehicles', icon: Car },
     { id: 'tours', label: 'Tour Guides', icon: User },
   ];
 
   const filteredBookings = bookings.filter(booking => {
-    if (activeFilter === 'all') return true;
     if (activeFilter === 'hotels') return !!booking.hotelId;
     if (activeFilter === 'vehicles') return !!booking.vehicleId;
     if (activeFilter === 'tours') return !!booking.tourId;
@@ -218,9 +235,21 @@ const MyBookings = () => {
                               </div>
                             </div>
 
-                            <Link to={targetLink} className="flex items-center gap-1 text-sunset-orange font-bold hover:text-sunset-orange/80 transition-colors">
-                              View Details <ChevronRight size={18} />
-                            </Link>
+                            <div className="flex items-center gap-3">
+                              <button
+                                onClick={() => handleRemove(booking._id)}
+                                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold text-red-500 border border-red-200 hover:bg-red-50 transition-colors"
+                              >
+                                <Trash2 size={15} />
+                                Remove
+                              </button>
+                              <button
+                                onClick={() => setSelectedBooking({ booking, title, Icon, image, location, isHotel, isVehicle, isTour, targetLink })}
+                                className="flex items-center gap-1 text-sunset-orange font-bold hover:text-sunset-orange/80 transition-colors"
+                              >
+                                View Details <ChevronRight size={18} />
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -234,6 +263,117 @@ const MyBookings = () => {
       </main>
 
       <Footer />
+
+      {/* Booking Detail Modal */}
+      {selectedBooking && (() => {
+        const { booking, title, Icon, image, location, isHotel, isVehicle, targetLink } = selectedBooking;
+        return (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+            onClick={() => setSelectedBooking(null)}
+          >
+            <div
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden"
+              style={{ animation: 'slideUp 0.25s ease-out' }}
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Image Header */}
+              <div className="relative h-52 bg-gray-100 flex-shrink-0">
+                {image ? (
+                  <img src={image} alt={title} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-300">
+                    <Icon size={64} />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <button
+                  onClick={() => setSelectedBooking(null)}
+                  className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-md hover:bg-white transition-colors"
+                >
+                  <X size={18} className="text-gray-700" />
+                </button>
+                <div className="absolute bottom-4 left-5 right-5 flex items-end justify-between">
+                  <h2 className="text-xl font-extrabold text-white drop-shadow">{title}</h2>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold border capitalize ${
+                    booking.bookingStatus === 'confirmed' ? 'bg-green-100 text-green-700 border-green-200' :
+                    booking.bookingStatus === 'rejected' ? 'bg-red-100 text-red-700 border-red-200' :
+                    booking.bookingStatus === 'cancelled' ? 'bg-gray-100 text-gray-700 border-gray-200' :
+                    'bg-yellow-100 text-yellow-700 border-yellow-200'
+                  }`}>{booking.bookingStatus}</span>
+                </div>
+              </div>
+
+              {/* Details Body */}
+              <div className="p-6 space-y-4">
+                {location && (
+                  <div className="flex items-center gap-2 text-gray-500 font-medium">
+                    <MapPin size={16} className="text-sunset-orange" />
+                    {location}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-orange-50 rounded-2xl p-4">
+                    <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Check-in</span>
+                    <span className="font-bold text-gray-800">{new Date(booking.startDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                  </div>
+                  <div className="bg-orange-50 rounded-2xl p-4">
+                    <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Check-out</span>
+                    <span className="font-bold text-gray-800">{new Date(booking.endDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                  </div>
+                  {isHotel && (
+                    <>
+                      <div className="bg-gray-50 rounded-2xl p-4">
+                        <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Rooms</span>
+                        <span className="font-bold text-gray-800">{booking.rooms}</span>
+                      </div>
+                      <div className="bg-gray-50 rounded-2xl p-4">
+                        <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Guests</span>
+                        <span className="font-bold text-gray-800">{booking.guests}</span>
+                      </div>
+                    </>
+                  )}
+                  {isVehicle && (
+                    <div className="bg-gray-50 rounded-2xl p-4 col-span-2">
+                      <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Duration</span>
+                      <span className="font-bold text-gray-800">{booking.guests || 1} Day(s)</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between bg-gradient-to-r from-sunset-orange to-sunset-gold rounded-2xl p-4 text-white">
+                  <div className="flex items-center gap-2">
+                    <CreditCard size={20} />
+                    <span className="font-semibold">Total Price</span>
+                  </div>
+                  <span className="text-xl font-extrabold">LKR {booking.totalPrice?.toLocaleString()}</span>
+                </div>
+
+                <div className="space-y-2 text-sm text-gray-500">
+                  <div className="flex items-center gap-2">
+                    <Hash size={14} className="text-gray-400" />
+                    <span>Booking ID: <span className="font-mono text-gray-700">{booking._id}</span></span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock size={14} className="text-gray-400" />
+                    <span>Booked on: <span className="font-semibold text-gray-700">{new Date(booking.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span></span>
+                  </div>
+                </div>
+
+                <Link
+                  to={targetLink}
+                  className="block w-full text-center bg-gradient-to-r from-sunset-orange to-sunset-gold text-white font-bold py-3 rounded-2xl hover:shadow-lg transform transition hover:-translate-y-0.5"
+                >
+                  Go to Listing
+                </Link>
+              </div>
+            </div>
+            <style>{`@keyframes slideUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }`}</style>
+          </div>
+        );
+      })()}
     </div>
   );
 };
