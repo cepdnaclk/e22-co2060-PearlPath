@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { UploadCloud, MapPin, Building, Star, FileText, DollarSign, Check, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import Navbar from '../Navbar/Navbar';
+import Footer from '../Footer/Footer';
 
 const AMENITIES_LIST = [
   'Free WiFi',
@@ -147,13 +149,19 @@ const EditProperty = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-outfit">
-      <div className="max-w-4xl mx-auto">
-        
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Edit Property</h1>
-          <p className="text-gray-500 mt-2">Update your property details.</p>
+    <div className="min-h-screen bg-gray-50 flex flex-col font-outfit">
+      <Navbar />
+
+      {/* Top Hero Banner */}
+      <div className="pt-28 pb-10 bg-sunset-dark text-white shadow-md relative overflow-hidden">
+        <div className="absolute inset-0 z-0 bg-gradient-to-r from-sunset-dark to-sunset-teal/80"></div>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <h1 className="text-4xl font-extrabold mb-2">Edit Property</h1>
+          <p className="text-xl text-gray-300 font-light">Update your property details to keep guests informed.</p>
         </div>
+      </div>
+
+      <div className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
 
         <form onSubmit={handleSubmit} className="space-y-8">
           
@@ -387,6 +395,7 @@ const EditProperty = () => {
 
         </form>
       </div>
+      <Footer />
     </div>
   );
 };

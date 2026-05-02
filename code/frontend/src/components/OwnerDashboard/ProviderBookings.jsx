@@ -41,10 +41,19 @@ const ProviderBookings = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 font-outfit">
+        <div className="min-h-screen bg-gray-50 font-outfit flex flex-col">
             <Navbar />
-            <div className="max-w-6xl mx-auto pt-32 px-4 pb-12">
-                <h1 className="text-3xl font-bold text-gray-800 mb-8">Manage Booking Requests</h1>
+
+            {/* Top Hero Banner */}
+            <div className="pt-28 pb-10 bg-sunset-dark text-white shadow-md relative overflow-hidden">
+              <div className="absolute inset-0 z-0 bg-gradient-to-r from-sunset-dark to-sunset-teal/80"></div>
+              <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <h1 className="text-4xl font-extrabold mb-2">Manage Booking Requests</h1>
+                <p className="text-xl text-gray-300 font-light">Review and respond to booking requests from your guests.</p>
+              </div>
+            </div>
+
+            <div className="max-w-6xl mx-auto px-4 py-10 pb-12 w-full">
                 
                 {loading ? <p>Loading...</p> : bookings.length === 0 ? <p>No booking requests found.</p> : (
                     <div className="space-y-4">

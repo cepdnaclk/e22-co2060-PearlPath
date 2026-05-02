@@ -77,20 +77,20 @@ const AddVehicle = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-outfit">
+    <div className="min-h-screen bg-slate-50 font-outfit flex flex-col">
       <Navbar />
 
-      <div className="max-w-4xl mx-auto px-4 pt-36 pb-12">
+      {/* Top Hero Banner */}
+      <div className="pt-28 pb-10 bg-sunset-dark text-white shadow-md relative overflow-hidden">
+        <div className="absolute inset-0 z-0 bg-gradient-to-r from-sunset-dark to-sunset-teal/80"></div>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <h1 className="text-4xl font-extrabold mb-2">Add Your Vehicle</h1>
+          <p className="text-xl text-gray-300 font-light">Publish your vehicle to millions of tourists looking for transport.</p>
+        </div>
+      </div>
+
+      <div className="flex-1 max-w-4xl mx-auto px-4 py-10 pb-12 w-full">
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-sunset-orange to-sunset-gold px-6 py-8 sm:p-10 border-b border-sunset-orange/20">
-            <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-              <Car size={32} />
-              Add Your Vehicle
-            </h1>
-            <p className="mt-2 text-white/90 text-lg">
-              Publish your vehicle to millions of tourists looking for transport.
-            </p>
-          </div>
 
           <form onSubmit={handleSubmit} className="p-6 sm:p-10 space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
