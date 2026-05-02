@@ -2,75 +2,159 @@
 layout: home
 permalink: index.html
 
-# Please update this with your repository name and project title
 repository-name: e22-co2060-PearlPath
 title: PearlPath
 ---
 
-[comment]: # "This is the standard layout for the project, but you can clean this and use your own template, and add more information required for your own project"
-
-<!-- Once you fill the index.json file inside /docs/data, please make sure the syntax is correct. (You can use this tool to identify syntax errors)
-
-Please include the "correct" email address of your supervisors. (You can find them from https://people.ce.pdn.ac.lk/ )
-
-Please include an appropriate cover page image ( cover_page.jpg ) and a thumbnail image ( thumbnail.jpg ) in the same folder as the index.json (i.e., /docs/data ). The cover page image must be cropped to 940×352 and the thumbnail image must be cropped to 640×360 . Use https://croppola.com/ for cropping and https://squoosh.app/ to reduce the file size.
-
-If your followed all the given instructions correctly, your repository will be automatically added to the department's project web site (Update daily)
-
-A HTML template integrated with the given GitHub repository templates, based on github.com/cepdnaclk/eYY-project-theme . If you like to remove this default theme and make your own web page, you can remove the file, docs/_config.yml and create the site using HTML. -->
-
-# PearlPath
-
+# PearlPath  
+*A MERN Stack-Based Integrated Tourism Platform for Sri Lanka*
 
 ---
 
 ## Team
--  E/22/124, Name, [e22124@eng.pdn.ac.lk](mailto:e22124@eng.pdn.ac.lk)
--  E/22/228, Name, [e22228@eng.pdn.ac.lk](mailto:e22228@eng.pdn.ac.lk)
--  E/22/452, Name, [e22452@eng.pdn.ac.lk](mailto:e22452@eng.pdn.ac.lk)
--  E/22/232, Name, [e22232@eng.pdn.ac.lk](mailto:e22232@eng.pdn.ac.lk)
+- E/22/124, R.G. Gunawardana – [e22124@eng.pdn.ac.lk](mailto:e22124@eng.pdn.ac.lk)  
+- E/22/228, W.M.S. Manujitha – [e22228@eng.pdn.ac.lk](mailto:e22228@eng.pdn.ac.lk)  
+- E/22/452, Y.M.C.J. Yagabamunu – [e22452@eng.pdn.ac.lk](mailto:e22452@eng.pdn.ac.lk)  
+- E/22/232, D.F.A.T.D. Mathangadeera – [e22232@eng.pdn.ac.lk](mailto:e22232@eng.pdn.ac.lk)  
 
-<!-- Image (photo/drawing of the final hardware) should be here -->
+---
 
-<!-- This is a sample image, to show how to add images to your page. To learn more options, please refer [this](https://projects.ce.pdn.ac.lk/docs/faq/how-to-add-an-image/) -->
+## Table of Contents
+1. [Introduction](#introduction)  
+2. [Solution Architecture](#solution-architecture)  
+3. [Software Design](#software-design)  
+4. [Testing](#testing)  
+5. [Conclusion](#conclusion)  
+6. [Links](#links)  
 
-<!-- ![Sample Image](./images/sample.png) -->
-
-#### Table of Contents
-1. [Introduction](#introduction)
-2. [Solution Architecture](#solution-architecture )
-3. [Software Designs](#hardware-and-software-designs)
-4. [Testing](#testing)
-5. [Conclusion](#conclusion)
-6. [Links](#links)
+---
 
 ## Introduction
 
-Description of the real world problem and solution, impact
+Tourists visiting Sri Lanka often face a fragmented digital ecosystem where accommodation, transportation, and tour services are spread across multiple platforms. This leads to inefficiencies, inconsistent data, and difficulty in planning a reliable travel experience.
 
+**PearlPath** is a **MERN stack-based centralized tourism platform** that integrates hotels, vehicle rentals, and tour guide services into a single system. The platform provides a seamless and secure experience with verified listings, enabling users to plan and manage their entire यात्रा in one place.
+
+---
 
 ## Solution Architecture
 
-High level diagram + description
+PearlPath is built using the **MERN Stack (MongoDB, Express.js, React.js, Node.js)** following a scalable three-tier architecture:
 
-## Software Designs
+### 1. Presentation Layer (Frontend)
+- Built with **React.js** and **Vite**
+- Styled using **Tailwind CSS**
+- Provides role-based dashboards for:
+  - Tourists  
+  - Service Providers  
+  - Administrators  
 
-Detailed designs with many sub-sections
+### 2. Application Layer (Backend)
+- Developed using **Node.js** and **Express.js**
+- Implements RESTful APIs
+- Handles:
+  - Authentication & Authorization  
+  - Booking logic  
+  - Data validation  
+
+### 3. Data Layer (Database)
+- **MongoDB** (NoSQL database)
+- Stores:
+  - User data  
+  - Listings (Hotels, Vehicles, Tours)  
+  - Booking records  
+
+### External Integrations
+- **Google Maps API** for:
+  - Location visualization  
+  - Distance calculation  
+  - Route planning  
+
+---
+
+## Software Design
+
+### 1. Authentication & RBAC (Role-Based Access Control)
+- Passwords secured using **Bcrypt**
+- Session management via **JWT (JSON Web Tokens)**
+- User roles:
+  - Tourist  
+  - Hotel Owner  
+  - Vehicle Owner  
+  - Admin  
+
+---
+
+### 2. Service Management System
+Providers can:
+- Add and manage listings  
+- Upload images and details  
+- Track booking requests  
+- Update booking status in real-time  
+
+---
+
+### 3. Unified Booking Engine
+- Centralized booking controller
+- Prevents overlapping reservations
+- Calculates cost dynamically based on:
+  - Duration  
+  - Service type  
+
+---
+
+### 4. UI/UX Design
+- Modern **"Sunset Theme" UI**
+- Built with Tailwind CSS + custom animations  
+- Uses **Lucide React icons**
+- Focus on:
+  - Clean navigation  
+  - Responsive design  
+  - Smooth user experience  
+
+---
 
 ## Testing
 
-Testin done on software : detailed + summarized results
+Testing was performed across multiple levels:
+
+### Unit Testing
+- Backend controllers tested individually  
+
+### API Testing
+- Conducted using **Postman**
+- Verified:
+  - Status codes  
+  - API responses  
+
+### Integration Testing
+- Ensured seamless frontend-backend interaction  
+
+### Manual Testing
+- Full user workflows tested:
+  - Registration  
+  - Booking  
+  - Dashboard updates  
+
+---
 
 ## Conclusion
 
-What was achieved, future developments, commercialization plans
+PearlPath provides a **scalable, MERN-based solution** to unify Sri Lanka’s tourism services into a single platform. It significantly improves user convenience, system reliability, and service accessibility.
+
+---
+
+### Future Enhancements
+- Online payment integration (Stripe / local gateways)  
+- Real-time chat system  
+- Mobile app (React Native)  
+- AI-based recommendation system  
+
+---
 
 ## Links
 
-- [Project Repository](https://github.com/cepdnaclk/{{ page.repository-name }}){:target="_blank"}
-- [Project Page](https://cepdnaclk.github.io/{{ page.repository-name}}){:target="_blank"}
-- [Department of Computer Engineering](http://www.ce.pdn.ac.lk/)
-- [University of Peradeniya](https://eng.pdn.ac.lk/)
-
-[//]: # (Please refer this to learn more about Markdown syntax)
-[//]: # (https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)
+- [Project Repository](https://github.com/cepdnaclk/{{ page.repository-name }}){:target="_blank"}  
+- [Project Page](https://cepdnaclk.github.io/{{ page.repository-name}}){:target="_blank"}  
+- [Department of Computer Engineering](http://www.ce.pdn.ac.lk/)  
+- [University of Peradeniya](https://eng.pdn.ac.lk/)  
