@@ -88,11 +88,16 @@ const MyBookings = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col font-outfit">
       <Navbar />
 
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28">
-        <div className="mb-10">
-          <h1 className="text-4xl font-extrabold text-gray-900 mb-3">My Bookings</h1>
-          <p className="text-lg text-gray-600">View and manage all your upcoming and past reservations.</p>
+      {/* Top Hero Banner */}
+      <div className="pt-28 pb-10 bg-sunset-dark text-white shadow-md relative overflow-hidden">
+        <div className="absolute inset-0 z-0 bg-gradient-to-r from-sunset-dark to-sunset-teal/80"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <h1 className="text-4xl font-extrabold mb-2">My Bookings</h1>
+          <p className="text-xl text-gray-300 font-light">View and manage all your upcoming and past reservations.</p>
         </div>
+      </div>
+
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Left Menu Sidebar */}

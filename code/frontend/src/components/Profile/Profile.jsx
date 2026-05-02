@@ -97,12 +97,17 @@ const Profile = () => {
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col font-outfit">
             <Navbar />
-            
-            <main className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-28">
-                <div className="mb-10 text-center">
-                    <h1 className="text-4xl font-extrabold text-gray-900 mb-3">My Profile</h1>
-                    <p className="text-lg text-gray-600">Manage your personal information and account settings.</p>
-                </div>
+
+            {/* Top Hero Banner */}
+            <div className="pt-28 pb-10 bg-sunset-dark text-white shadow-md relative overflow-hidden">
+              <div className="absolute inset-0 z-0 bg-gradient-to-r from-sunset-dark to-sunset-teal/80"></div>
+              <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <h1 className="text-4xl font-extrabold mb-2">My Profile</h1>
+                <p className="text-xl text-gray-300 font-light">Manage your personal information and account settings.</p>
+              </div>
+            </div>
+
+            <main className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
                 <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden relative">
                     <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-sunset-gold via-sunset-orange to-sunset-dark"></div>
