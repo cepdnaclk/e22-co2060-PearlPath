@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Navigation, User, Building, MapPin, Car } from 'lucide-react';
 
 const RegisterPage = () => {
-  const [searchParams] = useSearchParams();
-  const urlRole = searchParams.get('role');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -12,7 +10,7 @@ const RegisterPage = () => {
     phone: '',
     password: '',
     confirmPassword: '',
-    role: urlRole || 'tourist'
+    role: 'tourist'
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -215,25 +213,6 @@ const RegisterPage = () => {
                   placeholder="••••••••"
                 />
               </div>
-            </div>
-
-            {/* Role Selection */}
-            <div>
-              <label htmlFor="role" className="block text-sm font-semibold text-gray-700 mb-1">
-                Account Type
-              </label>
-              <select
-                id="role"
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-sunset-orange focus:border-sunset-orange sm:text-sm transition-colors bg-gray-50 focus:bg-white cursor-pointer font-medium text-gray-800"
-              >
-                <option value="tourist">Tourist (Book hotels & vehicles)</option>
-                <option value="hotel_owner">Hotel Owner (List your properties)</option>
-                <option value="vehicle_owner">Vehicle Owner (List your vehicles)</option>
-                <option value="tour_guide">Tour Guide (Offer your services)</option>
-              </select>
             </div>
 
             <div className="pt-2">
