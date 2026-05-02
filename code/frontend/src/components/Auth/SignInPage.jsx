@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Navigation } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import Swal from 'sweetalert2';
+
 
 
 const SignInPage = () => {
@@ -28,11 +30,29 @@ const SignInPage = () => {
 
       if (response.ok) {
         if (data.user.status === 'pending') {
-          setError('Your account is pending admin approval. Please try again later.');
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'warning',
+            title: 'Account Pending',
+            text: 'Your account is pending admin approval.',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+          });
           return;
         }
         if (data.user.status === 'rejected') {
-          setError('Your account has been rejected by the admin.');
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: 'Account Rejected',
+            text: 'Your account has been rejected by the admin.',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+          });
           return;
         }
 
@@ -40,7 +60,16 @@ const SignInPage = () => {
         
         login(data.user, data.token);
         
-        alert('Welcome back, ' + data.user.firstName + '!');
+        await Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: 'Login Successful!',
+          text: `Welcome back, ${data.user.firstName}!`,
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true
+        });
         
         if (data.user.role === 'admin') {
           navigate('/admin/dashboard');
@@ -48,10 +77,30 @@ const SignInPage = () => {
           navigate('/');
         }
       } else {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: 'Login Failed',
+          text: data.message || 'Login failed.',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
         setError(data.message || 'Login failed.');
       }
     } catch (err) {
       console.error('Login error:', err);
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: 'Connection Error',
+        text: 'An error occurred during login. Is the server running?',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
       setError('An error occurred during login. Is the server running?');
     } finally {
       setLoading(false);

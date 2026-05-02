@@ -89,8 +89,8 @@ const Navbar = () => {
                   key={item.id}
                   to={path}
                   className={`flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm transition-all hover:scale-105 group font-medium text-sm border ${isActive
-                      ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400 shadow-sm'
-                      : 'bg-white/5 hover:bg-white/10 text-gray-300 border-white/5 hover:border-white/10'
+                    ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400 shadow-sm'
+                    : 'bg-white/5 hover:bg-white/10 text-gray-300 border-white/5 hover:border-white/10'
                     }`}
                 >
                   <span className={`transition-transform transform group-hover:scale-110 ${isActive ? 'text-emerald-400' : 'text-gray-400 group-hover:text-emerald-400'}`}>{item.icon}</span>
