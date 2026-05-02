@@ -10,6 +10,7 @@ const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeFilter, setActiveFilter] = useState('all');
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -51,6 +52,21 @@ const MyBookings = () => {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
+  const filters = [
+    { id: 'all', label: 'All Bookings', icon: Calendar },
+    { id: 'hotels', label: 'Hotels', icon: Home },
+    { id: 'vehicles', label: 'Vehicles', icon: Car },
+    { id: 'tours', label: 'Tour Guides', icon: User },
+  ];
+
+  const filteredBookings = bookings.filter(booking => {
+    if (activeFilter === 'all') return true;
+    if (activeFilter === 'hotels') return !!booking.hotelId;
+    if (activeFilter === 'vehicles') return !!booking.vehicleId;
+    if (activeFilter === 'tours') return !!booking.tourId;
+    return true;
+  });
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-outfit">
       <Navbar />
@@ -61,34 +77,59 @@ const MyBookings = () => {
           <p className="text-lg text-gray-600">View and manage all your upcoming and past reservations.</p>
         </div>
 
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-sunset-teal mb-4"></div>
-            <p className="text-gray-500 font-medium text-lg">Loading your bookings...</p>
-          </div>
-        ) : error ? (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl flex flex-col items-center justify-center py-12">
-            <p className="text-lg font-semibold">{error}</p>
-          </div>
-        ) : bookings.length === 0 ? (
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-16 text-center">
-            <div className="w-24 h-24 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Calendar size={40} />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">No Bookings Yet</h2>
-            <p className="text-gray-500 text-lg mb-8 max-w-md mx-auto">It looks like you haven't made any reservations yet. Start exploring properties, vehicles, or tours for your next adventure!</p>
-            <div className="flex gap-4 justify-center">
-              <Link to="/hotels" className="bg-gradient-to-r from-sunset-orange to-sunset-gold text-white font-bold py-3 px-8 rounded-xl hover:shadow-lg transform transition hover:-translate-y-1">
-                Explore Hotels
-              </Link>
-              <Link to="/vehicles" className="bg-white border-2 border-sunset-teal text-sunset-teal font-bold py-3 px-8 rounded-xl hover:bg-sunset-teal/5 transform transition hover:-translate-y-1">
-                Find Vehicles
-              </Link>
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Left Menu Sidebar */}
+          <div className="lg:w-1/4 flex-shrink-0">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sticky top-28">
+              <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 px-2">Categories</h2>
+              <nav className="space-y-2">
+                {filters.map(filter => {
+                  const Icon = filter.icon;
+                  return (
+                    <button
+                      key={filter.id}
+                      onClick={() => setActiveFilter(filter.id)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold text-left ${activeFilter === filter.id ? 'bg-gradient-to-r from-sunset-orange to-sunset-gold text-white shadow-md transform hover:-translate-y-0.5' : 'text-gray-600 hover:bg-orange-50 hover:text-sunset-orange'}`}
+                    >
+                      <Icon size={20} />
+                      {filter.label}
+                    </button>
+                  );
+                })}
+              </nav>
             </div>
           </div>
-        ) : (
-          <div className="space-y-6">
-            {bookings.map((booking) => {
+
+          {/* Main Content Area */}
+          <div className="lg:w-3/4">
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100 h-full">
+                <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-sunset-orange mb-4"></div>
+                <p className="text-gray-500 font-medium text-lg">Loading your bookings...</p>
+              </div>
+            ) : error ? (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl flex flex-col items-center justify-center py-12">
+                <p className="text-lg font-semibold">{error}</p>
+              </div>
+            ) : filteredBookings.length === 0 ? (
+              <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-16 text-center h-full flex flex-col items-center justify-center">
+                <div className="w-24 h-24 bg-orange-50 text-sunset-orange rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Calendar size={40} />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">No {activeFilter !== 'all' ? filters.find(f => f.id === activeFilter)?.label : ''} Bookings Found</h2>
+                <p className="text-gray-500 text-lg mb-8 max-w-md mx-auto">It looks like you don't have any reservations in this category yet. Start exploring for your next adventure!</p>
+                <div className="flex gap-4 justify-center">
+                  <Link to="/hotels" className="bg-gradient-to-r from-sunset-orange to-sunset-gold text-white font-bold py-3 px-8 rounded-xl hover:shadow-lg transform transition hover:-translate-y-1">
+                    Explore Hotels
+                  </Link>
+                  <Link to="/vehicles" className="bg-white border-2 border-sunset-orange text-sunset-orange font-bold py-3 px-8 rounded-xl hover:bg-orange-50 transform transition hover:-translate-y-1">
+                    Find Vehicles
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {filteredBookings.map((booking) => {
               const isHotel = !!booking.hotelId;
               const isVehicle = !!booking.vehicleId;
               const isTour = !!booking.tourId;
@@ -129,7 +170,7 @@ const MyBookings = () => {
                           <Icon size={48} />
                         </div>
                       )}
-                      <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-2 rounded-lg shadow-sm text-sunset-teal">
+                      <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-2 rounded-lg shadow-sm text-sunset-orange">
                         <Icon size={20} />
                       </div>
                     </div>
@@ -146,7 +187,7 @@ const MyBookings = () => {
                         
                         {location && (
                           <div className="flex items-center gap-1.5 text-gray-500 mb-4 font-medium">
-                            <MapPin size={16} className="text-sunset-teal" />
+                            <MapPin size={16} className="text-sunset-orange" />
                             {location}
                           </div>
                         )}
@@ -168,7 +209,7 @@ const MyBookings = () => {
                       
                       <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-2">
                         <div className="flex items-center gap-2">
-                          <div className="w-10 h-10 rounded-full bg-sunset-teal/10 flex items-center justify-center text-sunset-teal">
+                          <div className="w-10 h-10 rounded-full bg-sunset-orange/10 flex items-center justify-center text-sunset-orange">
                             <CreditCard size={18} />
                           </div>
                           <div>
@@ -177,7 +218,7 @@ const MyBookings = () => {
                           </div>
                         </div>
                         
-                        <Link to={targetLink} className="flex items-center gap-1 text-sunset-teal font-bold hover:text-sunset-teal/80 transition-colors">
+                        <Link to={targetLink} className="flex items-center gap-1 text-sunset-orange font-bold hover:text-sunset-orange/80 transition-colors">
                           View Details <ChevronRight size={18} />
                         </Link>
                       </div>
@@ -186,8 +227,10 @@ const MyBookings = () => {
                 </div>
               );
             })}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </main>
 
       <Footer />
