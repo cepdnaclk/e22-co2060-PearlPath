@@ -73,6 +73,8 @@ const SignInPage = () => {
         
         if (data.user.role === 'admin') {
           navigate('/admin/dashboard');
+        } else if (data.user.role === 'super_admin') {
+          navigate('/super-admin/dashboard');
         } else {
           navigate('/');
         }
