@@ -13,8 +13,8 @@ const {
 } = require('../controllers/adminController');
 
 // All admin routes are protected and require 'admin' role
-router.use(protect);
-router.use(authorize('admin'));
+router.use('/admin', protect);
+router.use('/admin', authorize('admin'));
 
 router.get('/admin/users/pending', getPendingUsers);
 router.put('/admin/users/:id/status', updateUserStatus);

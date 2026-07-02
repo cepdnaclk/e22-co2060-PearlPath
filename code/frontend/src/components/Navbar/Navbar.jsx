@@ -1,30 +1,67 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, Building, MapPin, Map, BusFront, Navigation, User, LogOut, ChevronDown, Plus, Home, Calendar } from 'lucide-react';
+import { Menu, Building, MapPin, Map, BusFront, Navigation, User, LogOut, ChevronDown, Plus, Home, Calendar, Bell } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [user, setUser] = useState(null);
+  const { user, authFetch, logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const location = useLocation();
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (e) {
-        console.error('Failed to parse user', e);
+  const [notifications, setNotifications] = useState([]);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const notifRef = useRef(null);
+
+  const fetchNotifications = async () => {
+    if (!user) return;
+    try {
+      const res = await authFetch('http://127.0.0.1:3001/api/notifications');
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data.response || []);
       }
+    } catch (error) {
+      console.error("Error fetching notifications", error);
     }
-  }, []);
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 15000);
+    return () => clearInterval(interval);
+  }, [user]);
+
+  const handleMarkAsRead = async (id) => {
+    try {
+      const res = await authFetch(`http://127.0.0.1:3001/api/notifications/${id}/read`, {
+        method: 'PUT'
+      });
+      if (res.ok) {
+        setNotifications(notifications.map(n => n._id === id ? { ...n, isRead: true } : n));
+      }
+    } catch (error) {
+      console.error("Error marking notification as read", error);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      const res = await authFetch('http://127.0.0.1:3001/api/notifications/read-all', {
+        method: 'PUT'
+      });
+      if (res.ok) {
+        setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+      }
+    } catch (error) {
+      console.error("Error marking all notifications as read", error);
+    }
+  };
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    setUser(null);
+    logout();
     setIsDropdownOpen(false);
     window.location.href = '/';
   };
@@ -33,6 +70,9 @@ const Navbar = () => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
+      }
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        setIsNotifOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -110,107 +150,179 @@ const Navbar = () => {
             <div className="h-6 w-px bg-gray-700"></div>
 
             {user ? (
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-full border border-gray-700 transition-all focus:outline-none focus:ring-2 focus:ring-sunset-orange/50"
-                  aria-expanded={isDropdownOpen}
-                  aria-haspopup="true"
-                >
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-sunset-orange to-sunset-gold flex items-center justify-center shadow-inner">
-                    <User size={14} className="text-white" />
-                  </div>
-                  <span className="text-white font-medium text-sm hidden sm:block">{user.firstName || user.name || user.username || 'User'}</span>
-                  <ChevronDown size={16} className={`text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
+              <div className="flex items-center gap-3">
+                {/* Notification Bell */}
+                <div className="relative" ref={notifRef}>
+                  <button
+                    onClick={() => setIsNotifOpen(!isNotifOpen)}
+                    className="relative p-2 text-gray-300 hover:text-sunset-orange hover:bg-gray-800 rounded-full transition-all focus:outline-none cursor-pointer"
+                    aria-label="Notifications"
+                  >
+                    <Bell size={20} />
+                    {notifications.filter(n => !n.isRead).length > 0 && (
+                      <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white">
+                        {notifications.filter(n => !n.isRead).length}
+                      </span>
+                    )}
+                  </button>
 
-                {/* Dropdown Menu */}
-                {isDropdownOpen && (
-                  <div className="absolute right-0 mt-3 w-56 bg-[#1a1a1f] border border-gray-800 rounded-xl shadow-2xl overflow-hidden z-50 transform origin-top-right transition-all animate-slide-up">
-                    <div className="px-4 py-3 border-b border-gray-800 bg-[#141418]">
-                      <p className="text-sm font-bold text-white truncate">
-                        {user.firstName || user.name || user.username || 'User'} {user.lastName || ''}
-                      </p>
-                      {user.email && (
-                        <p className="text-xs text-gray-400 truncate mt-0.5">{user.email}</p>
-                      )}
-                      <p className="text-xs font-medium text-sunset-orange mt-1">
-                        {user.role ? user.role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : 'Tourist'}
-                      </p>
+                  {/* Notifications Dropdown */}
+                  {isNotifOpen && (
+                    <div className="absolute right-0 mt-3 w-80 bg-[#1a1a1f] border border-gray-805 rounded-xl shadow-2xl overflow-hidden z-50 transform origin-top-right transition-all animate-slide-up">
+                      <div className="px-4 py-3 border-b border-gray-800 bg-[#141418] flex justify-between items-center">
+                        <span className="text-sm font-bold text-white">Notifications</span>
+                        {notifications.filter(n => !n.isRead).length > 0 && (
+                          <button
+                            onClick={handleMarkAllAsRead}
+                            className="text-xs text-sunset-orange hover:text-sunset-orange/80 font-medium cursor-pointer"
+                          >
+                            Mark all as read
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="max-h-64 overflow-y-auto divide-y divide-gray-800/60 hide-scrollbar">
+                        {notifications.length === 0 ? (
+                          <div className="px-4 py-6 text-center text-gray-500 text-sm">
+                            No notifications yet
+                          </div>
+                        ) : (
+                          notifications.map((notif) => (
+                            <div
+                              key={notif._id}
+                              onClick={() => {
+                                if (!notif.isRead) handleMarkAsRead(notif._id);
+                              }}
+                              className={`px-4 py-3 hover:bg-gray-800 cursor-pointer transition-colors relative flex gap-3 items-start ${!notif.isRead ? 'bg-sunset-orange/5' : ''}`}
+                            >
+                              <div className={`w-1.5 h-1.5 rounded-full bg-sunset-orange mt-1.5 shrink-0 ${notif.isRead ? 'opacity-0' : 'opacity-100'}`} />
+                              <div className="flex-1">
+                                <p className="text-xs text-gray-300 font-medium leading-relaxed">{notif.message}</p>
+                                <span className="text-[10px] text-gray-500 mt-1 block">
+                                  {new Date(notif.createdAt).toLocaleDateString()} at {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+
+                      <div className="px-4 py-2 border-t border-gray-805 bg-[#141418] text-center">
+                        <Link
+                          to="/profile"
+                          onClick={() => setIsNotifOpen(false)}
+                          className="text-xs text-gray-450 hover:text-sunset-orange font-medium"
+                        >
+                          View all in Profile
+                        </Link>
+                      </div>
                     </div>
+                  )}
+                </div>
 
-                    <div className="py-1">
-                      <Link
-                        to="/profile"
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-sunset-orange flex items-center gap-2 transition-colors"
-                      >
-                        <User size={16} />
-                        My Profile
-                      </Link>
-                      {user.role === 'admin' && (
+                {/* Profile Dropdown */}
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-full border border-gray-700 transition-all focus:outline-none focus:ring-2 focus:ring-sunset-orange/50"
+                    aria-expanded={isDropdownOpen}
+                    aria-haspopup="true"
+                  >
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-sunset-orange to-sunset-gold flex items-center justify-center shadow-inner">
+                      <User size={14} className="text-white" />
+                    </div>
+                    <span className="text-white font-medium text-sm hidden sm:block">{user.firstName || user.name || user.username || 'User'}</span>
+                    <ChevronDown size={16} className={`text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {isDropdownOpen && (
+                    <div className="absolute right-0 mt-3 w-56 bg-[#1a1a1f] border border-gray-800 rounded-xl shadow-2xl overflow-hidden z-50 transform origin-top-right transition-all animate-slide-up">
+                      <div className="px-4 py-3 border-b border-gray-800 bg-[#141418]">
+                        <p className="text-sm font-bold text-white truncate">
+                          {user.firstName || user.name || user.username || 'User'} {user.lastName || ''}
+                        </p>
+                        {user.email && (
+                          <p className="text-xs text-gray-400 truncate mt-0.5">{user.email}</p>
+                        )}
+                        <p className="text-xs font-medium text-sunset-orange mt-1">
+                          {user.role ? user.role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : 'Tourist'}
+                        </p>
+                      </div>
+
+                      <div className="py-1">
                         <Link
-                          to="/admin/dashboard"
+                          to="/profile"
                           onClick={() => setIsDropdownOpen(false)}
                           className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-sunset-orange flex items-center gap-2 transition-colors"
                         >
-                          <Building size={16} />
-                          Admin Dashboard
+                          <User size={16} />
+                          My Profile
                         </Link>
-                      )}
-                      {(!user.role || user.role === 'tourist') && (
+                        {user.role === 'admin' && (
+                          <Link
+                            to="/admin/dashboard"
+                            onClick={() => setIsDropdownOpen(false)}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-sunset-orange flex items-center gap-2 transition-colors"
+                          >
+                            <Building size={16} />
+                            Admin Dashboard
+                          </Link>
+                        )}
+                        {(!user.role || user.role === 'tourist') && (
+                          <Link
+                            to="/my-bookings"
+                            onClick={() => setIsDropdownOpen(false)}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-sunset-orange flex items-center gap-2 transition-colors"
+                          >
+                            <Calendar size={16} />
+                            My Bookings
+                          </Link>
+                        )}
+                        {(user.role === 'hotel_owner' || user.role === 'vehicle_owner' || user.role === 'tour_guide') && (
+                          <Link
+                            to="/provider-bookings"
+                            onClick={() => setIsDropdownOpen(false)}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-sunset-orange flex items-center gap-2 transition-colors"
+                          >
+                            <Building size={16} />
+                            Provider Dashboard
+                          </Link>
+                        )}
+                        {user.role === 'hotel_owner' && (
+                          <Link
+                            to="/add-property"
+                            onClick={() => setIsDropdownOpen(false)}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-sunset-orange flex items-center gap-2 transition-colors"
+                          >
+                            <Plus size={16} />
+                            Add Property
+                          </Link>
+                        )}
                         <Link
-                          to="/my-bookings"
-                          onClick={() => setIsDropdownOpen(false)}
-                          className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-sunset-orange flex items-center gap-2 transition-colors"
-                        >
-                          <Calendar size={16} />
-                          My Bookings
-                        </Link>
-                      )}
-                      {(user.role === 'hotel_owner' || user.role === 'vehicle_owner' || user.role === 'tour_guide') && (
-                        <Link
-                          to="/provider-bookings"
-                          onClick={() => setIsDropdownOpen(false)}
-                          className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-sunset-orange flex items-center gap-2 transition-colors"
-                        >
-                          <Building size={16} />
-                          Provider Dashboard
-                        </Link>
-                      )}
-                      {user.role === 'hotel_owner' && (
-                        <Link
-                          to="/add-property"
+                          to="/register"
                           onClick={() => setIsDropdownOpen(false)}
                           className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-sunset-orange flex items-center gap-2 transition-colors"
                         >
                           <Plus size={16} />
-                          Add Property
+                          Add Account
                         </Link>
-                      )}
-                      <Link
-                        to="/register"
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-sunset-orange flex items-center gap-2 transition-colors"
-                      >
-                        <Plus size={16} />
-                        Add Account
-                      </Link>
-                    </div>
+                      </div>
 
-                    <hr className="border-gray-800 my-1" />
+                      <hr className="border-gray-800 my-1" />
 
-                    <div className="py-1">
-                      <button
-                        onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-400/10 flex items-center gap-2 transition-colors font-medium"
-                      >
-                        <LogOut size={16} />
-                        Sign Out
-                      </button>
+                      <div className="py-1">
+                        <button
+                          onClick={handleLogout}
+                          className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-400/10 flex items-center gap-2 transition-colors font-medium"
+                        >
+                          <LogOut size={16} />
+                          Sign Out
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             ) : (
               <>
