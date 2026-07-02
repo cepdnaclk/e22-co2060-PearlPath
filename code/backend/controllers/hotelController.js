@@ -77,6 +77,7 @@ const updateHotel = async (req, res) => {
                     imageUrl: req.body.imageUrl || hotel.imageUrl,
                     images: req.body.images && req.body.images.length > 0 ? req.body.images : hotel.images,
                     starRating: req.body.starRating || hotel.starRating,
+                    rooms: req.body.rooms !== undefined ? req.body.rooms : hotel.rooms,
                     amenities: req.body.amenities || hotel.amenities
                 }
             },

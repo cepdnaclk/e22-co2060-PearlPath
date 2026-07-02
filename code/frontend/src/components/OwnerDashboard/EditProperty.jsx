@@ -26,6 +26,7 @@ const EditProperty = () => {
     propertyName: '',
     propertyType: 'Hotel',
     starRating: '3',
+    rooms: '1',
     address: '',
     city: '',
     description: '',
@@ -50,6 +51,7 @@ const EditProperty = () => {
             propertyName: hotel.name || '',
             propertyType: 'Hotel',
             starRating: hotel.starRating?.toString() || '3',
+            rooms: hotel.rooms?.toString() || '1',
             address: hotel.location || '',
             city: hotel.location || '',
             description: hotel.description || '',
@@ -124,6 +126,7 @@ const EditProperty = () => {
         location: formData.city,
         imageUrl: imagePreviews.length > 0 ? imagePreviews[0] : "https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop",
         starRating: Number(formData.starRating),
+        rooms: Number(formData.rooms),
         amenities: formData.amenities
       };
 
@@ -216,6 +219,20 @@ const EditProperty = () => {
                   </select>
                   <Star size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-sunset-gold" />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Number of Rooms</label>
+                <input
+                  type="number"
+                  name="rooms"
+                  value={formData.rooms}
+                  onChange={handleChange}
+                  placeholder="e.g. 5"
+                  min="1"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-sunset-gold/50 focus:border-sunset-gold transition-colors"
+                  required
+                />
               </div>
 
               <div className="md:col-span-2">

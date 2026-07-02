@@ -1,5 +1,59 @@
 const Booking = require('../models/Booking');
 const Notification = require('../models/Notification');
+const Hotel = require('../models/Hotel');
+
+const checkRoomAvailability = async (hotelId, startDate, endDate, requestedRooms, excludeBookingId = null) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    const hotel = await Hotel.findById(hotelId);
+    if (!hotel) {
+        throw new Error('Hotel not found');
+    }
+
+    const totalRooms = hotel.rooms || 1;
+
+    // Query for overlapping bookings that are confirmed
+    const query = {
+        hotelId,
+        bookingStatus: 'confirmed',
+        startDate: { $lt: end },
+        endDate: { $gt: start }
+    };
+
+    if (excludeBookingId) {
+        query._id = { $ne: excludeBookingId };
+    }
+
+    const overlappingBookings = await Booking.find(query);
+
+    // Check day by day
+    let currentDate = new Date(start);
+    while (currentDate < end) {
+        const checkDate = new Date(currentDate);
+        let bookedRoomsOnDate = 0;
+
+        for (const b of overlappingBookings) {
+            const bStart = new Date(b.startDate);
+            const bEnd = new Date(b.endDate);
+
+            if (checkDate >= bStart && checkDate < bEnd) {
+                bookedRoomsOnDate += b.rooms || 1;
+            }
+        }
+
+        if (bookedRoomsOnDate + requestedRooms > totalRooms) {
+            return {
+                available: false,
+                maxAvailable: Math.max(0, totalRooms - bookedRoomsOnDate)
+            };
+        }
+
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return { available: true };
+};
 
 const createBooking = async (req, res) => {
     try {
@@ -14,6 +68,16 @@ const createBooking = async (req, res) => {
         }
         if (rooms < 1 || guests < 1) {
             return res.status(400).json({ message: 'Rooms and guests must be at least 1' });
+        }
+
+        // Room availability check if it is a hotel booking
+        if (hotelId) {
+            const availCheck = await checkRoomAvailability(hotelId, startDate, endDate, rooms);
+            if (!availCheck.available) {
+                return res.status(400).json({ 
+                    message: `Not enough rooms available at this hotel for the selected dates. There are only ${availCheck.maxAvailable} rooms available.` 
+                });
+            }
         }
 
         const booking = new Booking({
@@ -85,14 +149,36 @@ const updateBooking = async (req, res) => {
         const { id } = req.params;
         const updates = req.body;
 
+        const existingBooking = await Booking.findById(id);
+        if (!existingBooking) {
+            return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        // Check availability if confirming a hotel booking
+        if (updates.bookingStatus === 'confirmed' && (existingBooking.hotelId || updates.hotelId)) {
+            const hotelId = updates.hotelId || existingBooking.hotelId;
+            const startDate = updates.startDate || existingBooking.startDate;
+            const endDate = updates.endDate || existingBooking.endDate;
+            const rooms = updates.rooms || existingBooking.rooms || 1;
+
+            const availCheck = await checkRoomAvailability(
+                hotelId,
+                startDate,
+                endDate,
+                rooms,
+                existingBooking._id
+            );
+            if (!availCheck.available) {
+                return res.status(400).json({ 
+                    message: `Cannot confirm booking. Not enough rooms available. Only ${availCheck.maxAvailable} rooms available.` 
+                });
+            }
+        }
+
         const booking = await Booking.findByIdAndUpdate(id, updates, { new: true, runValidators: true })
             .populate('hotelId')
             .populate('vehicleId')
             .populate('tourId');
-
-        if (!booking) {
-            return res.status(404).json({ message: 'Booking not found' });
-        }
 
         // Create notification if booking status is updated
         if (updates.bookingStatus) {
