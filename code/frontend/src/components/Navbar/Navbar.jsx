@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, Building, MapPin, Map, BusFront, Navigation, User, LogOut, ChevronDown, Plus, Home, Calendar, Bell } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -10,6 +10,7 @@ const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const [notifications, setNotifications] = useState([]);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -57,6 +58,22 @@ const Navbar = () => {
       }
     } catch (error) {
       console.error("Error marking all notifications as read", error);
+    }
+  };
+
+  const handleNotifClick = (notif) => {
+    if (!notif.isRead) {
+      handleMarkAsRead(notif._id);
+    }
+    setIsNotifOpen(false);
+
+    if (notif.bookingId?._id) {
+      const isProvider = user?.role !== 'tourist';
+      const targetPath = isProvider ? '/provider-bookings' : '/my-bookings';
+      navigate(`${targetPath}?bookingId=${notif.bookingId._id}`);
+    } else {
+      const isProvider = user?.role !== 'tourist';
+      navigate(isProvider ? '/provider-bookings' : '/my-bookings');
     }
   };
 
@@ -190,9 +207,7 @@ const Navbar = () => {
                           notifications.map((notif) => (
                             <div
                               key={notif._id}
-                              onClick={() => {
-                                if (!notif.isRead) handleMarkAsRead(notif._id);
-                              }}
+                              onClick={() => handleNotifClick(notif)}
                               className={`px-4 py-3 hover:bg-gray-800 cursor-pointer transition-colors relative flex gap-3 items-start ${!notif.isRead ? 'bg-sunset-orange/5' : ''}`}
                             >
                               <div className={`w-1.5 h-1.5 rounded-full bg-sunset-orange mt-1.5 shrink-0 ${notif.isRead ? 'opacity-0' : 'opacity-100'}`} />

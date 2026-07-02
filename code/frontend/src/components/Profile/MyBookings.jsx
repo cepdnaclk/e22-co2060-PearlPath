@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 import { Calendar, Home, Car, User, MapPin, CreditCard, ChevronRight, Trash2, X, Hash, Clock } from 'lucide-react';
@@ -12,6 +12,15 @@ const MyBookings = () => {
   const [error, setError] = useState(null);
   const [activeFilter, setActiveFilter] = useState('hotels');
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchBookingId = searchParams.get('bookingId');
+
+  const handleCloseModal = () => {
+    setSelectedBooking(null);
+    if (searchBookingId) {
+      setSearchParams({});
+    }
+  };
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -23,6 +32,50 @@ const MyBookings = () => {
           // Sort bookings by createdAt descending
           const sortedBookings = (data.response || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
           setBookings(sortedBookings);
+
+          if (searchBookingId) {
+            const foundBooking = sortedBookings.find(b => b._id === searchBookingId);
+            if (foundBooking) {
+              if (foundBooking.hotelId) setActiveFilter('hotels');
+              else if (foundBooking.vehicleId) setActiveFilter('vehicles');
+              else if (foundBooking.tourId) setActiveFilter('tours');
+
+              let title = 'Booking';
+              let Icon = Calendar;
+              let image = null;
+              let location = null;
+              let targetLink = '#';
+
+              if (foundBooking.hotelId) {
+                title = foundBooking.hotelId.name;
+                Icon = Home;
+                image = foundBooking.hotelId.imageUrl;
+                location = foundBooking.hotelId.location;
+                targetLink = `/hotel/${foundBooking.hotelId._id}`;
+              } else if (foundBooking.vehicleId) {
+                title = `${foundBooking.vehicleId.make} ${foundBooking.vehicleId.model}`;
+                Icon = Car;
+                image = foundBooking.vehicleId.images?.[0] || foundBooking.vehicleId.imageUrl;
+                location = foundBooking.vehicleId.location;
+                targetLink = `/vehicle/${foundBooking.vehicleId._id}`;
+              } else if (foundBooking.tourId) {
+                title = foundBooking.tourId.name || 'Tour Booking';
+                Icon = User;
+              }
+
+              setSelectedBooking({
+                booking: foundBooking,
+                title,
+                Icon,
+                image,
+                location,
+                isHotel: !!foundBooking.hotelId,
+                isVehicle: !!foundBooking.vehicleId,
+                isTour: !!foundBooking.tourId,
+                targetLink
+              });
+            }
+          }
         } else {
           setError(data.message || 'Failed to fetch bookings.');
         }
@@ -35,7 +88,7 @@ const MyBookings = () => {
     };
 
     fetchBookings();
-  }, [authFetch]);
+  }, [authFetch, searchBookingId]);
 
   const handleRemove = async (bookingId) => {
     if (!window.confirm('Are you sure you want to remove this booking?')) return;
@@ -276,7 +329,7 @@ const MyBookings = () => {
           <div
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
-            onClick={() => setSelectedBooking(null)}
+            onClick={handleCloseModal}
           >
             <div
               className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden"
@@ -294,7 +347,7 @@ const MyBookings = () => {
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <button
-                  onClick={() => setSelectedBooking(null)}
+                  onClick={handleCloseModal}
                   className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-md hover:bg-white transition-colors"
                 >
                   <X size={18} className="text-gray-700" />
