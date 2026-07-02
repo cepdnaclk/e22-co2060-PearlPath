@@ -1,72 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Filter, SlidersHorizontal, Lock } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 import HotelCard from './HotelCard';
 
-// Mock Data
-const MOCK_HOTELS = [
-  {
-    id: 1,
-    propertyName: "Grand Galle Fort Hotel",
-    city: "Galle",
-    starRating: 5,
-    pricePerNight: 45000,
-    amenities: ["Free WiFi", "Pool", "Breakfast Included", "Spa", "Ocean View"],
-    description: "Experience the ultimate luxury in the heart of the historic Galle Fort. Our restored Dutch-colonial villa offers world-class amenities and breathtaking views of the Indian Ocean.",
-    imageUrl: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop"
-  },
-  {
-    id: 2,
-    propertyName: "Ella Jungle Resort",
-    city: "Ella",
-    starRating: 4,
-    pricePerNight: 28000,
-    amenities: ["Free WiFi", "Breakfast Included", "Nature Trails", "Restaurant"],
-    description: "Nestled deep within the lush mountains of Ella, this eco-resort provides a serene escape surrounded by waterfalls, mist, and tropical flora.",
-    imageUrl: "https://images.unsplash.com/photo-1625736300986-628d09ca0818?q=80&w=800&auto=format&fit=crop"
-  },
-  {
-    id: 3,
-    propertyName: "Kandy View Boutique",
-    city: "Kandy",
-    starRating: 4,
-    pricePerNight: 22000,
-    amenities: ["Free WiFi", "Pool", "City View", "Restaurant", "Room Service"],
-    description: "Overlooking the majestic Kandy Lake and the Temple of the Tooth, this boutique hotel combines traditional Kandyan architecture with modern comforts.",
-    imageUrl: "https://images.unsplash.com/photo-1580971597148-9b882eb75bce?q=80&w=800&auto=format&fit=crop"
-  },
-  {
-    id: 4,
-    propertyName: "Mirissa Beach Cabanas",
-    city: "Mirissa",
-    starRating: 3,
-    pricePerNight: 15000,
-    amenities: ["Free WiFi", "Beachfront", "Bar", "A/C"],
-    description: "Step right out of your secluded cabana onto the golden sands of Mirissa beach. Ideal for surfers, beach lovers, and whale watchers.",
-    imageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=800&auto=format&fit=crop"
-  },
-  {
-    id: 5,
-    propertyName: "Sigiriya Rock Haven",
-    city: "Sigiriya",
-    starRating: 5,
-    pricePerNight: 35000,
-    amenities: ["Free WiFi", "Pool", "Spa", "Breakfast Included", "Safari Arranged"],
-    description: "Located just minutes from the ancient Lion Rock, this premium resort features a sprawling pool, ayurvedic spa, and stunning views of the fortress.",
-    imageUrl: "https://images.unsplash.com/photo-1588610580916-2deac38cf945?q=80&w=800&auto=format&fit=crop"
-  }
-];
-
 const AMENITY_FILTERS = ["Free WiFi", "Pool", "Breakfast Included", "Spa", "Ocean View", "Beachfront", "A/C"];
 
 const Hotels = () => {
-  const [user, setUser] = useState(null);
+  const { user, authFetch } = useAuth();
   const [loading, setLoading] = useState(true);
 
-  const [hotels, setHotels] = useState(MOCK_HOTELS);
-  const [filteredHotels, setFilteredHotels] = useState(MOCK_HOTELS);
+  const [hotels, setHotels] = useState([]);
+  const [filteredHotels, setFilteredHotels] = useState([]);
 
   const [searchCity, setSearchCity] = useState('');
   const [minPrice, setMinPrice] = useState('');
@@ -75,14 +22,15 @@ const Hotels = () => {
   const [sortBy, setSortBy] = useState('recommended');
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-
     const fetchHotels = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:3001/api/hotels');
+        let response;
+        if (user && user.role === 'hotel_owner') {
+          response = await authFetch('http://127.0.0.1:3001/api/hotels/provider');
+        } else {
+          response = await fetch('http://127.0.0.1:3001/api/hotels');
+        }
+        
         const data = await response.json();
         
         // Map backend to frontend schema
@@ -97,8 +45,8 @@ const Hotels = () => {
           imageUrl: h.imageUrl || "https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop"
         }));
         
-        setHotels([...MOCK_HOTELS, ...backendHotels]);
-        setFilteredHotels([...MOCK_HOTELS, ...backendHotels]);
+        setHotels(backendHotels);
+        setFilteredHotels(backendHotels);
       } catch (error) {
         console.error("Failed to fetch hotels:", error);
       } finally {
@@ -107,7 +55,7 @@ const Hotels = () => {
     };
     
     fetchHotels();
-  }, []);
+  }, [user]);
 
   // Filtering Logic
   useEffect(() => {
@@ -192,8 +140,8 @@ const Hotels = () => {
       <div className="pt-28 pb-10 bg-sunset-dark text-white shadow-md relative overflow-hidden">
         <div className="absolute inset-0 z-0 bg-gradient-to-r from-sunset-dark to-sunset-teal/80"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <h1 className="text-4xl font-extrabold mb-2">Find Your Perfect Stay</h1>
-          <p className="text-xl text-gray-300 font-light">Explore handpicked hotels, villas, and resorts across Sri Lanka.</p>
+          <h1 className="text-4xl font-extrabold mb-2">{user?.role === 'hotel_owner' ? 'My Properties' : 'Find Your Perfect Stay'}</h1>
+          <p className="text-xl text-gray-300 font-light">{user?.role === 'hotel_owner' ? 'Manage your hotel, villa, and resort listings.' : 'Explore handpicked hotels, villas, and resorts across Sri Lanka.'}</p>
         </div>
       </div>
 
@@ -299,7 +247,7 @@ const Hotels = () => {
             <div className="space-y-6">
               {filteredHotels.length > 0 ? (
                 filteredHotels.map(hotel => (
-                  <HotelCard key={hotel.id} hotel={hotel} />
+                  <HotelCard key={hotel.id} hotel={hotel} isOwnerView={user?.role === 'hotel_owner'} />
                 ))
               ) : (
                 <div className="bg-white p-12 rounded-3xl text-center border border-gray-100 shadow-sm">

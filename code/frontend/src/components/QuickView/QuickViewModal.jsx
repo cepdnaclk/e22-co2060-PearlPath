@@ -52,12 +52,27 @@ const QuickViewModal = ({ property, onClose }) => {
 
           <div className="mt-auto border-t border-gray-100 pt-6 flex items-center justify-between">
             <div>
-              <span className="text-gray-500 text-sm">Price from</span>
-              <div className="text-2xl font-bold tracking-tight text-gray-900">LKR {property.price} <span className="text-sm font-normal text-gray-500">/night</span></div>
+              {property.pricePerNight ? (
+                <>
+                  <span className="text-gray-500 text-sm">Price from</span>
+                  <div className="text-2xl font-bold tracking-tight text-gray-900">LKR {property.pricePerNight ? property.pricePerNight.toLocaleString() : property.price} <span className="text-sm font-normal text-gray-500">/night</span></div>
+                </>
+              ) : (
+                <>
+                  <span className="text-gray-500 text-sm">Access</span>
+                  <div className="text-2xl font-bold tracking-tight text-gray-900">{property.price}</div>
+                </>
+              )}
             </div>
-            <button className="bg-gradient-to-r from-sunset-orange to-sunset-gold text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-sunset-orange/30 hover:shadow-sunset-orange/50 transform hover:-translate-y-1 transition-all">
-              Book Now
-            </button>
+            {property.pricePerNight ? (
+              <button className="bg-gradient-to-r from-sunset-orange to-sunset-gold text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-sunset-orange/30 hover:shadow-sunset-orange/50 transform hover:-translate-y-1 transition-all">
+                Book Now
+              </button>
+            ) : (
+              <button className="bg-gradient-to-r from-sunset-teal to-emerald-500 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transform hover:-translate-y-1 transition-all">
+                Explore More
+              </button>
+            )}
           </div>
         </div>
       </div>

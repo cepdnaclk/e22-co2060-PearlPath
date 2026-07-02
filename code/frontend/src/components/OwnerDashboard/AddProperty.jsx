@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UploadCloud, MapPin, Building, Star, FileText, DollarSign, Check, X } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import Navbar from '../Navbar/Navbar';
+import Footer from '../Footer/Footer';
 
 const AMENITIES_LIST = [
   'Free WiFi',
@@ -33,6 +36,7 @@ const AddProperty = () => {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [isPublished, setIsPublished] = useState(false);
   const navigate = useNavigate();
+  const { authFetch } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -56,14 +60,17 @@ const AddProperty = () => {
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
     
-    // In a real app we'd also store the File objects in formData.images for sending
-    // For this UI mockup, we'll generate preview URLs
-    const newPreviews = files.map(file => URL.createObjectURL(file));
-    
-    setImagePreviews(prev => [...prev, ...newPreviews]);
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreviews(prev => [...prev, reader.result]);
+      };
+      reader.readAsDataURL(file);
+    });
+
     setFormData(prev => ({
       ...prev,
-      images: [...prev.images, ...files] // Store file objects for future backend upload
+      images: [...prev.images, ...files] 
     }));
   };
 
@@ -90,29 +97,41 @@ const AddProperty = () => {
         amenities: formData.amenities
       };
 
-      await fetch('http://127.0.0.1:3001/api/hotels', {
+      const response = await authFetch('http://127.0.0.1:3001/api/hotels', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Server error occurred');
+      }
 
       setTimeout(() => {
         navigate('/hotels');
       }, 2000);
     } catch (error) {
       console.error("Error publishing property:", error);
+      alert(`Failed to publish property: ${error.message}`);
       setIsPublished(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-outfit">
-      <div className="max-w-4xl mx-auto">
-        
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Add New Property</h1>
-          <p className="text-gray-500 mt-2">List your hotel, villa, or resort on PearlPath to reach more tourists.</p>
+    <div className="min-h-screen bg-gray-50 flex flex-col font-outfit">
+      <Navbar />
+
+      {/* Top Hero Banner */}
+      <div className="pt-28 pb-10 bg-sunset-dark text-white shadow-md relative overflow-hidden">
+        <div className="absolute inset-0 z-0 bg-gradient-to-r from-sunset-dark to-sunset-teal/80"></div>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <h1 className="text-4xl font-extrabold mb-2">Add New Property</h1>
+          <p className="text-xl text-gray-300 font-light">List your hotel, villa, or resort on PearlPath to reach more tourists.</p>
         </div>
+      </div>
+
+      <div className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
 
         <form onSubmit={handleSubmit} className="space-y-8">
           
@@ -346,6 +365,7 @@ const AddProperty = () => {
 
         </form>
       </div>
+      <Footer />
     </div>
   );
 };

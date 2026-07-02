@@ -1,79 +1,86 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Star } from 'lucide-react';
+import { MapPin, Star, Wifi, Coffee, Wind, Waves } from 'lucide-react';
 
-const HotelCard = ({ hotel }) => {
+const HotelCard = ({ hotel, isOwnerView }) => {
+  // Helper to render amenity icons based on name
+  const renderAmenityIcon = (amenity) => {
+    switch (amenity) {
+      case "Free WiFi": return <Wifi size={14} />;
+      case "Pool": return <Waves size={14} />;
+      case "Breakfast Included": return <Coffee size={14} />;
+      case "A/C": return <Wind size={14} />;
+      default: return null;
+    }
+  };
+
   return (
-    <div className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-shadow duration-300 flex flex-col sm:flex-row overflow-hidden border border-gray-100 mb-6 group">
-      
-      {/* Left: Image */}
-      <div className="sm:w-1/3 xl:w-1/4 h-56 sm:h-auto overflow-hidden shrink-0 relative">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group flex flex-col sm:flex-row">
+      <div className="sm:w-1/3 relative h-48 sm:h-auto overflow-hidden">
         <img 
           src={hotel.imageUrl} 
           alt={hotel.propertyName} 
-          className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
-        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur pl-2 pr-3 py-1 rounded-full shadow flex items-center gap-1.5 text-sm font-bold">
-          <Star size={14} className="text-sunset-gold fill-current" />
-          <span>{hotel.starRating}</span>
-        </div>
       </div>
-
-      {/* Middle: Details */}
+      
       <div className="p-5 flex-1 flex flex-col justify-between">
         <div>
-          <div className="flex items-center gap-1.5 text-sunset-teal text-sm font-bold tracking-wide uppercase mb-2">
-            <MapPin size={16} />
-            <span>{hotel.city}</span>
+          <div className="flex justify-between items-start mb-2">
+            <div>
+              <h3 className="text-xl font-bold text-gray-900 leading-tight mb-1">{hotel.propertyName}</h3>
+              <div className="flex items-center text-gray-500 text-sm">
+                <MapPin size={14} className="mr-1" />
+                {hotel.city}
+              </div>
+            </div>
+            <div className="flex items-center bg-sunset-gold/10 px-2 py-1 rounded text-sunset-orange font-bold text-sm">
+              {hotel.starRating} <Star size={14} className="ml-1 fill-current" />
+            </div>
           </div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-2 leading-tight">
-            {hotel.propertyName}
-          </h3>
           
-          {/* Star Rating Visualization */}
-          <div className="flex items-center gap-1 mb-3">
-            {[...Array(5)].map((_, i) => (
-              <Star 
-                key={i} 
-                size={14} 
-                className={i < hotel.starRating ? "text-sunset-gold fill-current" : "text-gray-200"} 
-              />
+          <p className="text-gray-600 text-sm mb-4 line-clamp-2">{hotel.description}</p>
+          
+          <div className="flex flex-wrap gap-2 mb-4">
+            {hotel.amenities && hotel.amenities.slice(0, 3).map((amenity, idx) => (
+              <span key={idx} className="flex items-center text-xs font-medium text-gray-600 bg-gray-50 px-2 py-1 rounded border border-gray-100">
+                {renderAmenityIcon(amenity)}
+                <span className={renderAmenityIcon(amenity) ? "ml-1" : ""}>{amenity}</span>
+              </span>
             ))}
+            {hotel.amenities && hotel.amenities.length > 3 && (
+              <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded border border-gray-100">
+                +{hotel.amenities.length - 3} more
+              </span>
+            )}
           </div>
-
-          <p className="text-gray-600 text-sm line-clamp-3 mb-4">
-            {hotel.description}
-          </p>
-        </div>
-
-        {/* Amenities Snippet */}
-        <div className="flex flex-wrap gap-2">
-          {hotel.amenities.slice(0, 3).map((amenity, idx) => (
-            <span key={idx} className="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-md font-medium">
-              {amenity}
-            </span>
-          ))}
-          {hotel.amenities.length > 3 && (
-            <span className="text-xs text-gray-400 font-medium py-1">
-              +{hotel.amenities.length - 3} more
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Right: Pricing & CTA */}
-      <div className="p-5 sm:w-48 bg-gray-50/50 border-t sm:border-t-0 sm:border-l border-gray-100 flex flex-col justify-between items-end sm:items-center text-right sm:text-center shrink-0">
-        <div className="mb-4 or sm:mb-0">
-          <p className="text-xs text-gray-500 font-medium mb-1 uppercase tracking-wider">Starting from</p>
-          <p className="text-2xl font-extrabold text-sunset-orange">LKR {hotel.pricePerNight.toLocaleString()}</p>
-          <p className="text-xs text-gray-400 font-medium mt-1">Per Night</p>
         </div>
         
-        <Link to={`/hotel/${hotel.id}`} className="block w-full sm:w-auto bg-sunset-teal text-center hover:bg-teal-800 text-white font-bold py-3 px-6 rounded-xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all">
-          View Details
-        </Link>
+        <div className="flex justify-between items-end mt-4 pt-4 border-t border-gray-100">
+          <div>
+            <span className="text-xs text-gray-500 uppercase tracking-wider font-bold">Price per night</span>
+            <div className="text-2xl font-extrabold text-sunset-teal">
+              LKR {hotel.pricePerNight ? hotel.pricePerNight.toLocaleString() : 'N/A'}
+            </div>
+          </div>
+          <div className="flex gap-2">
+            {isOwnerView && (
+              <Link 
+                to={`/edit-property/${hotel.id}`}
+                className="bg-sunset-gold text-white px-5 py-2.5 rounded-xl font-bold hover:bg-yellow-600 transition-colors text-sm shadow-sm"
+              >
+                Edit
+              </Link>
+            )}
+            <Link 
+              to={`/hotel/${hotel.id}`}
+              className="bg-gray-900 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-sunset-teal transition-colors text-sm"
+            >
+              View Details
+            </Link>
+          </div>
+        </div>
       </div>
-
     </div>
   );
 };
