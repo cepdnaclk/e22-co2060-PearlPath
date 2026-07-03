@@ -82,15 +82,31 @@ root/
 
 ## 🚀 Getting Started
 
-
 ### Clone Repository
 
 ```bash
 git clone <repository-url>
 cd pearl-path
+```
+
+### ⚠️ A Crucial Warning About Security (Read This First!)
+Before running any Git commands, open your `.gitignore` file in your root backend folder. Make sure it contains a line that says `.env`.
+
+**Never commit your raw `.env` file to GitHub.** If your app-specific passwords or email credentials leak onto a public GitHub repository, malicious bots can scrape them within seconds to send spam, which could get your email account banned. Keeping `.env` in your `.gitignore` ensures only the underlying code changes are pushed, while your private credentials stay safely on your local machine.
+
+### Step 1: Create the `.env` file from `.env.example`
+In your `code/backend/` folder, create a new text file named `.env` based on the `.env.example` template:
+
+```env
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-app-specific-password
+EMAIL_FROM="PearlPath Support" <your-email@gmail.com>
+```
+
 ---
 
-```
 ## Project Team
 
 31 - Team NextDev
