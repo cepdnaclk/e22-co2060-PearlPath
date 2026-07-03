@@ -4,6 +4,7 @@ import Home from './components/Home/Home'
 import SignInPage from './components/Auth/SignInPage'
 import RegisterPage from './components/Auth/RegisterPage'
 import ForgotPassword from './components/Auth/ForgotPassword'
+import VerifyEmail from './components/Auth/VerifyEmail'
 import { VehicleProvider } from './context/VehicleContext'
 import Vehicles from './components/Vehicles/Vehicles'
 import VehicleDetails from './components/Vehicles/VehicleDetails'
@@ -28,6 +29,7 @@ function App() {
           <Route path="/login" element={<SignInPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
 
           <Route path="/admin/dashboard" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
 

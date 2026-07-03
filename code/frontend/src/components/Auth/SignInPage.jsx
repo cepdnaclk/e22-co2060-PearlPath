@@ -28,6 +28,21 @@ const SignInPage = () => {
 
       const data = await response.json();
 
+      if (response.status === 403 && data.isEmailVerified === false) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'warning',
+          title: 'Email Unverified',
+          text: data.message || 'Please verify your email first.',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+        navigate(`/verify-email?email=${encodeURIComponent(data.email)}&role=${data.role}`);
+        return;
+      }
+
       if (response.ok) {
         if (data.user.status === 'pending') {
           Swal.fire({

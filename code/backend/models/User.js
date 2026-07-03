@@ -19,7 +19,10 @@ const userSchema = new Schema({
         default: 'pending'
     },
     resetPasswordCode: { type: String },
-    resetPasswordExpires: { type: Date }
+    resetPasswordExpires: { type: Date },
+    isEmailVerified: { type: Boolean, default: false },
+    emailVerificationCode: { type: String },
+    emailVerificationExpires: { type: Date }
 }, { timestamps: true });
 
 // Hash password before saving

@@ -59,12 +59,8 @@ const RegisterPage = () => {
 
       if (response.ok) {
         console.log('Registration successful:', data);
-        if (data.user.role === 'tourist') {
-          alert('Registration successful! Please sign in.');
-        } else {
-          alert('Registration successful! Your account is pending admin approval. You will not be able to log in until approved.');
-        }
-        navigate('/login');
+        alert('Registration successful! A verification code has been sent to your email. Please verify your email.');
+        navigate(`/verify-email?email=${encodeURIComponent(data.user.email)}&role=${data.user.role}`);
       } else {
         setError(data.message || 'Registration failed');
       }
