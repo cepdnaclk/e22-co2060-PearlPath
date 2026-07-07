@@ -9,6 +9,7 @@ const bookingRouter = require('./routers/bookingRouter');
 const vehicleRouter = require('./routers/vehicleRouter');
 const adminRouter = require('./routers/adminRouter');
 const notificationRouter = require('./routers/notificationRouter');
+const routeRouter = require('./routers/routeRouter');
 
 
 app.use(cors());
@@ -46,5 +47,6 @@ app.use('/api', bookingRouter);
 app.use('/api', vehicleRouter);
 app.use('/api', adminRouter);
 app.use('/api', notificationRouter);
+app.use('/api', routeRouter);
 
 
