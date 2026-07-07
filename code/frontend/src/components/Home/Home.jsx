@@ -5,6 +5,7 @@ import Footer from '../Footer/Footer';
 import QuickViewModal from '../QuickView/QuickViewModal';
 import { VehicleContext } from '../../context/VehicleContext';
 import { Calendar, User, Search, MapPin, Map, Navigation, Star, Compass, Wind, CarFront, Plus, Building, Car, ClipboardList } from 'lucide-react';
+import { beautifulPlaces } from '../../data/destinations';
 
 const Home = () => {
   const [selectedProperty, setSelectedProperty] = useState(null);
@@ -25,74 +26,6 @@ const Home = () => {
   });
 
   useEffect(() => {
-    const beautifulPlaces = [
-      {
-        _id: 'place1',
-        name: 'Sigiriya Rock Fortress',
-        location: 'Sigiriya',
-        image: '/destinations/sigiriya.png',
-        imageUrl: '/destinations/sigiriya.png',
-        rating: '4.9',
-        description: 'An ancient rock fortress and palace ruin situated in the central Matale District of Sri Lanka. It is a UNESCO World Heritage Site.',
-        amenities: ['Historical Site', 'Hiking', 'Photography', 'Viewpoint'],
-        price: 'Ticketed'
-      },
-      {
-        _id: 'place2',
-        name: 'Nine Arches Bridge',
-        location: 'Ella',
-        image: '/destinations/nine_arches.png',
-        imageUrl: '/destinations/nine_arches.png',
-        rating: '4.8',
-        description: 'The Nine Arches Bridge also called the Bridge in the Sky, is a viaduct bridge in Sri Lanka. It is one of the best examples of colonial-era railway construction in the country.',
-        amenities: ['Sightseeing', 'Photography', 'Nature Walk'],
-        price: 'Free'
-      },
-      {
-        _id: 'place3',
-        name: 'Yala National Park',
-        location: 'Yala',
-        image: '/destinations/yala.png',
-        imageUrl: '/destinations/yala.png',
-        rating: '4.7',
-        description: 'Yala is the most visited and second largest national park in Sri Lanka, bordering the Indian Ocean. Known for its high density of leopards.',
-        amenities: ['Safari', 'Wildlife', 'Photography', 'Nature Tour'],
-        price: 'Ticketed'
-      },
-      {
-        _id: 'place4',
-        name: 'Galle Dutch Fort',
-        location: 'Galle',
-        image: '/destinations/galle_fort.png',
-        imageUrl: '/destinations/galle_fort.png',
-        rating: '4.8',
-        description: 'Galle Fort, in the Bay of Galle on the south west coast of Sri Lanka, was built first in 1588 by the Portuguese.',
-        amenities: ['Historical Site', 'Shopping', 'Dining', 'Sunset View'],
-        price: 'Free'
-      },
-      {
-        _id: 'place5',
-        name: 'Temple of the Tooth',
-        location: 'Kandy',
-        image: '/destinations/kandy_temple.png',
-        imageUrl: '/destinations/kandy_temple.png',
-        rating: '4.9',
-        description: 'Sri Dalada Maligawa or the Temple of the Sacred Tooth Relic is a Buddhist temple in the city of Kandy, Sri Lanka.',
-        amenities: ['Religious Site', 'Cultural', 'Museum'],
-        price: 'Ticketed'
-      },
-      {
-        _id: 'place6',
-        name: 'Mirissa Beach',
-        location: 'Mirissa',
-        image: '/destinations/mirissa.png',
-        imageUrl: '/destinations/mirissa.png',
-        rating: '4.7',
-        description: 'Mirissa and its breathtaking sandy beach pretty much transforms your dreams and visions of a tropical paradise into an everyday reality.',
-        amenities: ['Beach', 'Surfing', 'Whale Watching', 'Nightlife'],
-        price: 'Free'
-      }
-    ];
     setProperties(beautifulPlaces);
   }, []);
 

@@ -2,7 +2,12 @@ const Hotel = require('../models/Hotel');
 
 const getHotels = async (req, res) => {
     try {
-        const hotels = await Hotel.find({ status: 'approved' }).select('-images').lean();
+        const query = { status: 'approved' };
+        if (req.query.location) {
+            const escapedLocation = req.query.location.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+            query.location = { $regex: new RegExp(escapedLocation, 'i') };
+        }
+        const hotels = await Hotel.find(query).select('-images').lean();
         res.status(200).json({ response: hotels });
     } catch (error) {
         console.error("Get hotels error:", error);

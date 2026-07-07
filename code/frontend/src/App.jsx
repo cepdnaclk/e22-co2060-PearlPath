@@ -18,6 +18,7 @@ import Hotels from './components/Hotels/Hotels'
 import HotelDetails from './components/Hotels/HotelDetails'
 import Profile from './components/Profile/Profile'
 import MyBookings from './components/Profile/MyBookings'
+import DestinationDetails from './pages/DestinationDetails'
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
           <Route path="/provider-bookings" element={<ProtectedRoute roles={['hotel_owner', 'vehicle_owner', 'tour_guide']}><ProviderBookings /></ProtectedRoute>} />
+          <Route path="/destinations/:id" element={<DestinationDetails />} />
           
           <Route path="/vehicles" element={<Vehicles />} />
           <Route path="/vehicle/:id" element={<VehicleDetails />} />
