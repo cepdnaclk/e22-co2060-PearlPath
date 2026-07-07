@@ -10,6 +10,7 @@ const vehicleRouter = require('./routers/vehicleRouter');
 const adminRouter = require('./routers/adminRouter');
 const notificationRouter = require('./routers/notificationRouter');
 const routeRouter = require('./routers/routeRouter');
+const chatRouter = require('./routers/chatRouter');
 
 
 app.use(cors());
@@ -48,5 +49,6 @@ app.use('/api', vehicleRouter);
 app.use('/api', adminRouter);
 app.use('/api', notificationRouter);
 app.use('/api', routeRouter);
+app.use('/api', chatRouter);
 
 

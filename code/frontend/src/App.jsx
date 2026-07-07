@@ -20,7 +20,25 @@ import HotelDetails from './components/Hotels/HotelDetails'
 import Profile from './components/Profile/Profile'
 import MyBookings from './components/Profile/MyBookings'
 
+import TravelChatWidget from './components/TravelChatWidget'
+
 function App() {
+  const handleSendMessage = async (message, history) => {
+    try {
+      const response = await fetch('http://localhost:3001/api/chat', { // using localhost port if backend is running there, but better to use relative path if there's proxy
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        // if user is logged in, you'd pass their ID. For now just passing message and history
+        body: JSON.stringify({ message, conversationHistory: history })
+      });
+      const data = await response.json();
+      return data.reply;
+    } catch (error) {
+      console.error('Error connecting to chat:', error);
+      return "I'm sorry, I'm having trouble connecting right now.";
+    }
+  };
+
   return (
     <VehicleProvider>
       <Router>
@@ -49,6 +67,7 @@ function App() {
           <Route path="/add-vehicle" element={<ProtectedRoute roles={['vehicle_owner']}><AddVehicle /></ProtectedRoute>} />
 
         </Routes>
+        <TravelChatWidget onSendMessage={handleSendMessage} />
       </Router>
     </VehicleProvider>
   )
