@@ -19,6 +19,7 @@ import Hotels from './components/Hotels/Hotels'
 import HotelDetails from './components/Hotels/HotelDetails'
 import Profile from './components/Profile/Profile'
 import MyBookings from './components/Profile/MyBookings'
+import Destinations from './components/Destinations/Destinations'
 
 import TravelChatWidget from './components/TravelChatWidget'
 
@@ -50,6 +51,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/routes" element={<RoutesPage />} />
+          <Route path="/destinations" element={<Destinations />} />
 
           <Route path="/admin/dashboard" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
 
