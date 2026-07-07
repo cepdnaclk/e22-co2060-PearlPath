@@ -15,6 +15,9 @@ const Navbar = () => {
   const [notifications, setNotifications] = useState([]);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const notifRef = useRef(null);
+  
+  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
+  const currencyRef = useRef(null);
 
   const fetchNotifications = async () => {
     if (!user) return;
@@ -91,6 +94,9 @@ const Navbar = () => {
       if (notifRef.current && !notifRef.current.contains(event.target)) {
         setIsNotifOpen(false);
       }
+      if (currencyRef.current && !currencyRef.current.contains(event.target)) {
+        setIsCurrencyOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -160,8 +166,44 @@ const Navbar = () => {
           {/* Desktop Nav Actions (Right) */}
           <div className="hidden md:flex items-center gap-6 shrink-0">
             <div className="flex gap-4">
-              <button className="text-gray-300 hover:text-sunset-orange font-medium text-sm transition-colors">LKR</button>
-              <button className="text-gray-300 hover:text-sunset-orange font-medium text-sm transition-colors">EN</button>
+              <div className="relative" ref={currencyRef}>
+                <button 
+                  onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
+                  className="text-gray-300 hover:text-sunset-orange font-medium text-sm transition-colors flex items-center gap-1 cursor-pointer"
+                >
+                  LKR <ChevronDown size={14} className={`transition-transform duration-200 ${isCurrencyOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isCurrencyOpen && (
+                  <div className="absolute left-0 mt-3 w-56 bg-[#1a1a1f] border border-gray-800 rounded-xl shadow-2xl overflow-hidden z-50 transform origin-top-left transition-all animate-slide-up text-left">
+                    <div className="px-4 py-2.5 border-b border-gray-800 bg-[#141418]">
+                      <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Exchange Rates (1 unit)</span>
+                    </div>
+                    <div className="py-1.5 divide-y divide-gray-800/40">
+                      <div className="px-4 py-2 hover:bg-gray-800/50 transition-colors flex justify-between items-center">
+                        <span className="text-sm font-semibold text-white">USD</span>
+                        <span className="text-sm text-sunset-orange font-bold">302.50 LKR</span>
+                      </div>
+                      <div className="px-4 py-2 hover:bg-gray-800/50 transition-colors flex justify-between items-center">
+                        <span className="text-sm font-semibold text-white">EUR</span>
+                        <span className="text-sm text-sunset-orange font-bold">328.75 LKR</span>
+                      </div>
+                      <div className="px-4 py-2 hover:bg-gray-800/50 transition-colors flex justify-between items-center">
+                        <span className="text-sm font-semibold text-white">GBP</span>
+                        <span className="text-sm text-sunset-orange font-bold">385.20 LKR</span>
+                      </div>
+                      <div className="px-4 py-2 hover:bg-gray-800/50 transition-colors flex justify-between items-center">
+                        <span className="text-sm font-semibold text-white">AUD</span>
+                        <span className="text-sm text-sunset-orange font-bold">202.10 LKR</span>
+                      </div>
+                      <div className="px-4 py-2 hover:bg-gray-800/50 transition-colors flex justify-between items-center">
+                        <span className="text-sm font-semibold text-white">JPY</span>
+                        <span className="text-sm text-sunset-orange font-bold">1.88 LKR</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <button className="text-gray-300 hover:text-sunset-orange font-medium text-sm transition-colors cursor-pointer">EN</button>
             </div>
 
             <div className="h-6 w-px bg-gray-700"></div>
