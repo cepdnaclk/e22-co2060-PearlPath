@@ -16,12 +16,16 @@ try {
   }
 }
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'dummy_api_key_for_initialization',
-});
+let openai = null;
+if (process.env.OPENAI_API_KEY) {
+  openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+}
 
 async function getIntent(message) {
   try {
+    if (!openai) return "general_chat";
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
@@ -120,6 +124,7 @@ async function retrieveContext(intent, message, userId) {
 
 async function generateResponse(message, conversationHistory, contextData) {
   try {
+    if (!openai) throw new Error("OpenAI is not initialized");
     let contextString = "";
     if (contextData) {
       contextString = `\n\nContext Information (Use this to answer factual questions if relevant):\n${JSON.stringify(contextData, null, 2)}`;
