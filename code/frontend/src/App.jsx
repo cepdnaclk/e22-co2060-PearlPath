@@ -5,6 +5,7 @@ import SignInPage from './components/Auth/SignInPage'
 import RegisterPage from './components/Auth/RegisterPage'
 import ForgotPassword from './components/Auth/ForgotPassword'
 import VerifyEmail from './components/Auth/VerifyEmail'
+import RoutesPage from './components/Routes/RoutesPage'
 import { VehicleProvider } from './context/VehicleContext'
 import Vehicles from './components/Vehicles/Vehicles'
 import VehicleDetails from './components/Vehicles/VehicleDetails'
@@ -21,8 +22,27 @@ import TourGuideDetails from './components/TourGuides/TourGuideDetails'
 import EditProfile from './components/TourGuideDashboard/EditProfile'
 import Profile from './components/Profile/Profile'
 import MyBookings from './components/Profile/MyBookings'
+import Destinations from './components/Destinations/Destinations'
+
+import TravelChatWidget from './components/TravelChatWidget'
 
 function App() {
+  const handleSendMessage = async (message, history) => {
+    try {
+      const response = await fetch('http://localhost:3001/api/chat', { // using localhost port if backend is running there, but better to use relative path if there's proxy
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        // if user is logged in, you'd pass their ID. For now just passing message and history
+        body: JSON.stringify({ message, conversationHistory: history })
+      });
+      const data = await response.json();
+      return data.reply;
+    } catch (error) {
+      console.error('Error connecting to chat:', error);
+      return "I'm sorry, I'm having trouble connecting right now.";
+    }
+  };
+
   return (
     <VehicleProvider>
       <Router>
@@ -33,6 +53,8 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/routes" element={<RoutesPage />} />
+          <Route path="/destinations" element={<Destinations />} />
 
           <Route path="/admin/dashboard" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
 
@@ -54,6 +76,7 @@ function App() {
           <Route path="/add-vehicle" element={<ProtectedRoute roles={['vehicle_owner']}><AddVehicle /></ProtectedRoute>} />
 
         </Routes>
+        <TravelChatWidget onSendMessage={handleSendMessage} />
       </Router>
     </VehicleProvider>
   )
