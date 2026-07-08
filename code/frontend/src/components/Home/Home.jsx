@@ -195,10 +195,10 @@ const Home = () => {
                 <Star className="text-sunset-orange group-hover:scale-110 transition-transform" />
                 <span className="font-semibold">Top Rated</span>
               </button>
-              <button className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-gold/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
+              <Link to="/experiences" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-gold/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
                 <Wind className="text-sunset-gold group-hover:animate-spin transition-transform" />
                 <span className="font-semibold">Experiences</span>
-              </button>
+              </Link>
             </div>
 
             {/* EXPLORATION GRID (Masonry Layout) */}

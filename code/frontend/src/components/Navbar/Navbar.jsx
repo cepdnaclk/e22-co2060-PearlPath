@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, Building, MapPin, Map, BusFront, Navigation, User, LogOut, ChevronDown, Plus, Home, Calendar, Bell } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import CurrencyModal from '../CurrencyModal';
+import { useCurrency } from '../../context/CurrencyContext';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -12,6 +13,7 @@ const Navbar = () => {
   const dropdownRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const { selectedCurrency } = useCurrency();
 
   const [notifications, setNotifications] = useState([]);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -172,7 +174,7 @@ const Navbar = () => {
                   onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
                   className="text-gray-300 hover:text-sunset-orange font-medium text-sm transition-colors flex items-center gap-1 cursor-pointer"
                 >
-                  LKR <ChevronDown size={14} className={`transition-transform duration-200 ${isCurrencyOpen ? 'rotate-180' : ''}`} />
+                  {selectedCurrency} <ChevronDown size={14} className={`transition-transform duration-200 ${isCurrencyOpen ? 'rotate-180' : ''}`} />
                 </button>
                 {isCurrencyOpen && (
                   <CurrencyModal onClose={() => setIsCurrencyOpen(false)} />

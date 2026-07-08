@@ -19,40 +19,44 @@ import HotelDetails from './components/Hotels/HotelDetails'
 import Profile from './components/Profile/Profile'
 import MyBookings from './components/Profile/MyBookings'
 import DestinationDetails from './pages/DestinationDetails'
+import { CurrencyProvider } from './context/CurrencyContext'
+import Experiences from './pages/Experiences'
 
 function App() {
   return (
-    <VehicleProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/login" element={<SignInPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/verify-email" element={<VerifyEmail />} />
+    <CurrencyProvider>
+      <VehicleProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/login" element={<SignInPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
 
-          <Route path="/admin/dashboard" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/dashboard" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
 
-          <Route path="/add-property" element={<ProtectedRoute roles={['hotel_owner']}><AddProperty /></ProtectedRoute>} />
-          <Route path="/edit-property/:id" element={<ProtectedRoute roles={['hotel_owner']}><EditProperty /></ProtectedRoute>} />
-          <Route path="/hotels" element={<Hotels />} />
-          <Route path="/hotel/:id" element={<HotelDetails />} />
-          <Route path="/hotel/preview" element={<HotelDetails />} />
-          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
-          <Route path="/provider-bookings" element={<ProtectedRoute roles={['hotel_owner', 'vehicle_owner', 'tour_guide']}><ProviderBookings /></ProtectedRoute>} />
-          <Route path="/destinations/:id" element={<DestinationDetails />} />
-          
-          <Route path="/vehicles" element={<Vehicles />} />
-          <Route path="/vehicle/:id" element={<VehicleDetails />} />
-          <Route path="/add-vehicle" element={<ProtectedRoute roles={['vehicle_owner']}><AddVehicle /></ProtectedRoute>} />
+            <Route path="/add-property" element={<ProtectedRoute roles={['hotel_owner']}><AddProperty /></ProtectedRoute>} />
+            <Route path="/edit-property/:id" element={<ProtectedRoute roles={['hotel_owner']}><EditProperty /></ProtectedRoute>} />
+            <Route path="/hotels" element={<Hotels />} />
+            <Route path="/hotel/:id" element={<HotelDetails />} />
+            <Route path="/hotel/preview" element={<HotelDetails />} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
+            <Route path="/provider-bookings" element={<ProtectedRoute roles={['hotel_owner', 'vehicle_owner', 'tour_guide']}><ProviderBookings /></ProtectedRoute>} />
+            <Route path="/destinations/:id" element={<DestinationDetails />} />
+            
+            <Route path="/vehicles" element={<Vehicles />} />
+            <Route path="/vehicle/:id" element={<VehicleDetails />} />
+            <Route path="/add-vehicle" element={<ProtectedRoute roles={['vehicle_owner']}><AddVehicle /></ProtectedRoute>} />
+            <Route path="/experiences" element={<Experiences />} />
 
-        </Routes>
-      </Router>
-    </VehicleProvider>
+          </Routes>
+        </Router>
+      </VehicleProvider>
+    </CurrencyProvider>
   )
 }
 
-export default App
-
+export default App;

@@ -1,16 +1,9 @@
 import React, { useState } from 'react';
+import { useCurrency } from '../context/CurrencyContext';
 
 const CurrencyModal = ({ onClose }) => {
-  const [selectedCurrency, setSelectedCurrency] = useState('USD');
+  const { selectedCurrency, setSelectedCurrency, exchangeRates } = useCurrency();
   const [inputAmount, setInputAmount] = useState(100);
-
-  const exchangeRates = {
-    USD: 302.50,
-    EUR: 328.75,
-    GBP: 385.20,
-    AUD: 202.10,
-    JPY: 1.88
-  };
 
   const handleAmountChange = (e) => {
     const val = e.target.value;
@@ -24,7 +17,11 @@ const CurrencyModal = ({ onClose }) => {
 
   // Graceful numeric evaluation
   const amountToConvert = inputAmount === '' ? 0 : inputAmount;
-  const rate = exchangeRates[selectedCurrency] || 0;
+  // If LKR is selected, convert from LKR to USD/others? 
+  // Normally the modal converts the entered amount of the SELECTED foreign currency into LKR.
+  // E.g. 100 USD = 30,250 LKR.
+  // If LKR is selected, then 100 LKR = 100 LKR.
+  const rate = exchangeRates[selectedCurrency] || 1;
   const convertedValue = amountToConvert * rate;
 
   return (
@@ -69,12 +66,14 @@ const CurrencyModal = ({ onClose }) => {
                   {currency}
                 </span>
                 <span className="text-[10px] text-gray-400 font-semibold">
-                  (1 {currency} = {currentRate} LKR)
+                  {currency === 'LKR' ? '(Base Currency)' : `(1 ${currency} = ${currentRate.toFixed(2)} LKR)`}
                 </span>
               </div>
               <div className="text-right">
-                <span className="text-xs text-gray-400 block font-medium">Indicative</span>
-                <span className="text-xs font-bold text-white">{currentRate.toFixed(2)} LKR</span>
+                <span className="text-xs text-gray-400 block font-medium">Rate</span>
+                <span className="text-xs font-bold text-white">
+                  {currency === 'LKR' ? '1.00 LKR' : `${currentRate.toFixed(2)} LKR`}
+                </span>
               </div>
             </div>
           );
@@ -95,3 +94,4 @@ const CurrencyModal = ({ onClose }) => {
 };
 
 export default CurrencyModal;
+
