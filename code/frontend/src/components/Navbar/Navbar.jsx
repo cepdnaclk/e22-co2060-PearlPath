@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, Building, MapPin, Map, BusFront, Navigation, User, LogOut, ChevronDown, Plus, Home, Calendar, Bell } from 'lucide-react';
+import { Menu, Building, MapPin, Map, BusFront, Navigation, User, LogOut, ChevronDown, Plus, Home, Calendar, Bell, Compass } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import CurrencyModal from '../CurrencyModal';
 import { useCurrency } from '../../context/CurrencyContext';

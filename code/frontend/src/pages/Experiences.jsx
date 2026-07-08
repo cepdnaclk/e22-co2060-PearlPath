@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import Navbar from '../components/Navbar/Navbar';
@@ -73,6 +74,7 @@ const mockExperiences = [
 const Experiences = () => {
   const { user, authFetch } = useAuth();
   const { selectedCurrency, convertPrice, getCurrencySymbol } = useCurrency();
+  const [searchParams] = useSearchParams();
 
   const [dbExperiences, setDbExperiences] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -114,7 +116,10 @@ const Experiences = () => {
 
   useEffect(() => {
     fetchExperiences();
-  }, []);
+    if (searchParams.get('openAddModal') === 'true') {
+      setModalOpen(true);
+    }
+  }, [searchParams]);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
