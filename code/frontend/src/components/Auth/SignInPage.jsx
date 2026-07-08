@@ -1,12 +1,18 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Navigation } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import Swal from 'sweetalert2';
+
+
 
 const SignInPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSignIn = async (e) => {
     e.preventDefault();
@@ -22,26 +28,94 @@ const SignInPage = () => {
 
       const data = await response.json();
 
+      if (response.status === 403 && data.isEmailVerified === false) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'warning',
+          title: 'Email Unverified',
+          text: data.message || 'Please verify your email first.',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+        navigate(`/verify-email?email=${encodeURIComponent(data.email)}&role=${data.role}`);
+        return;
+      }
+
       if (response.ok) {
-        console.log('Login successful:', data);
-        // Save user state
-        localStorage.setItem('user', JSON.stringify(data.user));
-        if (data.token) localStorage.setItem('token', data.token);
-        
-        alert('Welcome back, ' + data.user.firstName + '!');
-        
-        // Strategy to force password save prompt
-        const hiddenForm = document.getElementById('hidden-login-form');
-        if (hiddenForm) {
-          hiddenForm.submit();
+        if (data.user.status === 'pending') {
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'warning',
+            title: 'Account Pending',
+            text: 'Your account is pending admin approval.',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+          });
+          return;
+        }
+        if (data.user.status === 'rejected') {
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: 'Account Rejected',
+            text: 'Your account has been rejected by the admin.',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+          });
+          return;
         }
 
-        window.location.assign('/');
+        console.log('Login successful:', data);
+        
+        login(data.user, data.token);
+        
+        await Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: 'Login Successful!',
+          text: `Welcome back, ${data.user.firstName}!`,
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true
+        });
+        
+        if (data.user.role === 'admin') {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/');
+        }
       } else {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: 'Login Failed',
+          text: data.message || 'Login failed.',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
         setError(data.message || 'Login failed.');
       }
     } catch (err) {
       console.error('Login error:', err);
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: 'Connection Error',
+        text: 'An error occurred during login. Is the server running?',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
       setError('An error occurred during login. Is the server running?');
     } finally {
       setLoading(false);

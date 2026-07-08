@@ -1,0 +1,439 @@
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { Link, useSearchParams } from 'react-router-dom';
+import Navbar from '../Navbar/Navbar';
+import Footer from '../Footer/Footer';
+import { Calendar, Home, Car, User, MapPin, CreditCard, ChevronRight, Trash2, X, Hash, Clock } from 'lucide-react';
+
+const MyBookings = () => {
+  const { authFetch } = useAuth();
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [activeFilter, setActiveFilter] = useState('hotels');
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchBookingId = searchParams.get('bookingId');
+
+  const handleCloseModal = () => {
+    setSelectedBooking(null);
+    if (searchBookingId) {
+      setSearchParams({});
+    }
+  };
+
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const response = await authFetch('http://127.0.0.1:3001/api/bookings/user');
+        const data = await response.json();
+
+        if (response.ok) {
+          // Sort bookings by createdAt descending
+          const sortedBookings = (data.response || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          setBookings(sortedBookings);
+
+          if (searchBookingId) {
+            const foundBooking = sortedBookings.find(b => b._id === searchBookingId);
+            if (foundBooking) {
+              if (foundBooking.hotelId) setActiveFilter('hotels');
+              else if (foundBooking.vehicleId) setActiveFilter('vehicles');
+              else if (foundBooking.tourId) setActiveFilter('tours');
+
+              let title = 'Booking';
+              let Icon = Calendar;
+              let image = null;
+              let location = null;
+              let targetLink = '#';
+
+              if (foundBooking.hotelId) {
+                title = foundBooking.hotelId.name;
+                Icon = Home;
+                image = foundBooking.hotelId.imageUrl;
+                location = foundBooking.hotelId.location;
+                targetLink = `/hotel/${foundBooking.hotelId._id}`;
+              } else if (foundBooking.vehicleId) {
+                title = `${foundBooking.vehicleId.make} ${foundBooking.vehicleId.model}`;
+                Icon = Car;
+                image = foundBooking.vehicleId.images?.[0] || foundBooking.vehicleId.imageUrl;
+                location = foundBooking.vehicleId.location;
+                targetLink = `/vehicle/${foundBooking.vehicleId._id}`;
+              } else if (foundBooking.tourId) {
+                title = foundBooking.tourId.name || 'Tour Booking';
+                Icon = User;
+              }
+
+              setSelectedBooking({
+                booking: foundBooking,
+                title,
+                Icon,
+                image,
+                location,
+                isHotel: !!foundBooking.hotelId,
+                isVehicle: !!foundBooking.vehicleId,
+                isTour: !!foundBooking.tourId,
+                targetLink
+              });
+            }
+          }
+        } else {
+          setError(data.message || 'Failed to fetch bookings.');
+        }
+      } catch (err) {
+        console.error("Error fetching bookings:", err);
+        setError('An error occurred. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBookings();
+  }, [authFetch, searchBookingId]);
+
+  const handleRemove = async (bookingId) => {
+    if (!window.confirm('Are you sure you want to remove this booking?')) return;
+    try {
+      const response = await authFetch(`http://127.0.0.1:3001/api/bookings/${bookingId}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        setBookings(prev => prev.filter(b => b._id !== bookingId));
+      } else {
+        const data = await response.json();
+        alert(data.message || 'Failed to remove booking.');
+      }
+    } catch (err) {
+      console.error('Error removing booking:', err);
+      alert('An error occurred. Please try again.');
+    }
+  };
+
+  const getStatusStyle = (status) => {
+    switch (status) {
+      case 'confirmed': return 'bg-green-100 text-green-700 border-green-200';
+      case 'rejected': return 'bg-red-100 text-red-700 border-red-200';
+      case 'cancelled': return 'bg-gray-100 text-gray-700 border-gray-200';
+      case 'pending':
+      default:
+        return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+    }
+  };
+
+  const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
+  const filters = [
+    { id: 'hotels', label: 'Hotels', icon: Home },
+    { id: 'vehicles', label: 'Vehicles', icon: Car },
+    { id: 'tours', label: 'Tour Guides', icon: User },
+  ];
+
+  const filteredBookings = bookings.filter(booking => {
+    if (activeFilter === 'hotels') return !!booking.hotelId;
+    if (activeFilter === 'vehicles') return !!booking.vehicleId;
+    if (activeFilter === 'tours') return !!booking.tourId;
+    return true;
+  });
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col font-outfit">
+      <Navbar />
+
+      {/* Top Hero Banner */}
+      <div className="pt-28 pb-10 bg-sunset-dark text-white shadow-md relative overflow-hidden">
+        <div className="absolute inset-0 z-0 bg-gradient-to-r from-sunset-dark to-sunset-teal/80"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <h1 className="text-4xl font-extrabold mb-2">My Bookings</h1>
+          <p className="text-xl text-gray-300 font-light">View and manage all your upcoming and past reservations.</p>
+        </div>
+      </div>
+
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Left Menu Sidebar */}
+          <div className="lg:w-1/4 flex-shrink-0">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sticky top-28">
+              <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 px-2">Categories</h2>
+              <nav className="space-y-2">
+                {filters.map(filter => {
+                  const Icon = filter.icon;
+                  return (
+                    <button
+                      key={filter.id}
+                      onClick={() => setActiveFilter(filter.id)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold text-left ${activeFilter === filter.id ? 'bg-gradient-to-r from-sunset-orange to-sunset-gold text-white shadow-md transform hover:-translate-y-0.5' : 'text-gray-600 hover:bg-orange-50 hover:text-sunset-orange'}`}
+                    >
+                      <Icon size={20} />
+                      {filter.label}
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+          </div>
+
+          {/* Main Content Area */}
+          <div className="lg:w-3/4">
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100 h-full">
+                <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-sunset-orange mb-4"></div>
+                <p className="text-gray-500 font-medium text-lg">Loading your bookings...</p>
+              </div>
+            ) : error ? (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl flex flex-col items-center justify-center py-12">
+                <p className="text-lg font-semibold">{error}</p>
+              </div>
+            ) : filteredBookings.length === 0 ? (
+              <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-16 text-center h-full flex flex-col items-center justify-center">
+                <div className="w-24 h-24 bg-orange-50 text-sunset-orange rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Calendar size={40} />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">No {activeFilter !== 'all' ? filters.find(f => f.id === activeFilter)?.label : ''} Bookings Found</h2>
+                <p className="text-gray-500 text-lg mb-8 max-w-md mx-auto">It looks like you don't have any reservations in this category yet. Start exploring for your next adventure!</p>
+                <div className="flex gap-4 justify-center">
+                  <Link to="/hotels" className="bg-gradient-to-r from-sunset-orange to-sunset-gold text-white font-bold py-3 px-8 rounded-xl hover:shadow-lg transform transition hover:-translate-y-1">
+                    Explore Hotels
+                  </Link>
+                  <Link to="/vehicles" className="bg-white border-2 border-sunset-orange text-sunset-orange font-bold py-3 px-8 rounded-xl hover:bg-orange-50 transform transition hover:-translate-y-1">
+                    Find Vehicles
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {filteredBookings.map((booking) => {
+                  const isHotel = !!booking.hotelId;
+                  const isVehicle = !!booking.vehicleId;
+                  const isTour = !!booking.tourId;
+
+                  let title = 'Booking';
+                  let Icon = Calendar;
+                  let image = null;
+                  let location = null;
+                  let targetLink = '#';
+
+                  if (isHotel && booking.hotelId) {
+                    title = booking.hotelId.name;
+                    Icon = Home;
+                    image = booking.hotelId.imageUrl;
+                    location = booking.hotelId.location;
+                    targetLink = `/hotel/${booking.hotelId._id}`;
+                  } else if (isVehicle && booking.vehicleId) {
+                    title = `${booking.vehicleId.make} ${booking.vehicleId.model}`;
+                    Icon = Car;
+                    image = booking.vehicleId.images?.[0] || booking.vehicleId.imageUrl;
+                    location = booking.vehicleId.location;
+                    targetLink = `/vehicle/${booking.vehicleId._id}`;
+                  } else if (isTour && booking.tourId) {
+                    title = booking.tourId.name || 'Tour Booking';
+                    Icon = User;
+                    // Add tour specifics if applicable
+                  }
+
+                  return (
+                    <div key={booking._id} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
+                      <div className="flex flex-col md:flex-row">
+                        {/* Thumbnail */}
+                        <div className="md:w-64 h-48 md:h-auto flex-shrink-0 bg-gray-200 relative">
+                          {image ? (
+                            <img src={image} alt={title} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-100">
+                              <Icon size={48} />
+                            </div>
+                          )}
+                          <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-2 rounded-lg shadow-sm text-sunset-orange">
+                            <Icon size={20} />
+                          </div>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-6 flex-1 flex flex-col justify-between">
+                          <div>
+                            <div className="flex justify-between items-start mb-2">
+                              <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
+                              <span className={`px-4 py-1.5 rounded-full text-sm font-bold border capitalize ${getStatusStyle(booking.bookingStatus)}`}>
+                                {booking.bookingStatus}
+                              </span>
+                            </div>
+
+                            {location && (
+                              <div className="flex items-center gap-1.5 text-gray-500 mb-4 font-medium">
+                                <MapPin size={16} className="text-sunset-orange" />
+                                {location}
+                              </div>
+                            )}
+
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                              <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Dates</span>
+                                <span className="font-semibold text-gray-800">{formatDate(booking.startDate)} - {formatDate(booking.endDate)}</span>
+                              </div>
+                              <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Details</span>
+                                <span className="font-semibold text-gray-800">
+                                  {isHotel ? `${booking.rooms} Room(s), ${booking.guests} Guest(s)` :
+                                    isVehicle ? `${booking.guests || 1} Day(s)` : 'Booking Info'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-10 h-10 rounded-full bg-sunset-orange/10 flex items-center justify-center text-sunset-orange">
+                                <CreditCard size={18} />
+                              </div>
+                              <div>
+                                <span className="block text-xs font-medium text-gray-500">Total Price</span>
+                                <span className="text-lg font-bold text-gray-900">LKR {booking.totalPrice?.toLocaleString()}</span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              <button
+                                onClick={() => handleRemove(booking._id)}
+                                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold text-red-500 border border-red-200 hover:bg-red-50 transition-colors"
+                              >
+                                <Trash2 size={15} />
+                                Remove
+                              </button>
+                              <button
+                                onClick={() => setSelectedBooking({ booking, title, Icon, image, location, isHotel, isVehicle, isTour, targetLink })}
+                                className="flex items-center gap-1 text-sunset-orange font-bold hover:text-sunset-orange/80 transition-colors"
+                              >
+                                View Details <ChevronRight size={18} />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+
+      {/* Booking Detail Modal */}
+      {selectedBooking && (() => {
+        const { booking, title, Icon, image, location, isHotel, isVehicle, targetLink } = selectedBooking;
+        return (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+            onClick={handleCloseModal}
+          >
+            <div
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden"
+              style={{ animation: 'slideUp 0.25s ease-out' }}
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Image Header */}
+              <div className="relative h-52 bg-gray-100 flex-shrink-0">
+                {image ? (
+                  <img src={image} alt={title} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-300">
+                    <Icon size={64} />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <button
+                  onClick={handleCloseModal}
+                  className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-md hover:bg-white transition-colors"
+                >
+                  <X size={18} className="text-gray-700" />
+                </button>
+                <div className="absolute bottom-4 left-5 right-5 flex items-end justify-between">
+                  <h2 className="text-xl font-extrabold text-white drop-shadow">{title}</h2>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold border capitalize ${
+                    booking.bookingStatus === 'confirmed' ? 'bg-green-100 text-green-700 border-green-200' :
+                    booking.bookingStatus === 'rejected' ? 'bg-red-100 text-red-700 border-red-200' :
+                    booking.bookingStatus === 'cancelled' ? 'bg-gray-100 text-gray-700 border-gray-200' :
+                    'bg-yellow-100 text-yellow-700 border-yellow-200'
+                  }`}>{booking.bookingStatus}</span>
+                </div>
+              </div>
+
+              {/* Details Body */}
+              <div className="p-6 space-y-4">
+                {location && (
+                  <div className="flex items-center gap-2 text-gray-500 font-medium">
+                    <MapPin size={16} className="text-sunset-orange" />
+                    {location}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-orange-50 rounded-2xl p-4">
+                    <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Check-in</span>
+                    <span className="font-bold text-gray-800">{new Date(booking.startDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                  </div>
+                  <div className="bg-orange-50 rounded-2xl p-4">
+                    <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Check-out</span>
+                    <span className="font-bold text-gray-800">{new Date(booking.endDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                  </div>
+                  {isHotel && (
+                    <>
+                      <div className="bg-gray-50 rounded-2xl p-4">
+                        <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Rooms</span>
+                        <span className="font-bold text-gray-800">{booking.rooms}</span>
+                      </div>
+                      <div className="bg-gray-50 rounded-2xl p-4">
+                        <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Guests</span>
+                        <span className="font-bold text-gray-800">{booking.guests}</span>
+                      </div>
+                    </>
+                  )}
+                  {isVehicle && (
+                    <div className="bg-gray-50 rounded-2xl p-4 col-span-2">
+                      <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Duration</span>
+                      <span className="font-bold text-gray-800">{booking.guests || 1} Day(s)</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between bg-gradient-to-r from-sunset-orange to-sunset-gold rounded-2xl p-4 text-white">
+                  <div className="flex items-center gap-2">
+                    <CreditCard size={20} />
+                    <span className="font-semibold">Total Price</span>
+                  </div>
+                  <span className="text-xl font-extrabold">LKR {booking.totalPrice?.toLocaleString()}</span>
+                </div>
+
+                <div className="space-y-2 text-sm text-gray-500">
+                  <div className="flex items-center gap-2">
+                    <Hash size={14} className="text-gray-400" />
+                    <span>Booking ID: <span className="font-mono text-gray-700">{booking._id}</span></span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock size={14} className="text-gray-400" />
+                    <span>Booked on: <span className="font-semibold text-gray-700">{new Date(booking.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span></span>
+                  </div>
+                </div>
+
+                <Link
+                  to={targetLink}
+                  className="block w-full text-center bg-gradient-to-r from-sunset-orange to-sunset-gold text-white font-bold py-3 rounded-2xl hover:shadow-lg transform transition hover:-translate-y-0.5"
+                >
+                  Go to Listing
+                </Link>
+              </div>
+            </div>
+            <style>{`@keyframes slideUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }`}</style>
+          </div>
+        );
+      })()}
+    </div>
+  );
+};
+
+export default MyBookings;

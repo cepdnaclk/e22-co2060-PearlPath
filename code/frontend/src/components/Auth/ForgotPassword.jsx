@@ -16,7 +16,7 @@ const ForgotPassword = () => {
   const otpRefs = useRef([]);
 
   // Handle email submission
-  const handleEmailSubmit = (e) => {
+  const handleEmailSubmit = async (e) => {
     e.preventDefault();
     if (!email) {
       setError('Please enter your email address');
@@ -24,11 +24,24 @@ const ForgotPassword = () => {
     }
     setError('');
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const response = await fetch('http://127.0.0.1:3001/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setStep(2);
+      } else {
+        setError(data.message || 'Failed to send verification code.');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('An error occurred. Please try again.');
+    } finally {
       setLoading(false);
-      setStep(2);
-    }, 1000);
+    }
   };
 
   // Handle OTP digit changes
@@ -52,7 +65,7 @@ const ForgotPassword = () => {
   };
 
   // Handle OTP submission
-  const handleOtpSubmit = (e) => {
+  const handleOtpSubmit = async (e) => {
     e.preventDefault();
     const otpValue = otp.join('');
     if (otpValue.length < 6) {
@@ -61,15 +74,28 @@ const ForgotPassword = () => {
     }
     setError('');
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const response = await fetch('http://127.0.0.1:3001/api/auth/verify-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code: otpValue })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setStep(3);
+      } else {
+        setError(data.message || 'Invalid or expired code.');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('An error occurred. Please try again.');
+    } finally {
       setLoading(false);
-      setStep(3);
-    }, 1000);
+    }
   };
 
   // Handle Password submission
-  const handlePasswordSubmit = (e) => {
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     if (newPassword.length < 8) {
       setError('Password must be at least 8 characters long');
@@ -81,14 +107,28 @@ const ForgotPassword = () => {
     }
     setError('');
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const otpValue = otp.join('');
+      const response = await fetch('http://127.0.0.1:3001/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code: otpValue, newPassword })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setSuccess(true);
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      } else {
+        setError(data.message || 'Failed to reset password.');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('An error occurred. Please try again.');
+    } finally {
       setLoading(false);
-      setSuccess(true);
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
-    }, 1000);
+    }
   };
 
   return (
