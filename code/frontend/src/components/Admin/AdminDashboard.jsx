@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Users, CheckCircle, XCircle, Activity, Building, Car, Compass, Edit, Trash2, MapPin, Calendar, Menu, Eye } from 'lucide-react';
 import Navbar from '../Navbar/Navbar';
@@ -7,12 +8,32 @@ import Swal from 'sweetalert2';
 
 const AdminDashboard = () => {
     const { authFetch } = useAuth();
+    const location = useLocation();
     const [stats, setStats] = useState(null);
     const [activeTab, setActiveTab] = useState('stats');
     const [roleData, setRoleData] = useState([]);
     const [loadingData, setLoadingData] = useState(false);
     const [error, setError] = useState(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    useEffect(() => {
+        const queryParams = new URLSearchParams(location.search);
+        const tab = queryParams.get('tab');
+        if (tab && ['stats', 'tourist', 'hotel_owner', 'vehicle_owner', 'tour_guide'].includes(tab)) {
+            setActiveTab(tab);
+        }
+    }, [location.search]);
+
+    useEffect(() => {
+        const handleTabChange = (e) => {
+            const tab = e.detail;
+            if (tab && ['stats', 'tourist', 'hotel_owner', 'vehicle_owner', 'tour_guide'].includes(tab)) {
+                setActiveTab(tab);
+            }
+        };
+        window.addEventListener('admin-tab-change', handleTabChange);
+        return () => window.removeEventListener('admin-tab-change', handleTabChange);
+    }, []);
 
     useEffect(() => {
         if (activeTab === 'stats') {
