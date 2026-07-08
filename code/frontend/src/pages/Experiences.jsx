@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import Navbar from '../components/Navbar/Navbar';
 import Footer from '../components/Footer/Footer';
+import Swal from 'sweetalert2';
 import { 
   Plus, 
   Clock, 
@@ -17,7 +18,9 @@ import {
   X,
   PlusCircle,
   AlertCircle,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Pencil,
+  Trash2
 } from 'lucide-react';
 
 const mockExperiences = [
@@ -93,6 +96,144 @@ const Experiences = () => {
   });
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState(null);
+
+  // Edit Form Modal State
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingExperience, setEditingExperience] = useState(null);
+  const [editFormData, setEditFormData] = useState({
+    title: '',
+    category: 'Adventure',
+    location: '',
+    duration: '',
+    pricePerPerson: '',
+    description: '',
+    imageUrl: ''
+  });
+
+  const handleEditClick = (experience) => {
+    setEditingExperience(experience);
+    setEditFormData({
+      title: experience.title,
+      category: experience.category,
+      location: experience.location,
+      duration: experience.duration,
+      pricePerPerson: experience.pricePerPerson.toString(),
+      description: experience.description,
+      imageUrl: experience.images?.[0] || ''
+    });
+    setEditModalOpen(true);
+  };
+
+  const handleEditInputChange = (e) => {
+    setEditFormData({ ...editFormData, [e.target.name]: e.target.value });
+  };
+
+  const handleEditFormSubmit = async (e) => {
+    e.preventDefault();
+    setFormLoading(true);
+    setFormError(null);
+
+    const submissionData = {
+      title: editFormData.title,
+      category: editFormData.category,
+      location: editFormData.location,
+      duration: editFormData.duration,
+      pricePerPerson: parseFloat(editFormData.pricePerPerson),
+      description: editFormData.description,
+      images: editFormData.imageUrl ? [editFormData.imageUrl] : []
+    };
+
+    try {
+      const response = await authFetch(`http://127.0.0.1:3001/api/experiences/${editingExperience._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(submissionData)
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update experience');
+      }
+
+      setDbExperiences(prev => prev.map(item => item._id === editingExperience._id ? data.experience : item));
+      setEditModalOpen(false);
+      setEditingExperience(null);
+
+      Swal.fire({
+        title: 'Success!',
+        text: 'Your experience listing has been updated.',
+        icon: 'success',
+        background: '#141418',
+        color: '#fff',
+        confirmButtonColor: '#FF8C00',
+        customClass: {
+          popup: 'border border-white/10 rounded-3xl'
+        }
+      });
+    } catch (err) {
+      console.error(err);
+      setFormError(err.message);
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleDeleteClick = (experience) => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this experience listing!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#FF8C00',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
+      background: '#141418',
+      color: '#fff',
+      customClass: {
+        popup: 'border border-white/10 rounded-3xl'
+      }
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await authFetch(`http://127.0.0.1:3001/api/experiences/${experience._id}`, {
+            method: 'DELETE'
+          });
+
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.message || 'Failed to delete experience');
+          }
+
+          Swal.fire({
+            title: 'Deleted!',
+            text: 'Your experience listing has been deleted.',
+            icon: 'success',
+            background: '#141418',
+            color: '#fff',
+            confirmButtonColor: '#FF8C00',
+            customClass: {
+              popup: 'border border-white/10 rounded-3xl'
+            }
+          });
+
+          setDbExperiences(prev => prev.filter(item => item._id !== experience._id));
+        } catch (err) {
+          console.error(err);
+          Swal.fire({
+            title: 'Error!',
+            text: err.message,
+            icon: 'error',
+            background: '#141418',
+            color: '#fff',
+            confirmButtonColor: '#FF8C00',
+            customClass: {
+              popup: 'border border-white/10 rounded-3xl'
+            }
+          });
+        }
+      }
+    });
+  };
 
   // Check if current user is an experience provider
   const isProvider = user && ['hotel', 'hotel_owner', 'vehicle_owner', 'tour_guide'].includes(user.role);
@@ -246,6 +387,13 @@ const Experiences = () => {
               const convertedPrice = convertPrice(experience.pricePerPerson);
               const symbol = getCurrencySymbol();
 
+              // Check ownership
+              const isOwner = user && (
+                (experience.providedBy?._id && experience.providedBy._id.toString() === user._id.toString()) ||
+                (experience.providedBy === user._id) ||
+                (user.role === 'admin')
+              );
+
               return (
                 <div 
                   key={experience._id} 
@@ -270,10 +418,38 @@ const Experiences = () => {
                   {/* Card Body */}
                   <div className="p-6 flex-1 flex flex-col justify-between">
                     <div>
-                      {/* Location details */}
-                      <div className="flex items-center gap-1.5 text-gray-400 text-xs font-semibold mb-2 uppercase tracking-wide">
-                        <MapPin size={12} className="text-[#FF8C00]" />
-                        {experience.location}
+                      {/* Location & Edit/Delete Toolbar */}
+                      <div className="flex justify-between items-center mb-2">
+                        <div className="flex items-center gap-1.5 text-gray-400 text-xs font-semibold uppercase tracking-wide">
+                          <MapPin size={12} className="text-[#FF8C00]" />
+                          {experience.location}
+                        </div>
+                        {isOwner && (
+                          <div className="flex items-center gap-2 relative z-10">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditClick(experience);
+                              }}
+                              className="text-gray-400 hover:text-amber-500 p-1 hover:bg-white/5 rounded-lg transition-all cursor-pointer"
+                              aria-label="Edit experience"
+                            >
+                              <Pencil size={15} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteClick(experience);
+                              }}
+                              className="text-gray-400 hover:text-red-500 p-1 hover:bg-white/5 rounded-lg transition-all cursor-pointer"
+                              aria-label="Delete experience"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        )}
                       </div>
 
                       {/* Title */}
@@ -467,6 +643,167 @@ const Experiences = () => {
                   className="px-6 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-[#FF8C00] to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white hover:shadow-lg hover:shadow-[#FF8C00]/25 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {formLoading ? 'Creating...' : 'Create Experience'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Styled Edit Experience Form Modal */}
+      {editModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/85 backdrop-blur-sm transition-opacity"
+            onClick={() => { setEditModalOpen(false); setEditingExperience(null); }}
+          ></div>
+
+          {/* Modal Container */}
+          <div className="relative bg-[#141418] border border-white/10 w-full max-w-xl rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-slide-up text-left">
+            
+            {/* Header */}
+            <div className="p-6 border-b border-white/5 flex items-center justify-between bg-[#0f0f11]/60">
+              <div className="flex items-center gap-2">
+                <Pencil className="text-[#FF8C00]" size={20} />
+                <h2 className="text-xl font-extrabold text-white">Edit Experience Listing</h2>
+              </div>
+              <button 
+                onClick={() => { setEditModalOpen(false); setEditingExperience(null); }}
+                className="text-gray-400 hover:text-white p-1.5 rounded-full hover:bg-white/5 transition-all cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleEditFormSubmit} className="p-6 overflow-y-auto space-y-5 hide-scrollbar">
+              {formError && (
+                <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl text-red-400 text-sm flex items-center gap-2">
+                  <AlertCircle size={18} className="shrink-0" />
+                  <span>{formError}</span>
+                </div>
+              )}
+
+              {/* Title */}
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Experience Title</label>
+                <input
+                  type="text"
+                  name="title"
+                  required
+                  value={editFormData.title}
+                  onChange={handleEditInputChange}
+                  placeholder="e.g., Minneriya Elephant Gathering Safari"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#FF8C00]/80 transition-all font-medium"
+                />
+              </div>
+
+              {/* Category & Duration */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Category</label>
+                  <select
+                    name="category"
+                    value={editFormData.category}
+                    onChange={handleEditInputChange}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#FF8C00]/80 transition-all font-medium cursor-pointer"
+                  >
+                    <option value="Adventure" className="bg-[#141418]">Adventure</option>
+                    <option value="Wildlife" className="bg-[#141418]">Wildlife</option>
+                    <option value="Culinary" className="bg-[#141418]">Culinary</option>
+                    <option value="Cultural" className="bg-[#141418]">Cultural</option>
+                    <option value="Wellness" className="bg-[#141418]">Wellness</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Duration</label>
+                  <input
+                    type="text"
+                    name="duration"
+                    required
+                    value={editFormData.duration}
+                    onChange={handleEditInputChange}
+                    placeholder="e.g., 3 Hours, Full Day"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#FF8C00]/80 transition-all font-medium"
+                  />
+                </div>
+              </div>
+
+              {/* Location & Price */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Location</label>
+                  <input
+                    type="text"
+                    name="location"
+                    required
+                    value={editFormData.location}
+                    onChange={handleEditInputChange}
+                    placeholder="e.g., Ella, Habarana"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#FF8C00]/80 transition-all font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Price per Person (LKR)</label>
+                  <input
+                    type="number"
+                    name="pricePerPerson"
+                    required
+                    min="1"
+                    value={editFormData.pricePerPerson}
+                    onChange={handleEditInputChange}
+                    placeholder="e.g., 6500"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#FF8C00]/80 transition-all font-medium [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                </div>
+              </div>
+
+              {/* Image URL */}
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <ImageIcon size={14} /> Image URL (Optional)
+                </label>
+                <input
+                  type="url"
+                  name="imageUrl"
+                  value={editFormData.imageUrl}
+                  onChange={handleEditInputChange}
+                  placeholder="e.g., https://images.unsplash.com/..."
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#FF8C00]/80 transition-all font-medium"
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Description</label>
+                <textarea
+                  name="description"
+                  required
+                  rows="4"
+                  value={editFormData.description}
+                  onChange={handleEditInputChange}
+                  placeholder="Provide a detailed description of the experience, what is included, and key highlights..."
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#FF8C00]/80 transition-all font-medium resize-none"
+                ></textarea>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 justify-end pt-4 border-t border-white/5">
+                <button
+                  type="button"
+                  onClick={() => { setEditModalOpen(false); setEditingExperience(null); }}
+                  className="px-5 py-3 rounded-xl font-bold text-sm bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={formLoading}
+                  className="px-6 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-[#FF8C00] to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white hover:shadow-lg hover:shadow-[#FF8C00]/25 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {formLoading ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
             </form>
