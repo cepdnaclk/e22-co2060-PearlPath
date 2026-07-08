@@ -17,7 +17,7 @@ try {
 }
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY || 'dummy_api_key_for_initialization',
 });
 
 async function getIntent(message) {
