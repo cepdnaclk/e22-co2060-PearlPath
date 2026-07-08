@@ -2,7 +2,11 @@ const Hotel = require('../models/Hotel');
 
 const getHotels = async (req, res) => {
     try {
-        const hotels = await Hotel.find({ status: 'approved' }).select('-images').lean();
+        const query = { status: 'approved' };
+        if (req.query.location) {
+            query.location = { $regex: req.query.location, $options: 'i' };
+        }
+        const hotels = await Hotel.find(query).select('-images').lean();
         res.status(200).json({ response: hotels });
     } catch (error) {
         console.error("Get hotels error:", error);
@@ -35,7 +39,7 @@ const createHotel = async (req, res) => {
 
 const getHotelById = async (req, res) => {
     try {
-        const hotel = await Hotel.findById(req.params.id);
+        const hotel = await Hotel.findById(req.params.id).populate('ownerId', 'email phone firstName lastName');
         if (!hotel) return res.status(404).json({ message: 'Hotel not found' });
         res.status(200).json({ response: hotel });
     } catch (error) {

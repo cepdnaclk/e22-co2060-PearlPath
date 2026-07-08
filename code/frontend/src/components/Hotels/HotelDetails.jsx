@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 import { MapPin, Star, Wifi, Coffee, Wind, Waves, Calendar, Users, Home, User } from 'lucide-react';
+import ReviewSection from '../Reviews/ReviewSection';
 
 const HotelDetails = () => {
   const { id } = useParams();
@@ -168,6 +169,25 @@ const HotelDetails = () => {
                 ))}
               </div>
             </div>
+
+            {/* Contact Information */}
+            <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Contact Property</h2>
+              {hotel.ownerId ? (
+                <div className="space-y-3 text-gray-600 font-medium">
+                  <p><strong>Owner:</strong> {hotel.ownerId.firstName} {hotel.ownerId.lastName}</p>
+                  <p><strong>Email:</strong> <a href={`mailto:${hotel.ownerId.email}`} className="text-sunset-teal hover:underline">{hotel.ownerId.email}</a></p>
+                  {hotel.ownerId.phone && (
+                    <p><strong>Phone:</strong> <a href={`tel:${hotel.ownerId.phone}`} className="text-sunset-teal hover:underline">{hotel.ownerId.phone}</a></p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-gray-500 italic">Contact information not available.</p>
+              )}
+            </div>
+
+            {/* Reviews Section */}
+            <ReviewSection targetId={hotel._id} targetModel="Hotel" />
           </div>
 
           {/* Booking Section */}

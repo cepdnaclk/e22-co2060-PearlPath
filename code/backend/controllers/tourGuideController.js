@@ -38,7 +38,11 @@ const createOrUpdateProfile = async (req, res) => {
 // Get all tour guides
 const getAllTourGuides = async (req, res) => {
     try {
-        const guides = await TourGuide.find().populate('userId', 'email phone');
+        const query = {};
+        if (req.query.location) {
+            query.location = { $regex: req.query.location, $options: 'i' };
+        }
+        const guides = await TourGuide.find(query).populate('userId', 'email phone');
         res.status(200).json(guides);
     } catch (error) {
         console.error("Error fetching tour guides:", error);
@@ -50,7 +54,7 @@ const getAllTourGuides = async (req, res) => {
 const getTourGuideById = async (req, res) => {
     try {
         const { id } = req.params;
-        const guide = await TourGuide.findById(id).populate('userId', 'email phone');
+        const guide = await TourGuide.findById(id).populate('userId', 'email phone firstName lastName');
 
         if (!guide) {
             return res.status(404).json({ message: "Tour guide not found." });
@@ -67,7 +71,7 @@ const getTourGuideById = async (req, res) => {
 const getTourGuideByUserId = async (req, res) => {
     try {
         const { userId } = req.params;
-        const guide = await TourGuide.findOne({ userId }).populate('userId', 'email phone');
+        const guide = await TourGuide.findOne({ userId }).populate('userId', 'email phone firstName lastName');
 
         if (!guide) {
             return res.status(404).json({ message: "Tour guide profile not found for this user." });

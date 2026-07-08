@@ -4,6 +4,8 @@ import { MapPin, Languages, Mail, Currency, ShieldCheck, ArrowLeft, Send } from 
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 
+import ReviewSection from '../Reviews/ReviewSection';
+
 const TourGuideDetails = () => {
   const { id } = useParams();
   const [guide, setGuide] = useState(null);
@@ -15,17 +17,18 @@ const TourGuideDetails = () => {
         const response = await fetch(`http://127.0.0.1:3001/api/tour-guides/${id}`);
         if (response.ok) {
           const data = await response.json();
-          setGuide({
-            id: data._id,
-            name: data.name,
-            location: data.location,
-            pricePerDay: data.pricePerDay || 0,
-            experienceYears: data.experienceYears || 0,
-            languages: data.languages || ["English"],
-            bio: data.bio || "No biography provided.",
-            profilePictureUrl: data.profilePictureUrl || "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=800&auto=format&fit=crop",
-            contactEmail: data.contactEmail || data.userId?.email
-          });
+            setGuide({
+              id: data._id,
+              name: data.name,
+              location: data.location,
+              pricePerDay: data.pricePerDay || 0,
+              experienceYears: data.experienceYears || 0,
+              languages: data.languages || ["English"],
+              bio: data.bio || "No biography provided.",
+              profilePictureUrl: data.profilePictureUrl || "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=800&auto=format&fit=crop",
+              contactEmail: data.contactEmail || data.userId?.email,
+              phone: data.userId?.phone
+            });
         }
       } catch (error) {
         console.error("Failed to fetch tour guide:", error);
@@ -121,18 +124,28 @@ const TourGuideDetails = () => {
                    </div>
                 </div>
 
-                <div className="mt-auto">
+                <div className="mt-auto space-y-3">
                    <a 
                       href={`mailto:${guide.contactEmail || ''}`}
                       className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-sunset-dark to-sunset-teal text-white font-bold py-3.5 px-4 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all"
                    >
                      <Send size={18} />
-                     Contact Local Expert
+                     Email Local Expert
                    </a>
+                   {guide.phone && (
+                     <a 
+                        href={`tel:${guide.phone}`}
+                        className="w-full flex items-center justify-center gap-2 bg-white text-sunset-teal font-bold py-3.5 px-4 rounded-xl shadow-sm border border-sunset-teal/30 hover:bg-sunset-teal/5 transition-all"
+                     >
+                       Call Local Expert: {guide.phone}
+                     </a>
+                   )}
                 </div>
             </div>
 
          </div>
+         
+         <ReviewSection targetId={guide.id} targetModel="TourGuide" />
       </div>
       <Footer />
     </div>

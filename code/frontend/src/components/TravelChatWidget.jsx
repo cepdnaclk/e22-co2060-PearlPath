@@ -4,7 +4,7 @@ import { MessageCircle, X, Send, User, Plane } from 'lucide-react';
 const TravelChatWidget = ({ onSendMessage }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'bot', content: 'Ayubowan! I am Nimal, your Sri Lanka travel guide. How can I help you today?', timestamp: new Date() }
+    { role: 'bot', content: 'Ayubowan! I am Traver, your Sri Lanka travel guide. How can I help you today?', timestamp: new Date() }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -37,7 +37,7 @@ const TravelChatWidget = ({ onSendMessage }) => {
       } else {
         // Demo mode fallback
         await new Promise(resolve => setTimeout(resolve, 1500));
-        replyText = "This is a placeholder reply in demo mode. Connect the onSendMessage prop to talk to Nimal!";
+        replyText = "This is a placeholder reply in demo mode. Connect the onSendMessage prop to talk to Traver!";
       }
 
       const botMessage = { role: 'bot', content: replyText, timestamp: new Date() };
@@ -71,7 +71,7 @@ const TravelChatWidget = ({ onSendMessage }) => {
                 <User size={24} className="text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-sm m-0 leading-tight">Nimal</h3>
+                <h3 className="font-semibold text-sm m-0 leading-tight">Traver</h3>
                 <p className="text-xs text-[#0F172A] m-0">Your Sri Lanka Travel Guide</p>
               </div>
             </div>

@@ -28,7 +28,7 @@ const getAllVehicles = async (req, res) => {
 const getVehicleById = async (req, res) => {
     try {
         const { id } = req.params;
-        const vehicle = await Vehicle.findById(id).populate('ownerId', 'firstName lastName email');
+        const vehicle = await Vehicle.findById(id).populate('ownerId', 'firstName lastName email phone');
         if (!vehicle) {
             return res.status(404).json({ message: 'Vehicle not found' });
         }

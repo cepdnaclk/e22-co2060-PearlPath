@@ -59,7 +59,7 @@ const TourGuideCard = ({ guide }) => {
 
         <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-auto">
           <Link 
-            to={`/tour-guide/${guide.id}`}
+            to={`/tour-guide/${guide._id || guide.id}`}
             className="w-full text-center bg-gradient-to-r from-sunset-dark to-sunset-teal text-white font-bold py-2.5 px-4 rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all text-sm"
           >
             View Profile & Contact

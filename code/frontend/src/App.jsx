@@ -23,6 +23,7 @@ import EditProfile from './components/TourGuideDashboard/EditProfile'
 import Profile from './components/Profile/Profile'
 import MyBookings from './components/Profile/MyBookings'
 import Destinations from './components/Destinations/Destinations'
+import DestinationDetails from './components/Destinations/DestinationDetails'
 
 import TravelChatWidget from './components/TravelChatWidget'
 
@@ -55,6 +56,7 @@ function App() {
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/routes" element={<RoutesPage />} />
           <Route path="/destinations" element={<Destinations />} />
+          <Route path="/destinations/:id" element={<DestinationDetails />} />
 
           <Route path="/admin/dashboard" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
 

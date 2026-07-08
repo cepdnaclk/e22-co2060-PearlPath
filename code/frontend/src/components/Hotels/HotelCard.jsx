@@ -73,7 +73,7 @@ const HotelCard = ({ hotel, isOwnerView }) => {
               </Link>
             )}
             <Link 
-              to={`/hotel/${hotel.id}`}
+              to={`/hotel/${hotel._id || hotel.id}`}
               className="bg-gray-900 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-sunset-teal transition-colors text-sm"
             >
               View Details

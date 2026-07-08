@@ -1,52 +1,44 @@
-const { OpenAI } = require('openai');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const Tour = require('../models/Tour');
 const Booking = require('../models/Booking');
-// require FAQ if it exists, otherwise define a dummy or use mongoose.model('FAQ')
 const mongoose = require('mongoose');
+
 let FAQ;
 try {
   FAQ = mongoose.model('FAQ');
 } catch (e) {
-  // If not already registered, try requiring or define schema
   try {
     FAQ = require('../models/FAQ');
   } catch (err) {
     const faqSchema = new mongoose.Schema({ question: String, answer: String });
+    faqSchema.index({ question: 'text', answer: 'text' });
     FAQ = mongoose.model('FAQ', faqSchema);
   }
 }
 
-let openai = null;
-if (process.env.OPENAI_API_KEY) {
-  openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
+let genAI = null;
+if (process.env.GEMINI_API_KEY) {
+  genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 }
 
 async function getIntent(message) {
   try {
-    if (!openai) return "general_chat";
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: `Classify the user's message into exactly one of these categories:
+    if (!genAI) return "general_chat";
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const prompt = `Classify the user's message into exactly one of these categories:
 - tour_recommendation
 - booking_status
 - faq
 - navigation_help
 - general_chat
 
-Reply ONLY with the exact string of the category, nothing else.`,
-        },
-        { role: 'user', content: message },
-      ],
-      temperature: 0,
-      max_tokens: 20,
-    });
+Reply ONLY with the exact string of the category, nothing else.
+
+Message: ${message}`;
     
-    const intent = response.choices[0].message.content.trim();
+    const result = await model.generateContent(prompt);
+    const intent = result.response.text().trim();
+    
     const validIntents = ["tour_recommendation", "booking_status", "faq", "navigation_help", "general_chat"];
     return validIntents.includes(intent) ? intent : "general_chat";
   } catch (error) {
@@ -61,9 +53,6 @@ async function retrieveContext(intent, message, userId) {
   try {
     switch (intent) {
       case "tour_recommendation": {
-        // Simple extraction for budget/location could be improved.
-        // For now, we fetch a few tours that might match.
-        // In a real app, you might use an LLM to extract budget/location filters first.
         const matches = message.match(/\$?\d+/g);
         const budget = matches ? Math.max(...matches.map(m => parseInt(m.replace('$', '')))) : null;
         
@@ -124,47 +113,63 @@ async function retrieveContext(intent, message, userId) {
 
 async function generateResponse(message, conversationHistory, contextData) {
   try {
-    if (!openai) throw new Error("OpenAI is not initialized");
+    if (!genAI) throw new Error("Gemini is not initialized");
     let contextString = "";
     if (contextData) {
       contextString = `\n\nContext Information (Use this to answer factual questions if relevant):\n${JSON.stringify(contextData, null, 2)}`;
     }
 
-    const systemPrompt = `You are Nimal, a friendly and professional Sri Lanka travel agent working for PearlPath. 
-Your goal is to help users with their travel plans in Sri Lanka.
-Answer factual claims (such as price, availability, policy, and specific tour details) ONLY from the given Context Information.
-If the context information does not cover it, do not guess. Instead, politely say "Let me connect you with support for more specific details."
-Maintain a warm, welcoming tone. Keep responses concise and helpful.${contextString}`;
+    const systemPrompt = `[System Instructions: You are Traver, a friendly and professional Sri Lanka travel agent working for PearlPath. Your goal is to help users with their travel plans in Sri Lanka.
+    
+**Platform Help Guidelines:**
+If the user asks how to use the website, provide these instructions:
+- **To register as a hotel owner / service provider:** Tell them to click "Sign Up" or "Register" at the top right, select the "Service Provider" or "Hotel Owner" account type during registration, and fill in their details to list their properties.
+- **To book a hotel or tour:** Tell them to navigate to the "Hotels" or "Tours" tab, browse or search for what they like, click on the item to view details, select their dates, and click the "Book Now" button.
+- **To view bookings:** Tell them to log in and visit their "Profile" or "My Bookings" dashboard.
 
-    // Include the last 4-6 turns of conversation history
-    const historyToInclude = conversationHistory.slice(-6).map(msg => ({
-      role: msg.role === 'user' ? 'user' : 'assistant',
-      content: msg.content
-    }));
+Answer factual claims ONLY from the given Context Information. If the context information does not cover it, do not guess. Instead, politely say "Let me connect you with support for more specific details." Maintain a warm, welcoming tone. Keep responses concise and helpful.]${contextString}`;
 
-    const messages = [
-      { role: 'system', content: systemPrompt },
-      ...historyToInclude,
-      { role: 'user', content: message }
-    ];
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: messages,
-      temperature: 0.7,
-      max_tokens: 300,
+    let sanitizedHistory = [];
+    let lastRole = null;
+    
+    // Take the last 6 turns
+    const recentHistory = conversationHistory.slice(-6);
+    
+    for (const msg of recentHistory) {
+      const role = msg.role === 'user' ? 'user' : 'model';
+      if (role !== lastRole) {
+         sanitizedHistory.push({ role, parts: [{ text: msg.content || " " }] });
+         lastRole = role;
+      } else {
+         if (sanitizedHistory.length > 0) {
+            sanitizedHistory[sanitizedHistory.length - 1].parts[0].text += "\n" + (msg.content || " ");
+         }
+      }
+    }
+    
+    // Ensure it starts with 'user'
+    while (sanitizedHistory.length > 0 && sanitizedHistory[0].role !== 'user') {
+       sanitizedHistory.shift();
+    }
+
+    const chat = model.startChat({
+      history: sanitizedHistory
     });
 
-    return response.choices[0].message.content;
+    const fullMessage = `${systemPrompt}\n\nUser Message: ${message}`;
+    const result = await chat.sendMessage(fullMessage);
+    return result.response.text();
   } catch (error) {
     console.error("Error generating response:", error);
-    throw error; // Re-throw to handle in the main flow
+    throw error;
   }
 }
 
 async function handleChatMessage(message, conversationHistory = [], userId = null) {
   try {
-    if (!process.env.OPENAI_API_KEY) {
+    if (!process.env.GEMINI_API_KEY) {
       return "I'm sorry, my AI features are currently unconfigured. Please try again later.";
     }
 
