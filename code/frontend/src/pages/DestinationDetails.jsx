@@ -335,9 +335,9 @@ const DestinationDetails = () => {
             <div className="bg-white border border-gray-100 rounded-3xl p-12 text-center max-w-lg mx-auto shadow-sm">
               <Building size={48} className="text-gray-400 mx-auto mb-4" />
               <h4 className="text-xl font-bold text-gray-800 mb-1">No Stays Found</h4>
-              <p className="text-gray-500 text-sm mb-6">There are currently no approved hotels listed in {destination.location} on our platform. Check back soon!</p>
-              <Link to="/hotels" className="inline-flex px-5 py-2.5 bg-sunset-teal text-white font-bold rounded-xl text-sm hover:bg-opacity-90 transition-all">
-                Browse All Hotels
+              <p className="text-gray-500 text-sm mb-6">No properties listed in this area yet. Are you a hotel owner? Be the first to list your property!</p>
+              <Link to="/register?role=hotel_owner" className="inline-flex px-5 py-2.5 bg-sunset-teal text-white font-bold rounded-xl text-sm hover:bg-opacity-90 transition-all">
+                Become a Hotel Owner
               </Link>
             </div>
           ) : (

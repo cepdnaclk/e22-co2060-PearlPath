@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter, SlidersHorizontal, Lock } from 'lucide-react';
+import { Search, Filter, SlidersHorizontal, Lock, Building } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
@@ -243,9 +243,17 @@ const Hotels = () => {
               </div>
             </div>
 
-            {/* Hotel List */}
             <div className="space-y-6">
-              {filteredHotels.length > 0 ? (
+              {hotels.length === 0 ? (
+                <div className="bg-white p-12 rounded-3xl text-center border border-gray-100 shadow-sm">
+                  <Building size={48} className="text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">No Stays Found</h3>
+                  <p className="text-gray-500 mb-6">No properties listed in this area yet. Are you a hotel owner? Be the first to list your property!</p>
+                  <Link to="/register?role=hotel_owner" className="inline-flex px-6 py-3 bg-sunset-teal text-white font-bold rounded-xl text-sm hover:bg-opacity-90 transition-all shadow-md">
+                    Become a Hotel Owner
+                  </Link>
+                </div>
+              ) : filteredHotels.length > 0 ? (
                 filteredHotels.map(hotel => (
                   <HotelCard key={hotel.id} hotel={hotel} isOwnerView={user?.role === 'hotel_owner'} />
                 ))

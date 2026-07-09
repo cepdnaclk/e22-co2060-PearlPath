@@ -12,7 +12,7 @@ const experienceSchema = new Schema({
     description: { type: String, required: true },
     pricePerPerson: { type: Number, required: true },
     duration: { type: String, required: true },
-    images: [{ type: String }],
+    images: [{ type: String, required: true }],
     providedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     providerType: { 
         type: String, 

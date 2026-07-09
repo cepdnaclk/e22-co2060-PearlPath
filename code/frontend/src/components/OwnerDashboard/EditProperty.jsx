@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { UploadCloud, MapPin, Building, Star, FileText, DollarSign, Check, X } from 'lucide-react';
+import { UploadCloud, MapPin, Building, Star, FileText, DollarSign, Check, X, Trash2, Plus } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
@@ -31,11 +31,11 @@ const EditProperty = () => {
     city: '',
     description: '',
     pricePerNight: '',
-    amenities: [],
-    images: [] // Storing object URLs for preview here
+    amenities: []
   });
 
-  const [imagePreviews, setImagePreviews] = useState([]);
+  const [imageUrls, setImageUrls] = useState(['']);
+  const [brokenImageIndices, setBrokenImageIndices] = useState({});
   const [isPublished, setIsPublished] = useState(false);
   const navigate = useNavigate();
   const { authFetch } = useAuth();
@@ -56,11 +56,14 @@ const EditProperty = () => {
             city: hotel.location || '',
             description: hotel.description || '',
             pricePerNight: hotel.pricePerNight || '',
-            amenities: hotel.amenities || [],
-            images: []
+            amenities: hotel.amenities || []
           });
-          if (hotel.imageUrl) {
-            setImagePreviews([hotel.imageUrl]);
+          if (hotel.images && hotel.images.length > 0) {
+            setImageUrls(hotel.images);
+          } else if (hotel.imageUrl) {
+            setImageUrls([hotel.imageUrl]);
+          } else {
+            setImageUrls(['']);
           }
         }
       } catch (error) {
@@ -89,33 +92,54 @@ const EditProperty = () => {
     });
   };
 
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
+  const handleUrlChange = (index, value) => {
+    const newUrls = [...imageUrls];
+    newUrls[index] = value;
+    setImageUrls(newUrls);
     
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreviews(prev => [...prev, reader.result]);
-      };
-      reader.readAsDataURL(file);
-    });
-
-    setFormData(prev => ({
-      ...prev,
-      images: [...prev.images, ...files] 
-    }));
+    if (brokenImageIndices[index]) {
+      setBrokenImageIndices(prev => {
+        const copy = { ...prev };
+        delete copy[index];
+        return copy;
+      });
+    }
   };
 
-  const removeImage = (indexToRemove) => {
-    setImagePreviews(prev => prev.filter((_, idx) => idx !== indexToRemove));
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.filter((_, idx) => idx !== indexToRemove)
-    }));
+  const addUrlField = () => {
+    setImageUrls(prev => [...prev, '']);
+  };
+
+  const removeUrlField = (indexToRemove) => {
+    if (imageUrls.length === 1) {
+      setImageUrls(['']);
+    } else {
+      setImageUrls(prev => prev.filter((_, idx) => idx !== indexToRemove));
+    }
+    
+    setBrokenImageIndices(prev => {
+      const next = {};
+      Object.keys(prev).forEach(k => {
+        const intK = parseInt(k, 10);
+        if (intK < indexToRemove) {
+          next[intK] = prev[intK];
+        } else if (intK > indexToRemove) {
+          next[intK - 1] = prev[intK];
+        }
+      });
+      return next;
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const validUrls = imageUrls.map(url => url.trim()).filter(url => url.startsWith('http://') || url.startsWith('https://'));
+    if (validUrls.length === 0) {
+      alert("Please provide at least one valid HTTP/HTTPS image URL under Property Photos.");
+      return;
+    }
+
     setIsPublished(true);
     
     try {
@@ -124,7 +148,8 @@ const EditProperty = () => {
         description: formData.description,
         pricePerNight: Number(formData.pricePerNight),
         location: formData.city,
-        imageUrl: imagePreviews.length > 0 ? imagePreviews[0] : "https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop",
+        imageUrl: validUrls[0],
+        images: validUrls,
         starRating: Number(formData.starRating),
         rooms: Number(formData.rooms),
         amenities: formData.amenities
@@ -348,48 +373,88 @@ const EditProperty = () => {
             </div>
           </div>
 
-          {/* Card 5: Image Uploads */}
+          {/* Card 5: Image Uploads via URL */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
             <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
               <UploadCloud size={20} className="text-blue-500" />
-              Property Photos
+              Property Photos (URLs)
             </h2>
             
-            <div className="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:bg-gray-50 transition-colors relative">
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              />
-              <div className="flex flex-col items-center justify-center pointer-events-none">
-                <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-4">
-                  <UploadCloud size={32} />
+            <div className="space-y-4">
+              {imageUrls.map((url, index) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <div className="flex-1">
+                    <label className="block text-xs font-semibold text-gray-500 mb-1">
+                      {index === 0 ? "Primary Image URL (Required)" : `Additional Image URL #${index + 1}`}
+                    </label>
+                    <input
+                      type="url"
+                      value={url}
+                      onChange={(e) => handleUrlChange(index, e.target.value)}
+                      placeholder="https://images.unsplash.com/photo-... or Cloudinary/Imgur link"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-colors text-sm font-medium"
+                      required={index === 0}
+                    />
+                  </div>
+                  {imageUrls.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeUrlField(index)}
+                      className="mt-5 p-3 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition-colors flex items-center justify-center shrink-0"
+                      title="Remove image URL"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  )}
                 </div>
-                <h3 className="text-lg font-bold text-gray-700 mb-1">Drag & Drop your photos here</h3>
-                <p className="text-sm text-gray-500">or click to browse from your computer</p>
-                <p className="text-xs text-gray-400 mt-4">High-quality JPG or PNG. Max 5MB per image.</p>
-              </div>
+              ))}
+              
+              <button
+                type="button"
+                onClick={addUrlField}
+                className="mt-2 flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-sm transition-all"
+              >
+                <Plus size={16} />
+                Add Another Photo URL
+              </button>
             </div>
 
-            {/* Image Previews Grid */}
-            {imagePreviews.length > 0 && (
-              <div className="mt-6">
-                <h4 className="text-sm font-semibold text-gray-700 mb-3">Selected Images ({imagePreviews.length})</h4>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                  {imagePreviews.map((url, index) => (
-                    <div key={index} className="relative group aspect-square rounded-xl overflow-hidden border border-gray-200 bg-gray-100 shadow-sm">
-                      <img src={url} alt={`preview ${index}`} className="w-full h-full object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(index)}
-                        className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm text-red-500 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white shadow-sm"
-                      >
-                        <X size={14} strokeWidth={3} />
-                      </button>
-                    </div>
-                  ))}
+            {/* Live Preview Grid */}
+            {imageUrls.filter(url => url.trim().startsWith('http://') || url.trim().startsWith('https://')).length > 0 && (
+              <div className="mt-8 border-t border-gray-100 pt-6">
+                <h4 className="text-sm font-semibold text-gray-700 mb-4">Live Preview Grid</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                  {imageUrls.map((url, index) => {
+                    const trimmedUrl = url.trim();
+                    if (!trimmedUrl.startsWith('http://') && !trimmedUrl.startsWith('https://')) return null;
+                    const isBroken = brokenImageIndices[index];
+
+                    return (
+                      <div key={index} className="relative group aspect-square rounded-xl overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center text-center p-3 shadow-sm">
+                        {isBroken ? (
+                          <div className="flex flex-col items-center justify-center text-red-500 text-xs font-semibold px-2">
+                            <X size={18} className="mb-1" />
+                            <span>Invalid or broken image URL.</span>
+                          </div>
+                        ) : (
+                          <img 
+                            src={trimmedUrl} 
+                            alt={`Preview ${index + 1}`} 
+                            onError={() => setBrokenImageIndices(prev => ({ ...prev, [index]: true }))}
+                            className="w-full h-full object-cover" 
+                          />
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => removeUrlField(index)}
+                          className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm text-red-500 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white shadow-sm"
+                          title="Remove image URL"
+                        >
+                          <X size={14} strokeWidth={3} />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

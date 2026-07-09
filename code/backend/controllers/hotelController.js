@@ -2,7 +2,7 @@ const Hotel = require('../models/Hotel');
 
 const getHotels = async (req, res) => {
     try {
-        const query = { status: 'approved' };
+        const query = { status: 'approved', ownerId: { $ne: null } };
         if (req.query.location) {
             const escapedLocation = req.query.location.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
             query.location = { $regex: new RegExp(`\\b${escapedLocation}\\b`, 'i') };

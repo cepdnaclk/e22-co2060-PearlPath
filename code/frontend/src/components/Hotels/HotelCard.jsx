@@ -18,8 +18,8 @@ const HotelCard = ({ hotel, isOwnerView }) => {
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group flex flex-col sm:flex-row">
       <div className="sm:w-1/3 relative h-48 sm:h-auto overflow-hidden">
         <img 
-          src={hotel.imageUrl} 
-          alt={hotel.propertyName} 
+          src={hotel.imageUrl || (hotel.images && hotel.images[0]) || "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=400&auto=format&fit=crop"} 
+          alt={hotel.propertyName || hotel.name} 
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
       </div>
