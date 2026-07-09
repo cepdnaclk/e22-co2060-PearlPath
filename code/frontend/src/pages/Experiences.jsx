@@ -82,6 +82,7 @@ const Experiences = () => {
 
   // Form Modal State
   const [modalOpen, setModalOpen] = useState(false);
+  const [editingExperienceId, setEditingExperienceId] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     category: 'Adventure',
@@ -125,6 +126,54 @@ const Experiences = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleEditClick = (experience) => {
+    setEditingExperienceId(experience._id);
+    setFormData({
+      title: experience.title,
+      category: experience.category,
+      location: experience.location,
+      duration: experience.duration,
+      pricePerPerson: experience.pricePerPerson.toString(),
+      description: experience.description,
+      imageUrl: experience.images?.[0] || ''
+    });
+    setModalOpen(true);
+  };
+
+  const handleDeleteClick = async (experience) => {
+    if (!window.confirm(`Are you sure you want to delete "${experience.title}"?`)) {
+      return;
+    }
+    try {
+      const response = await authFetch(`http://127.0.0.1:3001/api/experiences/${experience._id}`, {
+        method: 'DELETE'
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to delete experience');
+      }
+      setDbExperiences(prev => prev.filter(e => e._id !== experience._id));
+    } catch (err) {
+      console.error(err);
+      alert(`Error deleting experience: ${err.message}`);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setFormData({
+      title: '',
+      category: 'Adventure',
+      location: '',
+      duration: '',
+      pricePerPerson: '',
+      description: '',
+      imageUrl: ''
+    });
+    setEditingExperienceId(null);
+    setFormError(null);
+    setModalOpen(false);
+  };
+
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     setFormLoading(true);
@@ -141,31 +190,33 @@ const Experiences = () => {
     };
 
     try {
-      const response = await authFetch('http://127.0.0.1:3001/api/experiences', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(submissionData)
-      });
+      let response;
+      if (editingExperienceId) {
+        response = await authFetch(`http://127.0.0.1:3001/api/experiences/${editingExperienceId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(submissionData)
+        });
+      } else {
+        response = await authFetch('http://127.0.0.1:3001/api/experiences', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(submissionData)
+        });
+      }
 
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.message || 'Failed to submit experience');
       }
 
-      // Add newly created experience to state immediately
-      setDbExperiences(prev => [data.experience, ...prev]);
+      if (editingExperienceId) {
+        setDbExperiences(prev => prev.map(e => e._id === editingExperienceId ? data.experience : e));
+      } else {
+        setDbExperiences(prev => [data.experience, ...prev]);
+      }
       
-      // Reset form and close modal
-      setFormData({
-        title: '',
-        category: 'Adventure',
-        location: '',
-        duration: '',
-        pricePerPerson: '',
-        description: '',
-        imageUrl: ''
-      });
-      setModalOpen(false);
+      handleCloseModal();
     } catch (err) {
       console.error(err);
       setFormError(err.message);
@@ -246,6 +297,12 @@ const Experiences = () => {
               const convertedPrice = convertPrice(experience.pricePerPerson);
               const symbol = getCurrencySymbol();
 
+              // Safe check if logged-in user is the provider who created this experience
+              const canEdit = user && experience.providedBy && (
+                experience.providedBy._id === user._id || 
+                experience.providedBy === user._id
+              );
+
               return (
                 <div 
                   key={experience._id} 
@@ -287,7 +344,7 @@ const Experiences = () => {
                       </p>
                     </div>
 
-                    {/* Bottom Pricing & CTA */}
+                    {/* Bottom Pricing & CTA / Actions */}
                     <div className="border-t border-white/5 pt-4 flex items-center justify-between mt-auto">
                       <div>
                         <span className="text-[10px] text-gray-500 font-extrabold uppercase tracking-wider block">Price / Person</span>
@@ -295,12 +352,30 @@ const Experiences = () => {
                           {symbol} {convertedPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-[10px] text-gray-400 font-normal">{selectedCurrency}</span>
                         </span>
                       </div>
-                      <button 
-                        onClick={() => alert(`Booking flow for "${experience.title}" is coming soon!`)}
-                        className="bg-white/5 border border-white/10 hover:bg-[#FF8C00] hover:text-white px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer text-gray-300 hover:shadow-lg hover:shadow-[#FF8C00]/20"
-                      >
-                        Book Now
-                      </button>
+                      
+                      {canEdit ? (
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => handleEditClick(experience)}
+                            className="bg-white/5 border border-white/10 hover:bg-[#FF8C00] hover:text-white px-3.5 py-2 rounded-xl font-bold text-xs transition-all cursor-pointer text-gray-300 hover:shadow-lg"
+                          >
+                            Edit
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteClick(experience)}
+                            className="bg-white/5 border border-white/10 hover:bg-red-600 hover:text-white px-3.5 py-2 rounded-xl font-bold text-xs transition-all cursor-pointer text-gray-300 hover:shadow-lg"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      ) : (
+                        <button 
+                          onClick={() => alert(`Booking flow for "${experience.title}" is coming soon!`)}
+                          className="bg-white/5 border border-white/10 hover:bg-[#FF8C00] hover:text-white px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer text-gray-300 hover:shadow-lg hover:shadow-[#FF8C00]/20"
+                        >
+                          Book Now
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -312,13 +387,13 @@ const Experiences = () => {
 
       <Footer />
 
-      {/* Styled Add Experience Form Modal */}
+      {/* Styled Experience Form Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           {/* Backdrop */}
           <div 
             className="absolute inset-0 bg-black/85 backdrop-blur-sm transition-opacity"
-            onClick={() => setModalOpen(false)}
+            onClick={handleCloseModal}
           ></div>
 
           {/* Modal Container */}
@@ -328,10 +403,12 @@ const Experiences = () => {
             <div className="p-6 border-b border-white/5 flex items-center justify-between bg-[#0f0f11]/60">
               <div className="flex items-center gap-2">
                 <PlusCircle className="text-[#FF8C00]" size={22} />
-                <h2 className="text-xl font-extrabold text-white">Create New Experience</h2>
+                <h2 className="text-xl font-extrabold text-white">
+                  {editingExperienceId ? 'Edit Experience' : 'Create New Experience'}
+                </h2>
               </div>
               <button 
-                onClick={() => setModalOpen(false)}
+                onClick={handleCloseModal}
                 className="text-gray-400 hover:text-white p-1.5 rounded-full hover:bg-white/5 transition-all cursor-pointer"
               >
                 <X size={20} />
@@ -456,7 +533,7 @@ const Experiences = () => {
               <div className="flex gap-3 justify-end pt-4 border-t border-white/5">
                 <button
                   type="button"
-                  onClick={() => setModalOpen(false)}
+                  onClick={handleCloseModal}
                   className="px-5 py-3 rounded-xl font-bold text-sm bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 transition-all cursor-pointer"
                 >
                   Cancel
@@ -466,7 +543,7 @@ const Experiences = () => {
                   disabled={formLoading}
                   className="px-6 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-[#FF8C00] to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white hover:shadow-lg hover:shadow-[#FF8C00]/25 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
                 >
-                  {formLoading ? 'Creating...' : 'Create Experience'}
+                  {formLoading ? (editingExperienceId ? 'Saving...' : 'Creating...') : (editingExperienceId ? 'Save Changes' : 'Create Experience')}
                 </button>
               </div>
             </form>
