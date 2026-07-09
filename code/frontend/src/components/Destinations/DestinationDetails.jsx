@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { MapPin, Star, ArrowLeft } from 'lucide-react';
 import Navbar from '../Navbar/Navbar';
 import { destinations } from '../../data/destinations';
@@ -125,7 +125,10 @@ const DestinationDetails = () => {
                   </div>
                 ) : (
                   <div className="bg-[#1a1a1f] p-8 rounded-2xl border border-white/5 text-center">
-                    <p className="text-gray-400">No hotels currently listed for this location.</p>
+                    <p className="text-gray-400 mb-4">No properties listed in this area yet. Are you a hotel owner? Be the first to list your property!</p>
+                    <Link to="/register?role=hotel_owner" className="inline-flex px-5 py-2.5 bg-[#FF8C00] text-white font-bold rounded-xl text-xs hover:bg-opacity-90 transition-all">
+                      Become a Hotel Owner
+                    </Link>
                   </div>
                 )}
               </section>
