@@ -9,7 +9,7 @@ const TourGuideCard = ({ guide }) => {
       {/* Image Section */}
       <div className="sm:w-2/5 relative overflow-hidden h-48 sm:h-auto">
         <img 
-          src={guide.profilePictureUrl || "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=800&auto=format&fit=crop"} 
+          src={"https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png"} 
           alt={guide.name}
           className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
         />

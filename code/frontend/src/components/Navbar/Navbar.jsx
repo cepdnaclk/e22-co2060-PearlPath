@@ -117,7 +117,6 @@ const Navbar = () => {
     { id: 'home', label: 'Home', icon: <Home size={16} /> },
     { id: 'hotels', label: 'Hotels', icon: <Building size={16} /> },
     { id: 'tour-guides', label: 'Tour Guides', icon: <UserCheck size={16} /> },
-    { id: 'routes', label: 'Routes', icon: <Map size={16} /> },
     { id: 'transport', label: 'Vehicle', icon: <BusFront size={16} /> },
     { id: 'destinations', label: 'Destination', icon: <MapPin size={16} /> },
   ];
@@ -127,7 +126,7 @@ const Navbar = () => {
     if (user.role === 'admin') return [];
     if (user.role === 'hotel_owner') return navItems.filter(item => ['home', 'hotels'].includes(item.id));
     if (user.role === 'vehicle_owner') return navItems.filter(item => ['home', 'transport'].includes(item.id));
-    if (user.role === 'tour_guide') return navItems.filter(item => ['home', 'routes', 'destinations'].includes(item.id));
+    if (user.role === 'tour_guide') return navItems.filter(item => ['home', 'destinations'].includes(item.id));
     return navItems;
   };
 
@@ -135,7 +134,7 @@ const Navbar = () => {
 
   return (
     <nav className={`fixed w-[calc(100%-2rem)] max-w-7xl left-1/2 -translate-x-1/2 top-4 z-50 transition-all duration-300 rounded-full border ${scrolled ? 'bg-[#0f0f11]/70 backdrop-blur-xl border-white/10 shadow-2xl py-3' : 'bg-transparent border-transparent py-4'}`}>
-      <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full mx-auto px-8 sm:px-10 lg:px-12">
         <div className="flex justify-between items-center h-12">
 
           {/* Logo */}

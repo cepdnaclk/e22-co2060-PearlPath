@@ -75,7 +75,7 @@ const TourGuideDetails = () => {
             
             {/* Left side Image */}
             <div className="w-full md:w-2/5 md:h-auto h-72 relative">
-               <img src={guide.profilePictureUrl} alt={guide.name} className="w-full h-full object-cover" />
+               <img src={"https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png"} alt={guide.name} className="w-full h-full object-cover" />
                <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/70 to-transparent p-6">
                   <h2 className="text-3xl font-black text-white drop-shadow-md">{guide.name}</h2>
                   <div className="flex items-center gap-1 text-white/90 mt-1 font-medium">

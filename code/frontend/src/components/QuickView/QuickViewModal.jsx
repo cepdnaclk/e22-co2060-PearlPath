@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const QuickViewModal = ({ property, onClose }) => {
   const navigate = useNavigate();
@@ -70,16 +70,15 @@ const QuickViewModal = ({ property, onClose }) => {
               <button className="bg-gradient-to-r from-sunset-orange to-sunset-gold text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-sunset-orange/30 hover:shadow-sunset-orange/50 transform hover:-translate-y-1 transition-all">
                 Book Now
               </button>
-            ) : (
-              <button 
-                onClick={() => {
-                  onClose();
-                  navigate(`/destinations/${property._id}`, { state: { destination: property } });
-                }}
-                className="bg-gradient-to-r from-sunset-teal to-emerald-500 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transform hover:-translate-y-1 transition-all"
+              ) : (
+              <Link 
+                to={`/destinations/${property.id || (property._id ? String(property._id).replace('place', '') : '')}`}
+                state={{ destination: property }}
+                onClick={onClose}
+                className="inline-block text-center bg-gradient-to-r from-sunset-teal to-emerald-500 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transform hover:-translate-y-1 transition-all"
               >
                 Explore More
-              </button>
+              </Link>
             )}
           </div>
         </div>
