@@ -8,7 +8,7 @@ const hotelSchema = new Schema({
     pricePerNight: { type: Number, required: true },
     location: { type: String, required: true },
     imageUrl: { type: String },
-    images: [{ type: String }],
+    images: [{ type: String, required: true }],
     rooms: { type: Number, default: 1 },
     starRating: { type: Number, default: 3 },
     amenities: [{ type: String }],

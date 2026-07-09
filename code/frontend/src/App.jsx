@@ -24,16 +24,16 @@ import Profile from './components/Profile/Profile'
 import MyBookings from './components/Profile/MyBookings'
 import Destinations from './components/Destinations/Destinations'
 import DestinationDetails from './components/Destinations/DestinationDetails'
-
 import TravelChatWidget from './components/TravelChatWidget'
+import { CurrencyProvider } from './context/CurrencyContext'
+import Experiences from './pages/Experiences'
 
 function App() {
   const handleSendMessage = async (message, history) => {
     try {
-      const response = await fetch('http://localhost:3001/api/chat', { // using localhost port if backend is running there, but better to use relative path if there's proxy
+      const response = await fetch('http://localhost:3001/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // if user is logged in, you'd pass their ID. For now just passing message and history
         body: JSON.stringify({ message, conversationHistory: history })
       });
       const data = await response.json();
@@ -45,44 +45,41 @@ function App() {
   };
 
   return (
-    <VehicleProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/login" element={<SignInPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/routes" element={<RoutesPage />} />
-          <Route path="/destinations" element={<Destinations />} />
-          <Route path="/destinations/:id" element={<DestinationDetails />} />
-
-          <Route path="/admin/dashboard" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
-
-          <Route path="/tour-guides" element={<TourGuides />} />
-          <Route path="/tour-guide/:id" element={<TourGuideDetails />} />
-          <Route path="/tour-guide/edit-profile" element={<EditProfile />} />
-
-          <Route path="/add-property" element={<ProtectedRoute roles={['hotel_owner']}><AddProperty /></ProtectedRoute>} />
-          <Route path="/edit-property/:id" element={<ProtectedRoute roles={['hotel_owner']}><EditProperty /></ProtectedRoute>} />
-          <Route path="/hotels" element={<Hotels />} />
-          <Route path="/hotel/:id" element={<HotelDetails />} />
-          <Route path="/hotel/preview" element={<HotelDetails />} />
-          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
-          <Route path="/provider-bookings" element={<ProtectedRoute roles={['hotel_owner', 'vehicle_owner', 'tour_guide']}><ProviderBookings /></ProtectedRoute>} />
-          
-          <Route path="/vehicles" element={<Vehicles />} />
-          <Route path="/vehicle/:id" element={<VehicleDetails />} />
-          <Route path="/add-vehicle" element={<ProtectedRoute roles={['vehicle_owner']}><AddVehicle /></ProtectedRoute>} />
-
-        </Routes>
-        <TravelChatWidget onSendMessage={handleSendMessage} />
-      </Router>
-    </VehicleProvider>
+    <CurrencyProvider>
+      <VehicleProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/login" element={<SignInPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route path="/routes" element={<RoutesPage />} />
+            <Route path="/destinations" element={<Destinations />} />
+            <Route path="/destinations/:id" element={<DestinationDetails />} />
+            <Route path="/admin/dashboard" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/tour-guides" element={<TourGuides />} />
+            <Route path="/tour-guide/:id" element={<TourGuideDetails />} />
+            <Route path="/tour-guide/edit-profile" element={<ProtectedRoute roles={['tour_guide']}><EditProfile /></ProtectedRoute>} />
+            <Route path="/add-property" element={<ProtectedRoute roles={['hotel_owner']}><AddProperty /></ProtectedRoute>} />
+            <Route path="/edit-property/:id" element={<ProtectedRoute roles={['hotel_owner']}><EditProperty /></ProtectedRoute>} />
+            <Route path="/hotels" element={<Hotels />} />
+            <Route path="/hotel/:id" element={<HotelDetails />} />
+            <Route path="/hotel/preview" element={<HotelDetails />} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
+            <Route path="/provider-bookings" element={<ProtectedRoute roles={['hotel_owner', 'vehicle_owner', 'tour_guide']}><ProviderBookings /></ProtectedRoute>} />
+            <Route path="/vehicles" element={<Vehicles />} />
+            <Route path="/vehicle/:id" element={<VehicleDetails />} />
+            <Route path="/add-vehicle" element={<ProtectedRoute roles={['vehicle_owner']}><AddVehicle /></ProtectedRoute>} />
+            <Route path="/experiences" element={<Experiences />} />
+          </Routes>
+          <TravelChatWidget onSendMessage={handleSendMessage} />
+        </Router>
+      </VehicleProvider>
+    </CurrencyProvider>
   )
 }
 
-export default App
-
+export default App;

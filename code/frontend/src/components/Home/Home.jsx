@@ -5,6 +5,7 @@ import Footer from '../Footer/Footer';
 import QuickViewModal from '../QuickView/QuickViewModal';
 import { VehicleContext } from '../../context/VehicleContext';
 import { Calendar, User, Search, MapPin, Map, Navigation, Star, Compass, Wind, CarFront, Plus, Building, Car, ClipboardList } from 'lucide-react';
+import { beautifulPlaces } from '../../data/destinations';
 
 const Home = () => {
   const [selectedProperty, setSelectedProperty] = useState(null);
@@ -25,74 +26,6 @@ const Home = () => {
   });
 
   useEffect(() => {
-    const beautifulPlaces = [
-      {
-        _id: 'place1',
-        name: 'Sigiriya Rock Fortress',
-        location: 'Sigiriya',
-        image: '/destinations/sigiriya.png',
-        imageUrl: '/destinations/sigiriya.png',
-        rating: '4.9',
-        description: 'An ancient rock fortress and palace ruin situated in the central Matale District of Sri Lanka. It is a UNESCO World Heritage Site.',
-        amenities: ['Historical Site', 'Hiking', 'Photography', 'Viewpoint'],
-        price: 'Ticketed'
-      },
-      {
-        _id: 'place2',
-        name: 'Nine Arches Bridge',
-        location: 'Ella',
-        image: '/destinations/nine_arches.png',
-        imageUrl: '/destinations/nine_arches.png',
-        rating: '4.8',
-        description: 'The Nine Arches Bridge also called the Bridge in the Sky, is a viaduct bridge in Sri Lanka. It is one of the best examples of colonial-era railway construction in the country.',
-        amenities: ['Sightseeing', 'Photography', 'Nature Walk'],
-        price: 'Free'
-      },
-      {
-        _id: 'place3',
-        name: 'Yala National Park',
-        location: 'Yala',
-        image: '/destinations/yala.png',
-        imageUrl: '/destinations/yala.png',
-        rating: '4.7',
-        description: 'Yala is the most visited and second largest national park in Sri Lanka, bordering the Indian Ocean. Known for its high density of leopards.',
-        amenities: ['Safari', 'Wildlife', 'Photography', 'Nature Tour'],
-        price: 'Ticketed'
-      },
-      {
-        _id: 'place4',
-        name: 'Galle Dutch Fort',
-        location: 'Galle',
-        image: '/destinations/galle_fort.png',
-        imageUrl: '/destinations/galle_fort.png',
-        rating: '4.8',
-        description: 'Galle Fort, in the Bay of Galle on the south west coast of Sri Lanka, was built first in 1588 by the Portuguese.',
-        amenities: ['Historical Site', 'Shopping', 'Dining', 'Sunset View'],
-        price: 'Free'
-      },
-      {
-        _id: 'place5',
-        name: 'Temple of the Tooth',
-        location: 'Kandy',
-        image: '/destinations/kandy_temple.png',
-        imageUrl: '/destinations/kandy_temple.png',
-        rating: '4.9',
-        description: 'Sri Dalada Maligawa or the Temple of the Sacred Tooth Relic is a Buddhist temple in the city of Kandy, Sri Lanka.',
-        amenities: ['Religious Site', 'Cultural', 'Museum'],
-        price: 'Ticketed'
-      },
-      {
-        _id: 'place6',
-        name: 'Mirissa Beach',
-        location: 'Mirissa',
-        image: '/destinations/mirissa.png',
-        imageUrl: '/destinations/mirissa.png',
-        rating: '4.7',
-        description: 'Mirissa and its breathtaking sandy beach pretty much transforms your dreams and visions of a tropical paradise into an everyday reality.',
-        amenities: ['Beach', 'Surfing', 'Whale Watching', 'Nightlife'],
-        price: 'Free'
-      }
-    ];
     setProperties(beautifulPlaces);
   }, []);
 
@@ -152,6 +85,42 @@ const Home = () => {
 
       {/* MAIN CONTENT */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 -mt-10 relative z-30">
+
+        {/* Quick Action Tabs */}
+        <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-8 mb-4">
+
+          <button className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-teal/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
+            <Compass className="text-sunset-teal group-hover:rotate-45 transition-transform" />
+            <span className="font-semibold">Interactive Map</span>
+          </button>
+
+          {!user && (
+            <>
+              <Link to="/register?role=hotel_owner" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-gold/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
+                <Building className="text-sunset-gold group-hover:scale-110 transition-transform" />
+                <span className="font-semibold">Become a Hotel Owner</span>
+              </Link>
+              <Link to="/register?role=tour_guide" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-teal/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
+                <MapPin className="text-sunset-teal group-hover:scale-110 transition-transform" />
+                <span className="font-semibold">Become a Tour Guide</span>
+              </Link>
+              <Link to="/register?role=vehicle_owner" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-orange/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
+                <Car className="text-sunset-orange group-hover:scale-110 transition-transform" />
+                <span className="font-semibold">List Your Vehicle</span>
+              </Link>
+            </>
+          )}
+
+          <button className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-orange/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
+            <Star className="text-sunset-orange group-hover:scale-110 transition-transform" />
+            <span className="font-semibold">Top Rated</span>
+          </button>
+
+          <Link to="/experiences" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-gold/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
+            <Wind className="text-sunset-gold group-hover:animate-spin transition-transform" />
+            <span className="font-semibold">Experiences</span>
+          </Link>
+        </div>
 
         {/* Provider Portal View */}
         {user && ['hotel_owner', 'vehicle_owner', 'tour_guide'].includes(user.role) ? (
@@ -231,55 +200,11 @@ const Home = () => {
                   </div>
                 </Link>
               )}
+
             </div>
           </div>
         ) : (
           <>
-            <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-8 mb-4">
-              {user?.role === 'hotel_owner' && (
-                <Link to="/add-property" className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-sunset-gold to-sunset-orange rounded-full shadow-md hover:shadow-lg transition-all text-white whitespace-nowrap group">
-                  <Plus className="text-white group-hover:scale-125 transition-transform" />
-                  <span className="font-bold">Add Hotels</span>
-                </Link>
-              )}
-
-              {user?.role === 'vehicle_owner' && (
-                <Link to="/add-vehicle" className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-sunset-orange to-sunset-gold rounded-full shadow-md hover:shadow-lg transition-all text-white whitespace-nowrap group">
-                  <Plus className="text-white group-hover:scale-125 transition-transform" />
-                  <span className="font-bold">Add Vehicles</span>
-                </Link>
-              )}
-              <button className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-teal/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
-                <Compass className="text-sunset-teal group-hover:rotate-45 transition-transform" />
-                <span className="font-semibold">Interactive Map</span>
-              </button>
-
-              {!user && (
-                <>
-                  <Link to="/register?role=hotel_owner" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-gold/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
-                    <Building className="text-sunset-gold group-hover:scale-110 transition-transform" />
-                    <span className="font-semibold">Become a Hotel Owner</span>
-                  </Link>
-                  <Link to="/register?role=tour_guide" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-teal/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
-                    <MapPin className="text-sunset-teal group-hover:scale-110 transition-transform" />
-                    <span className="font-semibold">Become a Tour Guide</span>
-                  </Link>
-                  <Link to="/register?role=vehicle_owner" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-orange/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
-                    <Car className="text-sunset-orange group-hover:scale-110 transition-transform" />
-                    <span className="font-semibold">List Your Vehicle</span>
-                  </Link>
-                </>
-              )}
-
-              <button className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-orange/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
-                <Star className="text-sunset-orange group-hover:scale-110 transition-transform" />
-                <span className="font-semibold">Top Rated</span>
-              </button>
-              <button className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-gold/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
-                <Wind className="text-sunset-gold group-hover:animate-spin transition-transform" />
-                <span className="font-semibold">Experiences</span>
-              </button>
-            </div>
 
             {/* EXPLORATION GRID (Masonry Layout) */}
             <div className="mb-12">

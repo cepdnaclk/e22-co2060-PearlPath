@@ -13,6 +13,7 @@ const notificationRouter = require('./routers/notificationRouter');
 const routeRouter = require('./routers/routeRouter');
 const chatRouter = require('./routers/chatRouter');
 const reviewRouter = require('./routers/reviewRouter');
+const experienceRouter = require('./routers/experienceRouter');
 
 
 app.use(cors());
@@ -54,5 +55,4 @@ app.use('/api', notificationRouter);
 app.use('/api', routeRouter);
 app.use('/api', chatRouter);
 app.use('/api', reviewRouter);
-
-
+app.use('/api', experienceRouter);

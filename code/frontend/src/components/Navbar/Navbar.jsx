@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, Building, MapPin, Map, BusFront, Navigation, User, LogOut, ChevronDown, Plus, Home, Calendar, Bell, UserCheck } from 'lucide-react';
+import { Menu, Building, MapPin, Map, BusFront, Navigation, User, LogOut, ChevronDown, Plus, Home, Calendar, Bell, UserCheck, Compass } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import CurrencyModal from '../CurrencyModal';
+import { useCurrency } from '../../context/CurrencyContext';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -11,10 +13,14 @@ const Navbar = () => {
   const dropdownRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const { selectedCurrency } = useCurrency();
 
   const [notifications, setNotifications] = useState([]);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const notifRef = useRef(null);
+  
+  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
+  const currencyRef = useRef(null);
 
   const fetchNotifications = async () => {
     if (!user) return;
@@ -91,6 +97,9 @@ const Navbar = () => {
       if (notifRef.current && !notifRef.current.contains(event.target)) {
         setIsNotifOpen(false);
       }
+      if (currencyRef.current && !currencyRef.current.contains(event.target)) {
+        setIsCurrencyOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -161,8 +170,18 @@ const Navbar = () => {
           {/* Desktop Nav Actions (Right) */}
           <div className="hidden md:flex items-center gap-6 shrink-0">
             <div className="flex gap-4">
-              <button className="text-gray-300 hover:text-sunset-orange font-medium text-sm transition-colors">LKR</button>
-              <button className="text-gray-300 hover:text-sunset-orange font-medium text-sm transition-colors">EN</button>
+              <div className="relative" ref={currencyRef}>
+                <button 
+                  onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
+                  className="text-gray-300 hover:text-sunset-orange font-medium text-sm transition-colors flex items-center gap-1 cursor-pointer"
+                >
+                  {selectedCurrency} <ChevronDown size={14} className={`transition-transform duration-200 ${isCurrencyOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isCurrencyOpen && (
+                  <CurrencyModal onClose={() => setIsCurrencyOpen(false)} />
+                )}
+              </div>
+              <button className="text-gray-300 hover:text-sunset-orange font-medium text-sm transition-colors cursor-pointer">EN</button>
             </div>
 
             <div className="h-6 w-px bg-gray-700"></div>
