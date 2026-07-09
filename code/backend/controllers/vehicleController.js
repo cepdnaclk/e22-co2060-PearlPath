@@ -6,6 +6,24 @@ const createVehicle = async (req, res) => {
         req.body.ownerId = req.user._id;
         const newVehicle = new Vehicle(req.body);
         const savedVehicle = await newVehicle.save();
+
+        // Notify admins of new pending vehicle
+        try {
+            const User = require('../models/User');
+            const Notification = require('../models/Notification');
+            const admins = await User.find({ role: 'admin' });
+            const vehicleName = `${savedVehicle.makeAndModel || 'vehicle'}`;
+            for (const admin of admins) {
+                await Notification.create({
+                    userId: admin._id,
+                    message: `New pending Vehicle listing: "${vehicleName}" requires approval.`,
+                    type: 'admin_alert'
+                });
+            }
+        } catch (err) {
+            console.error("Error creating admin notification for vehicle:", err);
+        }
+
         res.status(201).json(savedVehicle);
     } catch (error) {
         console.error('Error creating vehicle:', error);

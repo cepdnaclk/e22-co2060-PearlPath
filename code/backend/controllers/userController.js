@@ -130,6 +130,24 @@ const signup = async (req, res) => {
         
         await newUser.save();
 
+        // Notify admins of new pending partner registration
+        if (newUser.role !== 'tourist') {
+            try {
+                const Notification = require('../models/Notification');
+                const admins = await User.find({ role: 'admin' });
+                const roleName = newUser.role.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                for (const admin of admins) {
+                    await Notification.create({
+                        userId: admin._id,
+                        message: `New pending ${roleName} registration: ${newUser.firstName} ${newUser.lastName} (${newUser.email}) requires approval.`,
+                        type: 'admin_alert'
+                    });
+                }
+            } catch (err) {
+                console.error("Error creating admin notification on signup:", err);
+            }
+        }
+
         // Auto-create TourGuide profile
         if (newUser.role === 'tour_guide') {
             const newGuide = new TourGuide({

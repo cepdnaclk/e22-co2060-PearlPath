@@ -30,6 +30,23 @@ const createHotel = async (req, res) => {
         });
 
         await newHotel.save();
+
+        // Notify admins of new pending hotel
+        try {
+            const User = require('../models/User');
+            const Notification = require('../models/Notification');
+            const admins = await User.find({ role: 'admin' });
+            for (const admin of admins) {
+                await Notification.create({
+                    userId: admin._id,
+                    message: `New pending Hotel listing: "${newHotel.name}" requires approval.`,
+                    type: 'admin_alert'
+                });
+            }
+        } catch (err) {
+            console.error("Error creating admin notification for hotel:", err);
+        }
+
         res.status(201).json({ message: 'Hotel created successfully', hotel: newHotel });
     } catch (error) {
         console.error("Create hotel error:", error);

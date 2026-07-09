@@ -67,7 +67,25 @@ const Navbar = () => {
     }
     setIsNotifOpen(false);
 
-    if (notif.bookingId?._id) {
+    if (user?.role === 'admin') {
+      let tab = 'stats';
+      const msg = (notif.message || '').toLowerCase();
+      if (msg.includes('hotel')) {
+        tab = 'hotel_owner';
+      } else if (msg.includes('vehicle')) {
+        tab = 'vehicle_owner';
+      } else if (msg.includes('tour')) {
+        tab = 'tour_guide';
+      } else if (msg.includes('tourist')) {
+        tab = 'tourist';
+      }
+      console.log(`[Admin Notif] Message matches tab: ${tab}. Navigating to /admin/dashboard?tab=${tab}`);
+      
+      // Dispatch custom tab-change event to synchronize state instantly if already on AdminDashboard
+      window.dispatchEvent(new CustomEvent('admin-tab-change', { detail: tab }));
+      
+      navigate(`/admin/dashboard?tab=${tab}`);
+    } else if (notif.bookingId?._id) {
       const isProvider = user?.role !== 'tourist';
       const targetPath = isProvider ? '/provider-bookings' : '/my-bookings';
       navigate(`${targetPath}?bookingId=${notif.bookingId._id}`);
