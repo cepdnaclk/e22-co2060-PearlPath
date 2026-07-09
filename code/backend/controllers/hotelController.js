@@ -5,7 +5,7 @@ const getHotels = async (req, res) => {
         const query = { status: 'approved' };
         if (req.query.location) {
             const escapedLocation = req.query.location.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-            query.location = { $regex: new RegExp(escapedLocation, 'i') };
+            query.location = { $regex: new RegExp(`\\b${escapedLocation}\\b`, 'i') };
         }
         const hotels = await Hotel.find(query).select('-images').lean();
         res.status(200).json({ response: hotels });
