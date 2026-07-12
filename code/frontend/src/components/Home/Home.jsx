@@ -5,7 +5,6 @@ import Footer from '../Footer/Footer';
 import QuickViewModal from '../QuickView/QuickViewModal';
 import { VehicleContext } from '../../context/VehicleContext';
 import { Calendar, User, Search, MapPin, Map, Navigation, Star, Compass, Wind, CarFront, Plus, Building, Car, ClipboardList } from 'lucide-react';
-
 const Home = () => {
   const [selectedProperty, setSelectedProperty] = useState(null);
   const { selectedVehicle } = useContext(VehicleContext);
@@ -236,10 +235,13 @@ const Home = () => {
                   <span className="font-bold">Add Vehicles</span>
                 </Link>
               )}
-              <button className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-teal/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
+              <Link 
+                to="/routes"
+                className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-teal/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group font-semibold"
+              >
                 <Compass className="text-sunset-teal group-hover:rotate-45 transition-transform" />
-                <span className="font-semibold">Interactive Map</span>
-              </button>
+                <span>Interactive Map</span>
+              </Link>
 
               {!user && (
                 <>
@@ -361,7 +363,7 @@ const Home = () => {
                       </div>
                       <h3 className="text-xl font-bold text-white mb-2">Register Your Vehicle</h3>
                       <p className="text-gray-400 text-sm mb-6 flex-grow">Provide transportation services and help travelers navigate the island comfortably and safely.</p>
-                      <Link to="/register?role=vehicle_owner" className="w-full py-3 px-4 bg-sunset-orange text-white font-bold rounded-xl hover:bg-white hover:text-sunset-orange transition-colors">
+                      <Link to="/register?role=vehicle_owner" className="w-full py-3 px-4 bg-[#ff7c3b] text-white font-bold rounded-xl hover:bg-white hover:text-[#ff7c3b] transition-colors">
                         Register Vehicle
                       </Link>
                     </div>
