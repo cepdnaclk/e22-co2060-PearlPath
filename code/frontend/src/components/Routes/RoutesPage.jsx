@@ -4,7 +4,8 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
-import { Search, MapPin, Navigation, Clock, Compass, Info, Locate } from 'lucide-react';
+import PopularPlacesMap from './PopularPlacesMap';
+import { Search, MapPin, Navigation, Clock, Compass, Info, Locate, Map } from 'lucide-react';
 
 // Fix Leaflet Default Marker Icon issue in React
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -42,6 +43,7 @@ const MapBoundsUpdater = ({ coordinates }) => {
 };
 
 const RoutesPage = ({ embedded = false }) => {
+  const [activeTab, setActiveTab] = useState('discover');
   const [routes, setRoutes] = useState([]);
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -240,6 +242,12 @@ const RoutesPage = ({ embedded = false }) => {
       setStartPoint(city);
       setLiveLocationActive(false);
     }
+  };
+
+  const handlePlanRoute = (destinationName) => {
+    setSearchQuery(destinationName);
+    setActiveTab('plan');
+    fetchRoutes(destinationName);
   };
 
   if (embedded) {
@@ -500,10 +508,38 @@ const RoutesPage = ({ embedded = false }) => {
       </div>
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col lg:flex-row gap-8">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-6">
         
-        {/* Left Side: Routes Explorer Sidebar */}
-        <div className="lg:w-1/3 flex flex-col gap-6">
+        {/* Tab Toggle */}
+        <div className="flex gap-2 p-1 bg-[#18181b] rounded-full border border-white/10 w-fit mx-auto lg:mx-0 shadow-md">
+          <button
+            onClick={() => setActiveTab('discover')}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm transition-all ${
+              activeTab === 'discover'
+                ? 'bg-gradient-to-r from-sunset-orange to-sunset-gold text-white shadow-lg'
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <Map size={18} /> Discover Places
+          </button>
+          <button
+            onClick={() => setActiveTab('plan')}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm transition-all ${
+              activeTab === 'plan'
+                ? 'bg-gradient-to-r from-sunset-orange to-sunset-gold text-white shadow-lg'
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <Navigation size={18} /> Plan a Route
+          </button>
+        </div>
+
+        {activeTab === 'discover' ? (
+          <PopularPlacesMap onPlanRoute={handlePlanRoute} />
+        ) : (
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Left Side: Routes Explorer Sidebar */}
+            <div className="lg:w-1/3 flex flex-col gap-6">
           
           {/* Configure Starting Point Box */}
           <div className="bg-[#18181b] p-5 rounded-2xl border border-white/5 shadow-md">
@@ -733,7 +769,8 @@ const RoutesPage = ({ embedded = false }) => {
             )}
           </MapContainer>
         </div>
-
+      </div>
+      )}
       </main>
 
       <Footer />
