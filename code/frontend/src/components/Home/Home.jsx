@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 import QuickViewModal from '../QuickView/QuickViewModal';
+import SearchWidget from './SearchWidget';
 import { useCurrency } from '../../context/CurrencyContext';
 import { VehicleContext } from '../../context/VehicleContext';
 import { Calendar, User, Search, MapPin, Map, Navigation, Star, Compass, Wind, CarFront, Plus, Building, Car, ClipboardList } from 'lucide-react';
@@ -71,15 +72,7 @@ const Home = () => {
 
           {/* Floating Search Widget - Only for Tourists */}
           {(!user || user.role === 'tourist') && (
-            <div className="bg-white/95 backdrop-blur-xl p-3 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col md:flex-row items-center gap-2 max-w-2xl mx-auto border border-white/40 transform hover:scale-[1.01] transition-transform">
-              <div className="flex-1 w-full flex items-center bg-transparent rounded-full px-4 py-2">
-                <MapPin className="text-sunset-teal mr-3" size={24} />
-                <input type="text" placeholder="Where do you want to go?" className="w-full bg-transparent outline-none text-gray-800 placeholder-gray-400 font-medium text-lg" />
-              </div>
-              <button className="w-full md:w-auto bg-gradient-to-r from-sunset-orange to-sunset-gold text-white p-4 rounded-full shadow-lg hover:shadow-sunset-orange/50 transform hover:-translate-y-0.5 transition-all">
-                <Search size={24} />
-              </button>
-            </div>
+            <SearchWidget />
           )}
         </div>
       </div>
