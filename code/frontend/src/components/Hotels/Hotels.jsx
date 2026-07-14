@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Filter, SlidersHorizontal, Lock, Building } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useCurrency } from '../../context/CurrencyContext';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 import HotelCard from './HotelCard';
@@ -10,6 +11,7 @@ const AMENITY_FILTERS = ["Free WiFi", "Pool", "Breakfast Included", "Spa", "Ocea
 
 const Hotels = () => {
   const { user, authFetch } = useAuth();
+  const { convertPrice, getCurrencySymbol } = useCurrency();
   const [loading, setLoading] = useState(true);
 
   const [hotels, setHotels] = useState([]);
@@ -68,10 +70,10 @@ const Hotels = () => {
 
     // Price Filter
     if (minPrice) {
-      result = result.filter(h => h.pricePerNight >= parseInt(minPrice));
+      result = result.filter(h => convertPrice(h.pricePerNight) >= parseInt(minPrice));
     }
     if (maxPrice) {
-      result = result.filter(h => h.pricePerNight <= parseInt(maxPrice));
+      result = result.filter(h => convertPrice(h.pricePerNight) <= parseInt(maxPrice));
     }
 
     // Amenities Filter
@@ -173,7 +175,7 @@ const Hotels = () => {
 
               {/* Price Range */}
               <div className="mb-6">
-                <label className="block text-sm font-bold text-gray-700 mb-2">Price Per Night (LKR)</label>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Price Per Night ({getCurrencySymbol()})</label>
                 <div className="flex items-center gap-2">
                   <input 
                     type="number" 

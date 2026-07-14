@@ -116,10 +116,7 @@ const Navbar = () => {
   const navItems = [
     { id: 'home', label: 'Home', icon: <Home size={16} /> },
     { id: 'hotels', label: 'Hotels', icon: <Building size={16} /> },
-<<<<<<< HEAD
     { id: 'tour-guides', label: 'Tour Guides', icon: <UserCheck size={16} /> },
-=======
->>>>>>> 22a7b834dbf2ffa9175aa7343f3a7b80d07b39c0
     { id: 'transport', label: 'Vehicle', icon: <BusFront size={16} /> },
     { id: 'destinations', label: 'Destination', icon: <MapPin size={16} /> },
   ];

@@ -5,10 +5,12 @@ import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 
 import ReviewSection from '../Reviews/ReviewSection';
+import { useCurrency } from '../../context/CurrencyContext';
 
 const TourGuideDetails = () => {
   const { id } = useParams();
   const [guide, setGuide] = useState(null);
+  const { convertPrice, getCurrencySymbol } = useCurrency();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -92,7 +94,7 @@ const TourGuideDetails = () => {
                 <div className="flex flex-wrap gap-4 mb-8">
                    <div className="bg-orange-50 px-4 py-3 rounded-2xl flex-1 border border-orange-100">
                        <span className="text-xs text-orange-600 font-bold uppercase tracking-wider block mb-1">Rate</span>
-                       <span className="text-xl font-black text-sunset-orange">LKR {guide.pricePerDay} <span className="text-sm text-gray-500 font-medium">/ day</span></span>
+                       <span className="text-xl font-black text-sunset-orange">{getCurrencySymbol()} {convertPrice(guide.pricePerDay || 0).toLocaleString()} <span className="text-sm text-gray-500 font-medium">/ day</span></span>
                    </div>
                    <div className="bg-teal-50 px-4 py-3 rounded-2xl flex-1 border border-teal-100">
                        <span className="text-xs text-teal-700 font-bold uppercase tracking-wider block mb-1">Experience</span>

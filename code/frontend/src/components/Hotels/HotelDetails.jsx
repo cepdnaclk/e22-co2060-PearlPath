@@ -5,11 +5,13 @@ import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 import { MapPin, Star, Wifi, Coffee, Wind, Waves, Calendar, Users, Home, User } from 'lucide-react';
 import ReviewSection from '../Reviews/ReviewSection';
+import { useCurrency } from '../../context/CurrencyContext';
 
 const HotelDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, authFetch } = useAuth();
+  const { convertPrice, getCurrencySymbol } = useCurrency();
   
   const [hotel, setHotel] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -195,7 +197,7 @@ const HotelDetails = () => {
             <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 sticky top-28">
               <div className="mb-6 flex items-end justify-between">
                 <div>
-                  <span className="text-3xl font-extrabold text-sunset-teal">LKR {hotel.pricePerNight?.toLocaleString()}</span>
+                  <span className="text-3xl font-extrabold text-sunset-teal">{getCurrencySymbol()} {hotel.pricePerNight ? convertPrice(hotel.pricePerNight).toLocaleString() : 'N/A'}</span>
                   <span className="text-gray-500 font-medium"> / night</span>
                 </div>
               </div>
@@ -239,7 +241,7 @@ const HotelDetails = () => {
                   {calculateTotalPrice() > 0 && (
                     <div className="pt-4 border-t border-gray-100 flex justify-between items-center text-lg font-bold">
                       <span className="text-gray-800">Total Price</span>
-                      <span className="text-sunset-teal">LKR {calculateTotalPrice().toLocaleString()}</span>
+                      <span className="text-sunset-teal">{getCurrencySymbol()} {convertPrice(calculateTotalPrice()).toLocaleString()}</span>
                     </div>
                   )}
 

@@ -3,15 +3,13 @@ import { Link } from 'react-router-dom';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 import QuickViewModal from '../QuickView/QuickViewModal';
+import { useCurrency } from '../../context/CurrencyContext';
 import { VehicleContext } from '../../context/VehicleContext';
 import { Calendar, User, Search, MapPin, Map, Navigation, Star, Compass, Wind, CarFront, Plus, Building, Car, ClipboardList } from 'lucide-react';
-<<<<<<< HEAD
 import { beautifulPlaces } from '../../data/destinations';
-
-=======
->>>>>>> 22a7b834dbf2ffa9175aa7343f3a7b80d07b39c0
 const Home = () => {
   const [selectedProperty, setSelectedProperty] = useState(null);
+  const { convertPrice, getCurrencySymbol } = useCurrency();
   const { selectedVehicle } = useContext(VehicleContext);
   const [properties, setProperties] = useState([]);
 
@@ -208,8 +206,7 @@ const Home = () => {
           </div>
         ) : (
           <>
-<<<<<<< HEAD
-=======
+
             <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-8 mb-4">
               {user?.role === 'hotel_owner' && (
                 <Link to="/add-property" className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-sunset-gold to-sunset-orange rounded-full shadow-md hover:shadow-lg transition-all text-white whitespace-nowrap group">
@@ -258,7 +255,7 @@ const Home = () => {
                 <span className="font-semibold">Experiences</span>
               </button>
             </div>
->>>>>>> 22a7b834dbf2ffa9175aa7343f3a7b80d07b39c0
+
 
             {/* EXPLORATION GRID (Masonry Layout) */}
             <div className="mb-12">
@@ -298,7 +295,7 @@ const Home = () => {
 
                         <div className="h-0 overflow-hidden group-hover:h-8 transition-all duration-300 flex items-center mt-2">
                           {property.pricePerNight && <span className="text-sm text-gray-300 mr-2">from</span>}
-                          <span className="text-lg font-bold text-sunset-gold">{property.pricePerNight ? `LKR ${property.pricePerNight.toLocaleString()}` : property.price}</span>
+                          <span className="text-lg font-bold text-sunset-gold">{property.pricePerNight ? `${getCurrencySymbol()} ${convertPrice(property.pricePerNight).toLocaleString()}` : property.price}</span>
                         </div>
                       </div>
 

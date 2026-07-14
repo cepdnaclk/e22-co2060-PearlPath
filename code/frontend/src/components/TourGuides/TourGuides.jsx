@@ -4,11 +4,13 @@ import { Search, Filter, SlidersHorizontal, Lock } from 'lucide-react';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 import TourGuideCard from './TourGuideCard';
+import { useCurrency } from '../../context/CurrencyContext';
 
 const LANGUAGE_FILTERS = ["English", "Sinhala", "Tamil", "French", "German", "Spanish", "Russian"];
 
 const TourGuides = () => {
   const [user, setUser] = useState(null);
+  const { convertPrice, getCurrencySymbol } = useCurrency();
   const [loading, setLoading] = useState(true);
 
   const [guides, setGuides] = useState([]);
@@ -65,7 +67,7 @@ const TourGuides = () => {
     }
 
     if (maxPrice) {
-      result = result.filter(g => g.pricePerDay <= parseInt(maxPrice));
+      result = result.filter(g => convertPrice(g.pricePerDay) <= parseInt(maxPrice));
     }
 
     if (selectedLanguages.length > 0) {
@@ -159,7 +161,7 @@ const TourGuides = () => {
 
               {/* Max Price */}
               <div className="mb-6">
-                <label className="block text-sm font-bold text-gray-700 mb-2">Max Price Per Day (LKR)</label>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Max Price Per Day ({getCurrencySymbol()})</label>
                 <input 
                   type="number" 
                   placeholder="Max Price" 

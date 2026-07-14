@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Star, Wifi, Coffee, Wind, Waves } from 'lucide-react';
+import { useCurrency } from '../../context/CurrencyContext';
 
 const HotelCard = ({ hotel, isOwnerView }) => {
+  const { convertPrice, getCurrencySymbol } = useCurrency();
   // Helper to render amenity icons based on name
   const renderAmenityIcon = (amenity) => {
     switch (amenity) {
@@ -60,7 +62,7 @@ const HotelCard = ({ hotel, isOwnerView }) => {
           <div>
             <span className="text-xs text-gray-500 uppercase tracking-wider font-bold">Price per night</span>
             <div className="text-2xl font-extrabold text-sunset-teal">
-              LKR {hotel.pricePerNight ? hotel.pricePerNight.toLocaleString() : 'N/A'}
+              {getCurrencySymbol()} {hotel.pricePerNight ? convertPrice(hotel.pricePerNight).toLocaleString() : 'N/A'}
             </div>
           </div>
           <div className="flex gap-2">

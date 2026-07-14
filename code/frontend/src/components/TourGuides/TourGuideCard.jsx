@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Briefcase, Languages, DollarSign } from 'lucide-react';
+import { useCurrency } from '../../context/CurrencyContext';
 
 const TourGuideCard = ({ guide }) => {
+  const { convertPrice, getCurrencySymbol } = useCurrency();
   return (
     <div className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden flex flex-col sm:flex-row group h-full">
       
@@ -28,7 +30,7 @@ const TourGuideCard = ({ guide }) => {
               {guide.name}
             </h3>
             <div className="flex flex-col items-end">
-              <span className="text-2xl font-black text-sunset-orange">LKR {guide.pricePerDay || 0}</span>
+              <span className="text-2xl font-black text-sunset-orange">{getCurrencySymbol()} {convertPrice(guide.pricePerDay || 0).toLocaleString()}</span>
               <span className="text-xs text-gray-500 font-medium">per day</span>
             </div>
           </div>

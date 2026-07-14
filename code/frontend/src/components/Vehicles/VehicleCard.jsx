@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Users, Settings, Wind } from 'lucide-react';
+import { useCurrency } from '../../context/CurrencyContext';
 
 const VehicleCard = ({ vehicle }) => {
+  const { convertPrice, getCurrencySymbol } = useCurrency();
   return (
     <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300 border border-slate-100 flex flex-col h-full font-outfit">
       {/* Image Section */}
@@ -44,9 +46,9 @@ const VehicleCard = ({ vehicle }) => {
             <div>
               <p className="text-sm text-slate-500 font-medium">Price per day</p>
               <div className="flex items-baseline gap-1">
-                <span className="text-xs font-bold text-sunset-teal">LKR</span>
+                <span className="text-xs font-bold text-sunset-teal">{getCurrencySymbol()}</span>
                 <span className="text-2xl font-black text-sunset-teal">
-                  {vehicle.pricePerDay ? vehicle.pricePerDay.toLocaleString() : '0'}
+                  {vehicle.pricePerDay ? convertPrice(vehicle.pricePerDay).toLocaleString() : '0'}
                 </span>
               </div>
             </div>
