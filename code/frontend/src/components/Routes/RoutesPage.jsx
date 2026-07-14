@@ -41,7 +41,7 @@ const MapBoundsUpdater = ({ coordinates }) => {
   return null;
 };
 
-const RoutesPage = () => {
+const RoutesPage = ({ embedded = false }) => {
   const [routes, setRoutes] = useState([]);
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -241,6 +241,246 @@ const RoutesPage = () => {
       setLiveLocationActive(false);
     }
   };
+
+  if (embedded) {
+    return (
+      <div className="w-full flex flex-col lg:flex-row gap-8 py-4 relative z-10 text-white bg-[#0d0d0f] p-8 rounded-[2rem] border border-white/10 shadow-2xl">
+        
+        {/* Left Side: Routes Explorer Sidebar */}
+        <div className="lg:w-1/3 flex flex-col gap-6">
+          
+          {/* Configure Starting Point Box */}
+          <div className="bg-[#18181b] p-5 rounded-2xl border border-white/5 shadow-md">
+            <h2 className="text-lg font-bold mb-3 text-sunset-teal flex items-center gap-2">
+              <Locate size={20} /> Select Start Point
+            </h2>
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-2">
+                <select
+                  value={liveLocationActive ? '' : startPoint.name}
+                  onChange={handleCitySelect}
+                  className="flex-1 px-3 py-2.5 bg-[#27272a] text-white border border-white/5 rounded-xl focus:outline-none focus:ring-2 focus:ring-sunset-orange text-sm font-medium"
+                >
+                  {liveLocationActive && <option value="">Live GPS Active</option>}
+                  {majorCities.map((city) => (
+                    <option key={city.name} value={city.name}>
+                      Starting City: {city.name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={handleDetectLocation}
+                  className="bg-[#27272a] hover:bg-sunset-teal/20 text-sunset-teal border border-sunset-teal/20 hover:border-sunset-teal/40 font-bold px-4 rounded-xl transition-all flex items-center gap-1.5 text-xs uppercase"
+                >
+                  <Locate size={14} /> Live GPS
+                </button>
+              </div>
+              <div className="text-xs text-gray-400 font-medium">
+                Current Start: <span className="text-white font-bold">{startPoint.name}</span> {liveLocationActive && `(${startPoint.lat.toFixed(4)}, ${startPoint.lng.toFixed(4)})`}
+              </div>
+            </div>
+          </div>
+
+          {/* Configure Travel Mode Box */}
+          <div className="bg-[#18181b] p-5 rounded-2xl border border-white/5 shadow-md">
+            <h2 className="text-lg font-bold mb-3 text-sunset-gold flex items-center gap-2">
+              <Compass size={20} /> Select Travel Mode
+            </h2>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setTravelMode('car')}
+                className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  travelMode === 'car'
+                    ? 'bg-sunset-orange/20 border-sunset-orange text-sunset-orange'
+                    : 'bg-[#27272a] border-white/5 text-gray-400 hover:text-white'
+                }`}
+              >
+                🚗 Car / Taxi
+              </button>
+              <button
+                type="button"
+                onClick={() => setTravelMode('bus')}
+                className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  travelMode === 'bus'
+                    ? 'bg-sunset-orange/20 border-sunset-orange text-sunset-orange'
+                    : 'bg-[#27272a] border-white/5 text-gray-400 hover:text-white'
+                }`}
+              >
+                🚌 Public Bus
+              </button>
+              <button
+                type="button"
+                onClick={() => setTravelMode('bike')}
+                className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  travelMode === 'bike'
+                    ? 'bg-sunset-orange/20 border-sunset-orange text-sunset-orange'
+                    : 'bg-[#27272a] border-white/5 text-gray-400 hover:text-white'
+                }`}
+              >
+                🏍️ Bike / Cycle
+              </button>
+              <button
+                type="button"
+                onClick={() => setTravelMode('foot')}
+                className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  travelMode === 'foot'
+                    ? 'bg-sunset-orange/20 border-sunset-orange text-sunset-orange'
+                    : 'bg-[#27272a] border-white/5 text-gray-400 hover:text-white'
+                }`}
+              >
+                🚶 Walking
+              </button>
+            </div>
+          </div>
+
+          {/* Search Box */}
+          <div className="bg-[#18181b] p-5 rounded-2xl border border-white/5 shadow-md">
+            <h2 className="text-lg font-bold mb-3 text-sunset-orange">Find a Route</h2>
+            <form onSubmit={handleSearchSubmit} className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <input
+                  type="text"
+                  placeholder="Where to? (e.g. Ella, Sigiriya)"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3 bg-[#27272a] text-white border border-white/5 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sunset-orange transition-all text-sm"
+                />
+              </div>
+              <button 
+                type="submit"
+                className="bg-gradient-to-r from-sunset-orange to-sunset-gold text-white font-bold px-5 py-3 rounded-xl hover:shadow-lg transition-transform transform hover:-translate-y-0.5 text-sm"
+              >
+                Search
+              </button>
+            </form>
+          </div>
+
+          {/* Routes List */}
+          <div className="flex-1 flex flex-col gap-4 overflow-y-auto max-h-[300px] lg:max-h-[400px]">
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-16 bg-[#18181b] rounded-2xl border border-white/5">
+                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-sunset-orange mb-3"></div>
+                <p className="text-gray-400 text-sm">Loading routes...</p>
+              </div>
+            ) : routes.length === 0 ? (
+              <div className="text-center py-16 bg-[#18181b] rounded-2xl border border-white/5 p-6">
+                <Info size={36} className="text-gray-500 mx-auto mb-3" />
+                <p className="text-gray-300 font-bold">No Routes Found</p>
+                <p className="text-gray-500 text-sm mt-1">Try entering another destination or clear your search to see all routes.</p>
+              </div>
+            ) : (
+              routes.map((route) => (
+                <div
+                  key={route._id}
+                  onClick={() => setSelectedRoute(route)}
+                  className={`p-5 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col gap-3 relative overflow-hidden group ${
+                    selectedRoute?._id === route._id
+                      ? 'bg-gradient-to-br from-sunset-orange/10 to-sunset-gold/10 border-sunset-orange/40 shadow-lg scale-[1.01]'
+                      : 'bg-[#18181b] border-white/5 hover:border-white/10 hover:bg-[#202024]'
+                  }`}
+                >
+                  {/* Selected Indicator Bar */}
+                  {selectedRoute?._id === route._id && (
+                    <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-sunset-orange to-sunset-gold"></div>
+                  )}
+
+                  <h3 className="font-bold text-lg leading-snug group-hover:text-sunset-orange transition-colors">
+                    {route.name}
+                  </h3>
+                  <p className="text-gray-400 text-xs line-clamp-2 leading-relaxed">
+                    {route.description}
+                  </p>
+
+                  <div className="flex items-center gap-4 text-xs font-semibold text-gray-300 pt-2 border-t border-white/5">
+                    <span className="flex items-center gap-1.5">
+                      <Clock size={14} className="text-sunset-orange" /> 
+                      {selectedRoute?._id === route._id ? liveRouteInfo.duration || route.duration : route.duration}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <MapPin size={14} className="text-sunset-teal" /> 
+                      {selectedRoute?._id === route._id ? liveRouteInfo.distance || route.distance : route.distance}
+                    </span>
+                    <span className="ml-auto text-sunset-gold bg-sunset-gold/10 px-2 py-0.5 rounded text-[10px] uppercase">
+                      {route.waypoints.length} Stops
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Right Side: Map Container */}
+        <div className="lg:w-2/3 h-[500px] lg:h-[680px] rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative z-10">
+          <MapContainer 
+            center={SRI_LANKA_CENTER} 
+            zoom={8} 
+            className="h-full w-full"
+            style={{ background: '#1c1c1f' }}
+          >
+            {/* Custom Dark Theme Map Tiles */}
+            <TileLayer
+              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            />
+
+            {selectedRoute && (
+              <>
+                {/* Auto Pan/Zoom helper */}
+                <MapBoundsUpdater coordinates={liveRouteCoords} />
+
+                {/* Draw Route Path */}
+                <Polyline
+                  positions={liveRouteCoords}
+                  color="#ff7c3b"
+                  weight={5}
+                  opacity={0.85}
+                  lineCap="round"
+                  lineJoin="round"
+                />
+
+                {/* Green marker for Starting Point */}
+                <Marker position={[startPoint.lat, startPoint.lng]} icon={startIcon}>
+                  <Popup>
+                    <div className="p-1 font-outfit text-slate-800">
+                      <h4 className="font-extrabold text-sm text-green-600 leading-tight">Starting Location</h4>
+                      <p className="text-xs text-slate-500 mt-1 font-medium">{startPoint.name}</p>
+                    </div>
+                  </Popup>
+                </Marker>
+
+                {/* Waypoint Markers */}
+                {selectedRoute.waypoints
+                  .filter(stop => !(stop.name.includes("Start") && startPoint.name === "Colombo"))
+                  .map((stop, index, arr) => (
+                    <Marker 
+                      key={index} 
+                      position={[stop.lat, stop.lng]}
+                    >
+                      <Popup className="premium-popup">
+                        <div className="p-1 font-outfit text-slate-800">
+                          <h4 className="font-extrabold text-sm text-sunset-orange leading-tight">{stop.name}</h4>
+                          {stop.description && (
+                            <p className="text-xs text-slate-600 mt-1 font-medium leading-normal">{stop.description}</p>
+                          )}
+                          <div className="mt-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                            Stop {index + 1} of {arr.length}
+                          </div>
+                        </div>
+                      </Popup>
+                    </Marker>
+                  ))}
+              </>
+            )}
+          </MapContainer>
+        </div>
+
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0f0f11] text-white font-outfit flex flex-col">

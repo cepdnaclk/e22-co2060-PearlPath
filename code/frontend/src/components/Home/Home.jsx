@@ -5,8 +5,11 @@ import Footer from '../Footer/Footer';
 import QuickViewModal from '../QuickView/QuickViewModal';
 import { VehicleContext } from '../../context/VehicleContext';
 import { Calendar, User, Search, MapPin, Map, Navigation, Star, Compass, Wind, CarFront, Plus, Building, Car, ClipboardList } from 'lucide-react';
+<<<<<<< HEAD
 import { beautifulPlaces } from '../../data/destinations';
 
+=======
+>>>>>>> 22a7b834dbf2ffa9175aa7343f3a7b80d07b39c0
 const Home = () => {
   const [selectedProperty, setSelectedProperty] = useState(null);
   const { selectedVehicle } = useContext(VehicleContext);
@@ -205,6 +208,57 @@ const Home = () => {
           </div>
         ) : (
           <>
+<<<<<<< HEAD
+=======
+            <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-8 mb-4">
+              {user?.role === 'hotel_owner' && (
+                <Link to="/add-property" className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-sunset-gold to-sunset-orange rounded-full shadow-md hover:shadow-lg transition-all text-white whitespace-nowrap group">
+                  <Plus className="text-white group-hover:scale-125 transition-transform" />
+                  <span className="font-bold">Add Hotels</span>
+                </Link>
+              )}
+
+              {user?.role === 'vehicle_owner' && (
+                <Link to="/add-vehicle" className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-sunset-orange to-sunset-gold rounded-full shadow-md hover:shadow-lg transition-all text-white whitespace-nowrap group">
+                  <Plus className="text-white group-hover:scale-125 transition-transform" />
+                  <span className="font-bold">Add Vehicles</span>
+                </Link>
+              )}
+              <Link 
+                to="/routes"
+                className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-teal/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group font-semibold"
+              >
+                <Compass className="text-sunset-teal group-hover:rotate-45 transition-transform" />
+                <span>Interactive Map</span>
+              </Link>
+
+              {!user && (
+                <>
+                  <Link to="/register?role=hotel_owner" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-gold/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
+                    <Building className="text-sunset-gold group-hover:scale-110 transition-transform" />
+                    <span className="font-semibold">Become a Hotel Owner</span>
+                  </Link>
+                  <Link to="/register?role=tour_guide" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-teal/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
+                    <MapPin className="text-sunset-teal group-hover:scale-110 transition-transform" />
+                    <span className="font-semibold">Become a Tour Guide</span>
+                  </Link>
+                  <Link to="/register?role=vehicle_owner" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-orange/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
+                    <Car className="text-sunset-orange group-hover:scale-110 transition-transform" />
+                    <span className="font-semibold">List Your Vehicle</span>
+                  </Link>
+                </>
+              )}
+
+              <button className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-orange/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
+                <Star className="text-sunset-orange group-hover:scale-110 transition-transform" />
+                <span className="font-semibold">Top Rated</span>
+              </button>
+              <button className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-gold/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
+                <Wind className="text-sunset-gold group-hover:animate-spin transition-transform" />
+                <span className="font-semibold">Experiences</span>
+              </button>
+            </div>
+>>>>>>> 22a7b834dbf2ffa9175aa7343f3a7b80d07b39c0
 
             {/* EXPLORATION GRID (Masonry Layout) */}
             <div className="mb-12">
@@ -299,7 +353,7 @@ const Home = () => {
                       </div>
                       <h3 className="text-xl font-bold text-white mb-2">Register Your Vehicle</h3>
                       <p className="text-gray-400 text-sm mb-6 flex-grow">Provide transportation services and help travelers navigate the island comfortably and safely.</p>
-                      <Link to="/register?role=vehicle_owner" className="w-full py-3 px-4 bg-sunset-orange text-white font-bold rounded-xl hover:bg-white hover:text-sunset-orange transition-colors">
+                      <Link to="/register?role=vehicle_owner" className="w-full py-3 px-4 bg-[#ff7c3b] text-white font-bold rounded-xl hover:bg-white hover:text-[#ff7c3b] transition-colors">
                         Register Vehicle
                       </Link>
                     </div>
