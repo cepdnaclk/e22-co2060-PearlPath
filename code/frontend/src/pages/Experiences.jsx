@@ -19,7 +19,11 @@ import {
   AlertCircle,
   Image as ImageIcon,
   Search,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Phone,
+  Mail,
+  UserCheck,
+  MessageSquare
 } from 'lucide-react';
 
 const mockExperiences = [
@@ -33,7 +37,10 @@ const mockExperiences = [
     duration: '4 Hours',
     images: ['/experiences/minneriya.jpg'],
     providedBy: { firstName: 'PearlPath', lastName: 'Guide' },
-    providerType: 'tour_guide'
+    providerType: 'tour_guide',
+    organizerName: 'Minneriya Wild Safari Tours',
+    organizerPhone: '+94 77 345 6789',
+    organizerEmail: 'safari@minneriya.lk'
   },
   {
     _id: 'mock2',
@@ -45,7 +52,10 @@ const mockExperiences = [
     duration: '3 Hours',
     images: ['/experiences/kitulgala.jpg'],
     providedBy: { firstName: 'Adventure', lastName: 'Lanka' },
-    providerType: 'vehicle_owner'
+    providerType: 'vehicle_owner',
+    organizerName: 'Kitulgala River Rafting Center',
+    organizerPhone: '+94 71 890 1234',
+    organizerEmail: 'info@kitulgalarafting.lk'
   },
   {
     _id: 'mock3',
@@ -57,7 +67,10 @@ const mockExperiences = [
     duration: '2.5 Hours',
     images: ['/experiences/ella.jpg'],
     providedBy: { firstName: 'Grandma\'s', lastName: 'Kitchen' },
-    providerType: 'hotel'
+    providerType: 'hotel',
+    organizerName: 'Amma\'s Secret Spice Kitchen',
+    organizerPhone: '+94 76 543 2109',
+    organizerEmail: 'cook@ellaspices.com'
   },
   {
     _id: 'mock4',
@@ -69,7 +82,10 @@ const mockExperiences = [
     duration: 'Half Day',
     images: ['/experiences/kandy.jpg'],
     providedBy: { firstName: 'Culture', lastName: 'Heritage' },
-    providerType: 'tour_guide'
+    providerType: 'tour_guide',
+    organizerName: 'Kandyan Heritage Cultural Association',
+    organizerPhone: '+94 81 223 4567',
+    organizerEmail: 'contact@kandydance.lk'
   }
 ];
 
@@ -96,10 +112,16 @@ const Experiences = () => {
     duration: '',
     pricePerPerson: '',
     description: '',
-    imageUrl: ''
+    imageUrl: '',
+    organizerName: '',
+    organizerPhone: '',
+    organizerEmail: ''
   });
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState(null);
+
+  // Contact Modal State (for Tourists)
+  const [contactModalExperience, setContactModalExperience] = useState(null);
 
   // Check if current user is an experience provider
   const isProvider = user && ['hotel', 'hotel_owner', 'vehicle_owner', 'tour_guide'].includes(user.role);
@@ -135,13 +157,16 @@ const Experiences = () => {
   const handleEditClick = (experience) => {
     setEditingExperienceId(experience._id);
     setFormData({
-      title: experience.title,
-      category: experience.category,
-      location: experience.location,
-      duration: experience.duration,
-      pricePerPerson: experience.pricePerPerson.toString(),
-      description: experience.description,
-      imageUrl: experience.images?.[0] || ''
+      title: experience.title || '',
+      category: experience.category || 'Adventure',
+      location: experience.location || '',
+      duration: experience.duration || '',
+      pricePerPerson: experience.pricePerPerson ? experience.pricePerPerson.toString() : '',
+      description: experience.description || '',
+      imageUrl: experience.images?.[0] || '',
+      organizerName: experience.organizerName || '',
+      organizerPhone: experience.organizerPhone || '',
+      organizerEmail: experience.organizerEmail || ''
     });
     setModalOpen(true);
   };
@@ -173,7 +198,10 @@ const Experiences = () => {
       duration: '',
       pricePerPerson: '',
       description: '',
-      imageUrl: ''
+      imageUrl: '',
+      organizerName: '',
+      organizerPhone: '',
+      organizerEmail: ''
     });
     setEditingExperienceId(null);
     setFormError(null);
@@ -192,7 +220,10 @@ const Experiences = () => {
       duration: formData.duration,
       pricePerPerson: parseFloat(formData.pricePerPerson),
       description: formData.description,
-      images: formData.imageUrl ? [formData.imageUrl] : ['https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop']
+      images: formData.imageUrl ? [formData.imageUrl] : ['https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop'],
+      organizerName: formData.organizerName,
+      organizerPhone: formData.organizerPhone,
+      organizerEmail: formData.organizerEmail
     };
 
     try {
@@ -443,9 +474,44 @@ const Experiences = () => {
                       </h3>
 
                       {/* Description */}
-                      <p className="text-gray-400 text-sm leading-relaxed mb-6 line-clamp-3">
+                      <p className="text-gray-400 text-sm leading-relaxed mb-4 line-clamp-2">
                         {experience.description}
                       </p>
+
+                      {/* Experience Owner / Organizer Contact Section */}
+                      <div className="bg-[#141418]/80 border border-white/10 rounded-2xl p-3.5 mb-5 space-y-2 text-xs">
+                        <div className="text-[10px] uppercase font-extrabold text-[#FF8C00] tracking-wider flex items-center gap-1.5">
+                          <UserCheck size={13} />
+                          <span>Experience Owner / Organizer</span>
+                        </div>
+                        <div className="font-bold text-gray-200 text-sm truncate">
+                          {experience.organizerName || `${experience.providedBy?.firstName || 'Local'} ${experience.providedBy?.lastName || 'Organizer'}`}
+                        </div>
+
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          {(experience.organizerPhone || experience.providedBy?.phone) && (
+                            <a 
+                              href={`tel:${experience.organizerPhone || experience.providedBy?.phone}`}
+                              className="flex items-center gap-1.5 bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30 px-3 py-1.5 rounded-xl font-semibold transition-all text-xs"
+                              title="Call Organizer"
+                            >
+                              <Phone size={12} />
+                              <span>{experience.organizerPhone || experience.providedBy?.phone}</span>
+                            </a>
+                          )}
+                          
+                          {(experience.organizerEmail || experience.providedBy?.email) && (
+                            <a 
+                              href={`mailto:${experience.organizerEmail || experience.providedBy?.email}`}
+                              className="flex items-center gap-1.5 bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 border border-blue-500/30 px-3 py-1.5 rounded-xl font-semibold transition-all text-xs truncate max-w-full"
+                              title="Email Organizer"
+                            >
+                              <Mail size={12} />
+                              <span className="truncate">{experience.organizerEmail || experience.providedBy?.email}</span>
+                            </a>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
                     {/* Bottom Pricing & CTA / Actions */}
@@ -474,10 +540,11 @@ const Experiences = () => {
                         </div>
                       ) : (
                         <button 
-                          onClick={() => alert(`Booking flow for "${experience.title}" is coming soon!`)}
-                          className="bg-white/5 border border-white/10 hover:bg-[#FF8C00] hover:text-white px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer text-gray-300 hover:shadow-lg hover:shadow-[#FF8C00]/20"
+                          onClick={() => setContactModalExperience(experience)}
+                          className="bg-gradient-to-r from-[#FF8C00] to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer shadow-lg shadow-[#FF8C00]/20 flex items-center gap-1.5"
                         >
-                          Book Now
+                          <Phone size={13} />
+                          <span>Contact Owner</span>
                         </button>
                       )}
                     </div>
@@ -625,12 +692,58 @@ const Experiences = () => {
                 <textarea
                   name="description"
                   required
-                  rows="4"
+                  rows="3"
                   value={formData.description}
                   onChange={handleInputChange}
                   placeholder="Provide a detailed description of the experience, what is included, and key highlights..."
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#FF8C00]/80 transition-all font-medium resize-none"
                 ></textarea>
+              </div>
+
+              {/* Experience Owner / Organizer Contact Details */}
+              <div className="bg-[#0f0f11]/60 border border-white/10 p-4 rounded-2xl space-y-4">
+                <div className="text-xs font-bold text-[#FF8C00] uppercase tracking-wider flex items-center gap-1.5 border-b border-white/5 pb-2">
+                  <UserCheck size={14} />
+                  <span>Experience Owner / Organizer Contact (For Tourists)</span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Organizer / Business Name</label>
+                  <input
+                    type="text"
+                    name="organizerName"
+                    value={formData.organizerName}
+                    onChange={handleInputChange}
+                    placeholder="e.g., Minneriya Wild Safari Tours / Kitulgala Rafting Team"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#FF8C00]/80 transition-all font-medium"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Contact Phone / WhatsApp</label>
+                    <input
+                      type="text"
+                      name="organizerPhone"
+                      value={formData.organizerPhone}
+                      onChange={handleInputChange}
+                      placeholder="e.g., +94 77 123 4567"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#FF8C00]/80 transition-all font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Contact Email (Optional)</label>
+                    <input
+                      type="email"
+                      name="organizerEmail"
+                      value={formData.organizerEmail}
+                      onChange={handleInputChange}
+                      placeholder="e.g., contact@organizer.com"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#FF8C00]/80 transition-all font-medium"
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Action Buttons */}
@@ -651,6 +764,82 @@ const Experiences = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Contact Organizer Modal Popup */}
+      {contactModalExperience && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black/85 backdrop-blur-sm transition-opacity"
+            onClick={() => setContactModalExperience(null)}
+          ></div>
+
+          <div className="relative bg-[#141418] border border-white/10 w-full max-w-md rounded-3xl overflow-hidden shadow-2xl flex flex-col animate-slide-up text-left p-6">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
+              <div className="flex items-center gap-2">
+                <UserCheck className="text-[#FF8C00]" size={24} />
+                <div>
+                  <h3 className="text-lg font-bold text-white leading-tight">Contact Experience Owner</h3>
+                  <p className="text-xs text-gray-400 line-clamp-1">{contactModalExperience.title}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setContactModalExperience(null)}
+                className="text-gray-400 hover:text-white p-1.5 rounded-full hover:bg-white/5 transition-all cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                <span className="text-[10px] text-gray-400 uppercase font-extrabold tracking-wider block mb-1">Organizer / Business Name</span>
+                <span className="text-base font-bold text-white">
+                  {contactModalExperience.organizerName || `${contactModalExperience.providedBy?.firstName || 'Local'} ${contactModalExperience.providedBy?.lastName || 'Organizer'}`}
+                </span>
+              </div>
+
+              {(contactModalExperience.organizerPhone || contactModalExperience.providedBy?.phone) && (
+                <div className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-2xl">
+                  <div>
+                    <span className="text-[10px] text-emerald-400 font-extrabold uppercase tracking-wider block">Phone / WhatsApp</span>
+                    <span className="text-sm font-bold text-white">{contactModalExperience.organizerPhone || contactModalExperience.providedBy?.phone}</span>
+                  </div>
+                  <a
+                    href={`tel:${contactModalExperience.organizerPhone || contactModalExperience.providedBy?.phone}`}
+                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 transition-all shrink-0"
+                  >
+                    <Phone size={14} />
+                    <span>Call Now</span>
+                  </a>
+                </div>
+              )}
+
+              {(contactModalExperience.organizerEmail || contactModalExperience.providedBy?.email) && (
+                <div className="flex items-center justify-between bg-blue-500/10 border border-blue-500/30 p-4 rounded-2xl">
+                  <div className="truncate pr-2">
+                    <span className="text-[10px] text-blue-400 font-extrabold uppercase tracking-wider block">Email Address</span>
+                    <span className="text-sm font-bold text-white truncate block">{contactModalExperience.organizerEmail || contactModalExperience.providedBy?.email}</span>
+                  </div>
+                  <a
+                    href={`mailto:${contactModalExperience.organizerEmail || contactModalExperience.providedBy?.email}`}
+                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-blue-500/20 transition-all shrink-0"
+                  >
+                    <Mail size={14} />
+                    <span>Send Email</span>
+                  </a>
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => setContactModalExperience(null)}
+              className="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-3 rounded-xl border border-white/10 transition-all text-sm cursor-pointer"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}

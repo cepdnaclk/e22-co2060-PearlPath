@@ -18,7 +18,10 @@ const experienceSchema = new Schema({
         type: String, 
         enum: ['hotel', 'hotel_owner', 'vehicle_owner', 'tour_guide'], 
         required: true 
-    }
+    },
+    organizerName: { type: String },
+    organizerPhone: { type: String },
+    organizerEmail: { type: String }
 }, { timestamps: true });
 
 const Experience = mongoose.model('Experience', experienceSchema);
