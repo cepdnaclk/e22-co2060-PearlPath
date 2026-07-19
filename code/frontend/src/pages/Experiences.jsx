@@ -17,7 +17,9 @@ import {
   X,
   PlusCircle,
   AlertCircle,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Search,
+  SlidersHorizontal
 } from 'lucide-react';
 
 const mockExperiences = [
@@ -79,6 +81,10 @@ const Experiences = () => {
   const [dbExperiences, setDbExperiences] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Search & Filter State
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Form Modal State
   const [modalOpen, setModalOpen] = useState(false);
@@ -236,8 +242,27 @@ const Experiences = () => {
     }
   };
 
+  // Category list definitions
+  const categories = [
+    { id: 'All', label: 'All Experiences', icon: SlidersHorizontal },
+    { id: 'Wildlife', label: 'Wildlife', icon: Sparkles },
+    { id: 'Adventure', label: 'Adventure', icon: Compass },
+    { id: 'Culinary', label: 'Culinary', icon: Utensils },
+    { id: 'Cultural', label: 'Cultural', icon: Waves },
+  ];
+
   // Combine static mock experiences and DB experiences
   const allExperiences = [...dbExperiences, ...mockExperiences];
+
+  // Filter experiences by category and search keyword
+  const filteredExperiences = allExperiences.filter(exp => {
+    const matchesCategory = selectedCategory === 'All' || exp.category?.toLowerCase() === selectedCategory.toLowerCase();
+    const matchesSearch = !searchTerm.trim() || 
+      exp.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      exp.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      exp.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   return (
     <div className="min-h-screen bg-sunset-dark text-white font-outfit flex flex-col">
@@ -245,7 +270,7 @@ const Experiences = () => {
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28 w-full">
         {/* Header section with optional add button */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-white/5 pb-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 border-b border-white/5 pb-8">
           <div className="text-left">
             <div className="inline-block px-4 py-1 mb-3 rounded-full bg-[#FF8C00]/20 border border-[#FF8C00]/30 text-[#FF8C00] text-xs font-bold uppercase tracking-wider">
               🏞️ Local Adventures & Tours
@@ -269,6 +294,66 @@ const Experiences = () => {
           )}
         </div>
 
+        {/* Search & Category Filter Section */}
+        <div className="mb-10 space-y-5 text-left">
+          {/* Search Bar & Result Counter */}
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div className="relative flex-1 w-full">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search experiences by title, location, or description..."
+                className="w-full bg-[#1a1a1f]/80 border border-white/10 rounded-2xl pl-12 pr-10 py-3.5 text-white placeholder-gray-500 text-sm outline-none focus:border-[#FF8C00]/80 transition-all font-medium shadow-inner"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white cursor-pointer"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
+
+            <div className="text-xs text-gray-400 font-semibold px-4 py-3 bg-white/5 rounded-2xl border border-white/10 shrink-0 self-start sm:self-auto">
+              Showing <span className="text-[#FF8C00] font-bold">{filteredExperiences.length}</span> of {allExperiences.length} experiences
+            </div>
+          </div>
+
+          {/* Category Filter Pills */}
+          <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
+            {categories.map((cat) => {
+              const Icon = cat.icon;
+              const isActive = selectedCategory === cat.id;
+              const count = cat.id === 'All' 
+                ? allExperiences.length 
+                : allExperiences.filter(e => e.category?.toLowerCase() === cat.id.toLowerCase()).length;
+
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`flex items-center gap-2.5 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all whitespace-nowrap cursor-pointer border ${
+                    isActive 
+                      ? 'bg-gradient-to-r from-[#FF8C00] to-amber-500 text-white border-transparent shadow-lg shadow-[#FF8C00]/25 scale-[1.02]' 
+                      : 'bg-[#1a1a1f]/80 text-gray-400 border-white/10 hover:border-white/30 hover:text-white'
+                  }`}
+                >
+                  <Icon size={16} className={isActive ? 'text-white' : 'text-[#FF8C00]'} />
+                  <span>{cat.label}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                    isActive ? 'bg-white/25 text-white' : 'bg-white/5 text-gray-400'
+                  }`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Experiences Grid */}
         {loading && dbExperiences.length === 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -290,9 +375,28 @@ const Experiences = () => {
             <AlertCircle size={24} />
             <span>Error loading experiences: {error}</span>
           </div>
+        ) : filteredExperiences.length === 0 ? (
+          <div className="bg-[#1a1a1f]/40 border border-white/10 rounded-3xl p-12 text-center max-w-lg mx-auto my-12">
+            <div className="w-16 h-16 bg-[#FF8C00]/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-[#FF8C00]/20">
+              <Compass size={32} className="text-[#FF8C00]" />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2">No Experiences Found</h3>
+            <p className="text-gray-400 text-sm mb-6 font-light">
+              No experiences matched your selected category or search query. Try choosing another category or clearing your filters.
+            </p>
+            <button
+              onClick={() => {
+                setSelectedCategory('All');
+                setSearchTerm('');
+              }}
+              className="bg-gradient-to-r from-[#FF8C00] to-amber-500 text-white font-bold px-6 py-2.5 rounded-xl shadow-lg shadow-[#FF8C00]/20 transition-all hover:scale-105 cursor-pointer text-sm"
+            >
+              Reset Filters
+            </button>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-left">
-            {allExperiences.map(experience => {
+            {filteredExperiences.map(experience => {
               // Convert LKR price to active currency
               const convertedPrice = convertPrice(experience.pricePerPerson);
               const symbol = getCurrencySymbol();
