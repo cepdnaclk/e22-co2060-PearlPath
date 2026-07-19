@@ -102,6 +102,9 @@ const Experiences = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Full Details Modal State (for viewing complete experience details)
+  const [selectedExperienceDetails, setSelectedExperienceDetails] = useState(null);
+
   // Form Modal State
   const [modalOpen, setModalOpen] = useState(false);
   const [editingExperienceId, setEditingExperienceId] = useState(null);
@@ -444,7 +447,10 @@ const Experiences = () => {
                   className="bg-[#1a1a1f]/60 backdrop-blur-md border border-white/10 rounded-3xl overflow-hidden hover:shadow-[#FF8C00]/10 hover:shadow-2xl hover:border-white/20 transition-all duration-300 group flex flex-col h-full hover:-translate-y-1"
                 >
                   {/* Card Image */}
-                  <div className="h-56 w-full overflow-hidden relative bg-gray-900">
+                  <div 
+                    onClick={() => setSelectedExperienceDetails(experience)}
+                    className="h-56 w-full overflow-hidden relative bg-gray-900 cursor-pointer"
+                  >
                     <img 
                       src={experience.images?.[0] || "https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop"} 
                       alt={experience.title} 
@@ -469,7 +475,11 @@ const Experiences = () => {
                       </div>
 
                       {/* Title */}
-                      <h3 className="text-xl font-bold text-white mb-2 leading-snug group-hover:text-[#FF8C00] transition-colors line-clamp-1">
+                      <h3 
+                        onClick={() => setSelectedExperienceDetails(experience)}
+                        className="text-xl font-bold text-white mb-2 leading-snug group-hover:text-[#FF8C00] transition-colors cursor-pointer hover:underline"
+                        title="Click to view full experience details"
+                      >
                         {experience.title}
                       </h3>
 
@@ -544,7 +554,7 @@ const Experiences = () => {
                           className="bg-gradient-to-r from-[#FF8C00] to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer shadow-lg shadow-[#FF8C00]/20 flex items-center gap-1.5"
                         >
                           <Phone size={13} />
-                          <span>Contact Owner</span>
+                          <span>Book Now</span>
                         </button>
                       )}
                     </div>
@@ -840,6 +850,121 @@ const Experiences = () => {
             >
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Full Experience Details Modal (when touching/clicking experience title or card) */}
+      {selectedExperienceDetails && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/85 backdrop-blur-md transition-opacity"
+            onClick={() => setSelectedExperienceDetails(null)}
+          ></div>
+
+          {/* Modal Container */}
+          <div className="relative bg-[#141418] border border-white/15 w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl flex flex-col my-auto max-h-[90vh] animate-slide-up text-left z-10">
+            {/* Header Image */}
+            <div className="h-64 sm:h-72 w-full relative bg-gray-900 shrink-0">
+              <img 
+                src={selectedExperienceDetails.images?.[0] || "https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop"} 
+                alt={selectedExperienceDetails.title} 
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#141418] via-[#141418]/30 to-transparent"></div>
+              
+              <button 
+                onClick={() => setSelectedExperienceDetails(null)}
+                className="absolute top-4 right-4 bg-black/60 backdrop-blur text-gray-300 hover:text-white p-2 rounded-full border border-white/20 hover:bg-black/80 transition-all cursor-pointer z-10"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="absolute bottom-4 left-6 flex items-center gap-3 flex-wrap">
+                {getCategoryBadge(selectedExperienceDetails.category)}
+                <div className="bg-black/60 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-gray-300 border border-white/10 flex items-center gap-1.5">
+                  <Clock size={12} className="text-[#FF8C00]" />
+                  {selectedExperienceDetails.duration}
+                </div>
+              </div>
+            </div>
+
+            {/* Scrollable Content Body */}
+            <div className="p-6 sm:p-8 overflow-y-auto space-y-6 hide-scrollbar">
+              {/* Location & Title */}
+              <div>
+                <div className="flex items-center gap-1.5 text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">
+                  <MapPin size={14} className="text-[#FF8C00]" />
+                  {selectedExperienceDetails.location}
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-white leading-snug">
+                  {selectedExperienceDetails.title}
+                </h2>
+              </div>
+
+              {/* Complete Description */}
+              <div>
+                <h4 className="text-xs font-extrabold text-[#FF8C00] uppercase tracking-wider mb-2">About This Experience</h4>
+                <p className="text-gray-300 text-base leading-relaxed whitespace-pre-line font-light">
+                  {selectedExperienceDetails.description}
+                </p>
+              </div>
+
+              {/* Price Details */}
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
+                <div>
+                  <span className="text-xs text-gray-400 font-bold uppercase tracking-wider block">Price per Person</span>
+                  <span className="text-2xl font-extrabold text-[#FF8C00]">
+                    {getCurrencySymbol()} {convertPrice(selectedExperienceDetails.pricePerPerson).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-xs text-gray-400 font-normal">{selectedCurrency}</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Experience Owner / Organizer Contact Section */}
+              <div className="bg-[#0f0f11] border border-white/10 rounded-2xl p-5 space-y-3">
+                <div className="text-xs font-extrabold text-[#FF8C00] uppercase tracking-wider flex items-center gap-2 border-b border-white/5 pb-2">
+                  <UserCheck size={16} />
+                  <span>Experience Owner / Organizer Contact Information</span>
+                </div>
+
+                <div className="text-base font-bold text-white">
+                  {selectedExperienceDetails.organizerName || `${selectedExperienceDetails.providedBy?.firstName || 'Local'} ${selectedExperienceDetails.providedBy?.lastName || 'Organizer'}`}
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                  {(selectedExperienceDetails.organizerPhone || selectedExperienceDetails.providedBy?.phone) && (
+                    <a 
+                      href={`tel:${selectedExperienceDetails.organizerPhone || selectedExperienceDetails.providedBy?.phone}`}
+                      className="flex-1 flex items-center justify-center gap-2 bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-white border border-emerald-500/40 px-4 py-3 rounded-xl font-bold text-sm transition-all"
+                    >
+                      <Phone size={16} />
+                      <span>Call {selectedExperienceDetails.organizerPhone || selectedExperienceDetails.providedBy?.phone}</span>
+                    </a>
+                  )}
+
+                  {(selectedExperienceDetails.organizerEmail || selectedExperienceDetails.providedBy?.email) && (
+                    <a 
+                      href={`mailto:${selectedExperienceDetails.organizerEmail || selectedExperienceDetails.providedBy?.email}`}
+                      className="flex-1 flex items-center justify-center gap-2 bg-blue-500/20 hover:bg-blue-500 text-blue-400 hover:text-white border border-blue-500/40 px-4 py-3 rounded-xl font-bold text-sm transition-all"
+                    >
+                      <Mail size={16} />
+                      <span>Send Email</span>
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-white/10 bg-[#0f0f11]/60 flex justify-end shrink-0">
+              <button
+                onClick={() => setSelectedExperienceDetails(null)}
+                className="bg-gradient-to-r from-[#FF8C00] to-amber-500 text-white font-bold px-6 py-2.5 rounded-xl shadow-lg shadow-[#FF8C00]/20 transition-all hover:scale-105 cursor-pointer text-sm"
+              >
+                Close Details
+              </button>
+            </div>
           </div>
         </div>
       )}
