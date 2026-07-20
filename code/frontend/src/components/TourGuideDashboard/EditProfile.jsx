@@ -188,56 +188,33 @@ const EditProfile = () => {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-bold text-gray-700 mb-2">Profile Picture Image</label>
-                
-                {/* Image URL Input */}
-                <div className="mb-4">
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Option 1: Paste Image URL</label>
-                  <input 
-                    name="profilePictureUrl" 
-                    value={formData.profilePictureUrl} 
-                    onChange={handleChange} 
-                    type="url" 
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-sunset-teal focus:ring-2 focus:ring-sunset-teal/20 transition-all outline-none text-sm" 
-                    placeholder="e.g. https://images.unsplash.com/photo-..." 
-                  />
-                </div>
-
-                <div className="flex items-center gap-4 my-4">
-                  <div className="flex-1 border-t border-gray-200"></div>
-                  <span className="text-xs text-gray-400 font-bold uppercase">OR Upload File</span>
-                  <div className="flex-1 border-t border-gray-200"></div>
-                </div>
-
-                {/* File Upload Box */}
-                <div className="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:bg-gray-50 transition-colors relative">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  />
-                  <div className="flex flex-col items-center justify-center pointer-events-none">
-                    <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-4">
-                      <UploadCloud size={32} />
-                    </div>
-                    <h3 className="text-lg font-bold text-gray-700 mb-1">Drag & Drop your photo here</h3>
-                    <p className="text-sm text-gray-500">or click to browse from your computer</p>
-                    <p className="text-xs text-gray-400 mt-4">High-quality JPG or PNG. Max 5MB.</p>
-                  </div>
-                </div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Profile Picture Image URL</label>
+                <input 
+                  name="profilePictureUrl" 
+                  value={formData.profilePictureUrl} 
+                  onChange={handleChange} 
+                  type="url" 
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-sunset-teal focus:ring-2 focus:ring-sunset-teal/20 transition-all outline-none text-sm" 
+                  placeholder="e.g. https://images.unsplash.com/photo-..." 
+                />
 
                 {formData.profilePictureUrl && (
-                  <div className="mt-6">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-3 text-center">Selected Image</h4>
-                    <div className="relative group w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg mx-auto">
-                      <img src={formData.profilePictureUrl} alt="Preview" className="w-full h-full object-cover" />
+                  <div className="mt-4">
+                    <h4 className="text-xs font-semibold text-gray-500 mb-2 text-center uppercase tracking-wider">Image Preview</h4>
+                    <div className="relative group w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg mx-auto bg-gray-100">
+                      <img 
+                        src={formData.profilePictureUrl} 
+                        alt="Profile Preview" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=800&auto=format&fit=crop"; }}
+                      />
                       <button
                         type="button"
                         onClick={removeImage}
                         className="absolute inset-0 bg-black/40 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-black/60"
+                        title="Remove image"
                       >
-                        <X size={32} strokeWidth={2} />
+                        <X size={28} strokeWidth={2} />
                       </button>
                     </div>
                   </div>
