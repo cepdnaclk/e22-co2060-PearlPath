@@ -68,55 +68,135 @@ const RoutesPage = ({ embedded = false }) => {
     { name: 'Jaffna', lat: 9.6615, lng: 80.0255 }
   ];
 
+  const [startSearchText, setStartSearchText] = useState('');
+  const [startGeocodingLoading, setStartGeocodingLoading] = useState(false);
+
+  const handleCustomStartSubmit = async (e) => {
+    e.preventDefault();
+    if (!startSearchText.trim()) return;
+
+    const query = startSearchText.trim();
+    const matchedCity = majorCities.find(c => c.name.toLowerCase().includes(query.toLowerCase()));
+
+    if (matchedCity) {
+      setStartPoint(matchedCity);
+      setLiveLocationActive(false);
+      setStartSearchText('');
+      return;
+    }
+
+    setStartGeocodingLoading(true);
+    try {
+      const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&countrycodes=lk&format=json&limit=1`);
+      const geoData = await geoRes.json();
+      if (geoData && geoData.length > 0) {
+        const locationName = geoData[0].display_name.split(',')[0];
+        const lat = parseFloat(geoData[0].lat);
+        const lng = parseFloat(geoData[0].lon);
+
+        setStartPoint({
+          name: locationName,
+          lat,
+          lng
+        });
+        setLiveLocationActive(false);
+        setStartSearchText('');
+      } else {
+        alert(`Could not locate "${query}" in Sri Lanka. Please try another location.`);
+      }
+    } catch (err) {
+      console.error("Geocoding start point error:", err);
+      alert("Failed to find starting location. Please check your internet connection.");
+    } finally {
+      setStartGeocodingLoading(false);
+    }
+  };
+
   const fetchRoutes = async (query = '') => {
     setLoading(true);
     try {
-      // 1. Try fetching predefined routes from local database first
-      const res = await fetch(`http://127.0.0.1:3001/api/routes?to=${encodeURIComponent(query)}`);
-      const data = await res.json();
-      
-      if (data.success && data.response && data.response.length > 0) {
-        setRoutes(data.response || []);
-        setSelectedRoute(data.response[0]);
-        setLoading(false);
-        return;
-      }
+      if (query && query.trim() !== '') {
+        const qTrim = query.trim();
 
-      // 2. If no predefined routes found, dynamically geocode custom location using Nominatim API (restricted to Sri Lanka)
-      if (query.trim() !== '') {
-        const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&countrycodes=lk&format=json&limit=1`);
-        const geoData = await geoRes.json();
+        // 1. Check if query matches a known major city
+        const matchedCity = majorCities.find(c => c.name.toLowerCase().includes(qTrim.toLowerCase()));
         
-        if (geoData && geoData.length > 0) {
-          const locationName = geoData[0].display_name.split(',')[0];
-          const lat = parseFloat(geoData[0].lat);
-          const lng = parseFloat(geoData[0].lon);
+        let destName = qTrim.charAt(0).toUpperCase() + qTrim.slice(1);
+        let destLat = null;
+        let destLng = null;
 
-          const dynamicRoute = {
-            _id: `dynamic-${Date.now()}`,
-            name: `Custom Route to ${locationName}`,
-            description: `Dynamically calculated driving route from your start point to ${locationName}, Sri Lanka.`,
-            destination: locationName,
+        if (matchedCity) {
+          destName = matchedCity.name;
+          destLat = matchedCity.lat;
+          destLng = matchedCity.lng;
+        } else {
+          // 2. Geocode custom location using Nominatim API (restricted to Sri Lanka)
+          try {
+            const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(qTrim)}&countrycodes=lk&format=json&limit=1`);
+            const geoData = await geoRes.json();
+            if (geoData && geoData.length > 0) {
+              destName = geoData[0].display_name.split(',')[0];
+              destLat = parseFloat(geoData[0].lat);
+              destLng = parseFloat(geoData[0].lon);
+            }
+          } catch (e) {
+            console.error("Geocoding failed:", e);
+          }
+        }
+
+        // 3. Fallback to checking predefined backend database routes for waypoint match
+        if (!destLat) {
+          try {
+            const res = await fetch(`http://127.0.0.1:3001/api/routes?to=${encodeURIComponent(qTrim)}`);
+            const data = await res.json();
+            if (data.success && data.response && data.response.length > 0) {
+              const matchedDbRoute = data.response[0];
+              const matchWp = matchedDbRoute.waypoints.find(wp => wp.name.toLowerCase().includes(qTrim.toLowerCase()));
+              if (matchWp) {
+                destName = matchWp.name.replace(/ Start$/i, '');
+                destLat = matchWp.lat;
+                destLng = matchWp.lng;
+              }
+            }
+          } catch (e) {
+            console.error("Backend fetch error:", e);
+          }
+        }
+
+        if (destLat && destLng) {
+          const customRoute = {
+            _id: `custom-${destName.toLowerCase().replace(/\s+/g, '-')}`,
+            name: `${startPoint.name} to ${destName}`,
+            description: `Direct optimal road route from ${startPoint.name} to ${destName}, Sri Lanka.`,
+            destination: destName,
             waypoints: [
               {
-                lat,
-                lng,
-                name: locationName,
-                description: `Geocoded custom destination coordinates.`
+                lat: destLat,
+                lng: destLng,
+                name: destName,
+                description: `Destination stop in ${destName}`
               }
             ]
           };
 
-          setRoutes([dynamicRoute]);
-          setSelectedRoute(dynamicRoute);
+          setRoutes([customRoute]);
+          setSelectedRoute(customRoute);
           setLoading(false);
           return;
         }
       }
 
-      // 3. Fallback: No predefined route and geocoding failed
-      setRoutes([]);
-      setSelectedRoute(null);
+      // If no search query, fetch predefined routes from local database
+      const res = await fetch(`http://127.0.0.1:3001/api/routes`);
+      const data = await res.json();
+      
+      if (data.success && data.response && data.response.length > 0) {
+        setRoutes(data.response || []);
+        setSelectedRoute(data.response[0]);
+      } else {
+        setRoutes([]);
+        setSelectedRoute(null);
+      }
     } catch (err) {
       console.error("Error in routes search flow:", err);
       setRoutes([]);
@@ -126,17 +206,73 @@ const RoutesPage = ({ embedded = false }) => {
     }
   };
 
-  // Fetch real-world road directions from OSRM
-  const getLiveRoutePath = async (start, waypoints) => {
-    if (!start || !waypoints || waypoints.length === 0) return;
+  const getDisplayRouteName = (route) => {
+    if (!route) return '';
+    if (route.destination && startPoint?.name) {
+      const cleanDest = route.destination.replace(/ Start$/i, '');
+      return `${startPoint.name} to ${cleanDest}`;
+    }
+    const activeWps = getActiveWaypoints(route.waypoints, startPoint, searchQuery);
+    const destination = activeWps.length > 0 ? activeWps[activeWps.length - 1].name : '';
+    if (destination && startPoint?.name) {
+      const cleanDest = destination.replace(/ Start$/i, '');
+      return `${startPoint.name} to ${cleanDest}`;
+    }
+    return route.name;
+  };
 
-    // Filter out starting point from waypoints if it matches Colombo to prevent duplicate markers
-    const filteredWps = waypoints.filter(wp => {
-      if (wp.name.includes("Start") && start.name === "Colombo") {
+  const getDisplayRouteDescription = (route) => {
+    if (!route) return '';
+    if (route.destination && startPoint?.name) {
+      const cleanDest = route.destination.replace(/ Start$/i, '');
+      return `Direct optimal road route from ${startPoint.name} to ${cleanDest}, Sri Lanka.`;
+    }
+    const activeWps = getActiveWaypoints(route.waypoints, startPoint, searchQuery);
+    const destination = activeWps.length > 0 ? activeWps[activeWps.length - 1].name : '';
+    if (destination && startPoint?.name) {
+      const cleanDest = destination.replace(/ Start$/i, '');
+      return `Direct optimal road route from ${startPoint.name} to ${cleanDest}, Sri Lanka.`;
+    }
+    return route.description;
+  };
+
+  // Helper to filter and truncate waypoints based on current start point and active search target
+  const getActiveWaypoints = (waypoints, start, searchTarget = '') => {
+    if (!waypoints || waypoints.length === 0) return [];
+
+    let active = [...waypoints];
+
+    // 1. If user searched for a specific target city (e.g. "Kandy"), truncate waypoints after the searched city!
+    if (searchTarget && searchTarget.trim()) {
+      const searchLower = searchTarget.trim().toLowerCase();
+      const matchIndex = active.findIndex(wp => 
+        wp.name.toLowerCase().includes(searchLower)
+      );
+      if (matchIndex !== -1) {
+        active = active.slice(0, matchIndex + 1);
+      }
+    }
+
+    // 2. Filter out origin start markers (e.g. "Colombo Start" or any marker designated as "Start")
+    // so the path goes directly from the user's selected startPoint to destination stops.
+    const filtered = active.filter(wp => {
+      if (wp.name.toLowerCase().includes("start")) {
+        return false;
+      }
+      if (start && wp.name.toLowerCase() === start.name.toLowerCase()) {
         return false;
       }
       return true;
     });
+
+    return filtered.length > 0 ? filtered : active;
+  };
+
+  // Fetch real-world road directions from OSRM
+  const getLiveRoutePath = async (start, waypoints, searchTarget = '') => {
+    if (!start || !waypoints || waypoints.length === 0) return;
+
+    const filteredWps = getActiveWaypoints(waypoints, start, searchTarget);
 
     const coordsString = [
       `${start.lng},${start.lat}`,
@@ -196,9 +332,9 @@ const RoutesPage = ({ embedded = false }) => {
 
   useEffect(() => {
     if (selectedRoute && startPoint) {
-      getLiveRoutePath(startPoint, selectedRoute.waypoints);
+      getLiveRoutePath(startPoint, selectedRoute.waypoints, searchQuery);
     }
-  }, [selectedRoute, startPoint, travelMode]);
+  }, [selectedRoute, startPoint, travelMode, searchQuery]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -255,29 +391,41 @@ const RoutesPage = ({ embedded = false }) => {
               <Locate size={20} /> Select Start Point
             </h2>
             <div className="flex flex-col gap-3">
-              <div className="flex gap-2">
-                <select
-                  value={liveLocationActive ? '' : startPoint.name}
-                  onChange={handleCitySelect}
-                  className="flex-1 px-3 py-2.5 bg-[#27272a] text-white border border-white/5 rounded-xl focus:outline-none focus:ring-2 focus:ring-sunset-orange text-sm font-medium"
+              {/* Type Any Start Location in Sri Lanka */}
+              <form onSubmit={handleCustomStartSubmit} className="flex gap-2">
+                <div className="relative flex-1">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-sunset-teal" size={15} />
+                  <input
+                    type="text"
+                    placeholder="Type starting city (e.g. Matara, Kaduwela)..."
+                    value={startSearchText}
+                    onChange={(e) => setStartSearchText(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 bg-[#27272a] text-white border border-white/5 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sunset-teal text-xs font-medium"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={startGeocodingLoading}
+                  className="bg-sunset-teal/20 hover:bg-sunset-teal/30 text-sunset-teal border border-sunset-teal/30 font-bold px-3 py-2 rounded-xl transition-all text-xs shrink-0"
                 >
-                  {liveLocationActive && <option value="">Live GPS Active</option>}
-                  {majorCities.map((city) => (
-                    <option key={city.name} value={city.name}>
-                      Starting City: {city.name}
-                    </option>
-                  ))}
-                </select>
+                  {startGeocodingLoading ? '...' : 'Set'}
+                </button>
                 <button
                   type="button"
                   onClick={handleDetectLocation}
-                  className="bg-[#27272a] hover:bg-sunset-teal/20 text-sunset-teal border border-sunset-teal/20 hover:border-sunset-teal/40 font-bold px-4 rounded-xl transition-all flex items-center gap-1.5 text-xs uppercase"
+                  className="bg-[#27272a] hover:bg-sunset-teal/20 text-sunset-teal border border-sunset-teal/20 hover:border-sunset-teal/40 font-bold px-3 py-2 rounded-xl transition-all flex items-center gap-1 text-xs uppercase shrink-0"
+                  title="Detect Live GPS Location"
                 >
-                  <Locate size={14} /> Live GPS
+                  <Locate size={13} /> Live GPS
                 </button>
-              </div>
-              <div className="text-xs text-gray-400 font-medium">
-                Current Start: <span className="text-white font-bold">{startPoint.name}</span> {liveLocationActive && `(${startPoint.lat.toFixed(4)}, ${startPoint.lng.toFixed(4)})`}
+              </form>
+
+
+
+              {/* Current Start Status */}
+              <div className="text-xs text-gray-400 font-medium flex items-center justify-between pt-1">
+                <span>Start: <span className="text-white font-bold">{startPoint.name}</span></span>
+                <span className="text-[10px] text-gray-500">({startPoint.lat.toFixed(3)}, {startPoint.lng.toFixed(3)})</span>
               </div>
             </div>
           </div>
@@ -388,10 +536,10 @@ const RoutesPage = ({ embedded = false }) => {
                   )}
 
                   <h3 className="font-bold text-lg leading-snug group-hover:text-sunset-orange transition-colors">
-                    {route.name}
+                    {getDisplayRouteName(route)}
                   </h3>
                   <p className="text-gray-400 text-xs line-clamp-2 leading-relaxed">
-                    {route.description}
+                    {getDisplayRouteDescription(route)}
                   </p>
 
                   <div className="flex items-center gap-4 text-xs font-semibold text-gray-300 pt-2 border-t border-white/5">
@@ -404,7 +552,7 @@ const RoutesPage = ({ embedded = false }) => {
                       {selectedRoute?._id === route._id ? liveRouteInfo.distance || route.distance : route.distance}
                     </span>
                     <span className="ml-auto text-sunset-gold bg-sunset-gold/10 px-2 py-0.5 rounded text-[10px] uppercase">
-                      {route.waypoints.length} Stops
+                      {selectedRoute?._id === route._id ? getActiveWaypoints(route.waypoints, startPoint, searchQuery).length : route.waypoints.length} Stops
                     </span>
                   </div>
                 </div>
@@ -453,8 +601,7 @@ const RoutesPage = ({ embedded = false }) => {
                 </Marker>
 
                 {/* Waypoint Markers */}
-                {selectedRoute.waypoints
-                  .filter(stop => !(stop.name.includes("Start") && startPoint.name === "Colombo"))
+                {getActiveWaypoints(selectedRoute.waypoints, startPoint, searchQuery)
                   .map((stop, index, arr) => (
                     <Marker 
                       key={index} 
@@ -511,29 +658,41 @@ const RoutesPage = ({ embedded = false }) => {
               <Locate size={20} /> Select Start Point
             </h2>
             <div className="flex flex-col gap-3">
-              <div className="flex gap-2">
-                <select
-                  value={liveLocationActive ? '' : startPoint.name}
-                  onChange={handleCitySelect}
-                  className="flex-1 px-3 py-2.5 bg-[#27272a] text-white border border-white/5 rounded-xl focus:outline-none focus:ring-2 focus:ring-sunset-orange text-sm font-medium"
+              {/* Type Any Start Location in Sri Lanka */}
+              <form onSubmit={handleCustomStartSubmit} className="flex gap-2">
+                <div className="relative flex-1">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-sunset-teal" size={15} />
+                  <input
+                    type="text"
+                    placeholder="Type starting city (e.g. Matara, Kaduwela)..."
+                    value={startSearchText}
+                    onChange={(e) => setStartSearchText(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 bg-[#27272a] text-white border border-white/5 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sunset-teal text-xs font-medium"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={startGeocodingLoading}
+                  className="bg-sunset-teal/20 hover:bg-sunset-teal/30 text-sunset-teal border border-sunset-teal/30 font-bold px-3 py-2 rounded-xl transition-all text-xs shrink-0"
                 >
-                  {liveLocationActive && <option value="">Live GPS Active</option>}
-                  {majorCities.map((city) => (
-                    <option key={city.name} value={city.name}>
-                      Starting City: {city.name}
-                    </option>
-                  ))}
-                </select>
+                  {startGeocodingLoading ? '...' : 'Set'}
+                </button>
                 <button
                   type="button"
                   onClick={handleDetectLocation}
-                  className="bg-[#27272a] hover:bg-sunset-teal/20 text-sunset-teal border border-sunset-teal/20 hover:border-sunset-teal/40 font-bold px-4 rounded-xl transition-all flex items-center gap-1.5 text-xs uppercase"
+                  className="bg-[#27272a] hover:bg-sunset-teal/20 text-sunset-teal border border-sunset-teal/20 hover:border-sunset-teal/40 font-bold px-3 py-2 rounded-xl transition-all flex items-center gap-1 text-xs uppercase shrink-0"
+                  title="Detect Live GPS Location"
                 >
-                  <Locate size={14} /> Live GPS
+                  <Locate size={13} /> Live GPS
                 </button>
-              </div>
-              <div className="text-xs text-gray-400 font-medium">
-                Current Start: <span className="text-white font-bold">{startPoint.name}</span> {liveLocationActive && `(${startPoint.lat.toFixed(4)}, ${startPoint.lng.toFixed(4)})`}
+              </form>
+
+
+
+              {/* Current Start Status */}
+              <div className="text-xs text-gray-400 font-medium flex items-center justify-between pt-1">
+                <span>Start: <span className="text-white font-bold">{startPoint.name}</span></span>
+                <span className="text-[10px] text-gray-500">({startPoint.lat.toFixed(3)}, {startPoint.lng.toFixed(3)})</span>
               </div>
             </div>
           </div>
@@ -644,10 +803,10 @@ const RoutesPage = ({ embedded = false }) => {
                   )}
 
                   <h3 className="font-bold text-lg leading-snug group-hover:text-sunset-orange transition-colors">
-                    {route.name}
+                    {getDisplayRouteName(route)}
                   </h3>
                   <p className="text-gray-400 text-xs line-clamp-2 leading-relaxed">
-                    {route.description}
+                    {getDisplayRouteDescription(route)}
                   </p>
 
                   <div className="flex items-center gap-4 text-xs font-semibold text-gray-300 pt-2 border-t border-white/5">
@@ -660,7 +819,7 @@ const RoutesPage = ({ embedded = false }) => {
                       {selectedRoute?._id === route._id ? liveRouteInfo.distance || route.distance : route.distance}
                     </span>
                     <span className="ml-auto text-sunset-gold bg-sunset-gold/10 px-2 py-0.5 rounded text-[10px] uppercase">
-                      {route.waypoints.length} Stops
+                      {selectedRoute?._id === route._id ? getActiveWaypoints(route.waypoints, startPoint, searchQuery).length : route.waypoints.length} Stops
                     </span>
                   </div>
                 </div>
@@ -709,8 +868,7 @@ const RoutesPage = ({ embedded = false }) => {
                 </Marker>
 
                 {/* Waypoint Markers */}
-                {selectedRoute.waypoints
-                  .filter(stop => !(stop.name.includes("Start") && startPoint.name === "Colombo"))
+                {getActiveWaypoints(selectedRoute.waypoints, startPoint, searchQuery)
                   .map((stop, index, arr) => (
                     <Marker 
                       key={index} 
