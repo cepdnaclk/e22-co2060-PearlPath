@@ -369,6 +369,37 @@ const RoutesPage = ({ embedded = false }) => {
     );
   };
 
+  // Handle dragging green start point marker on map
+  const handleMarkerDragEnd = async (e) => {
+    const marker = e.target;
+    if (!marker) return;
+    const latLng = marker.getLatLng();
+    const lat = latLng.lat;
+    const lng = latLng.lng;
+
+    setStartPoint({
+      name: 'Pinned Start Location',
+      lat,
+      lng
+    });
+    setLiveLocationActive(false);
+
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+      const data = await res.json();
+      if (data && data.display_name) {
+        const placeName = data.display_name.split(',')[0];
+        setStartPoint({
+          name: placeName || 'Pinned Start Location',
+          lat,
+          lng
+        });
+      }
+    } catch (err) {
+      console.error("Reverse geocoding error:", err);
+    }
+  };
+
   const handleCitySelect = (e) => {
     const cityName = e.target.value;
     const city = majorCities.find(c => c.name === cityName);
@@ -591,11 +622,17 @@ const RoutesPage = ({ embedded = false }) => {
                 />
 
                 {/* Green marker for Starting Point */}
-                <Marker position={[startPoint.lat, startPoint.lng]} icon={startIcon}>
+                <Marker 
+                  position={[startPoint.lat, startPoint.lng]} 
+                  icon={startIcon}
+                  draggable={true}
+                  eventHandlers={{ dragend: handleMarkerDragEnd }}
+                >
                   <Popup>
                     <div className="p-1 font-outfit text-slate-800">
                       <h4 className="font-extrabold text-sm text-green-600 leading-tight">Starting Location</h4>
                       <p className="text-xs text-slate-500 mt-1 font-medium">{startPoint.name}</p>
+                      <p className="text-[10px] text-slate-400 mt-1 font-semibold">💡 Drag pin to move start location</p>
                     </div>
                   </Popup>
                 </Marker>
@@ -858,11 +895,17 @@ const RoutesPage = ({ embedded = false }) => {
                 />
 
                 {/* Green marker for Starting Point */}
-                <Marker position={[startPoint.lat, startPoint.lng]} icon={startIcon}>
+                <Marker 
+                  position={[startPoint.lat, startPoint.lng]} 
+                  icon={startIcon}
+                  draggable={true}
+                  eventHandlers={{ dragend: handleMarkerDragEnd }}
+                >
                   <Popup>
                     <div className="p-1 font-outfit text-slate-800">
                       <h4 className="font-extrabold text-sm text-green-600 leading-tight">Starting Location</h4>
                       <p className="text-xs text-slate-500 mt-1 font-medium">{startPoint.name}</p>
+                      <p className="text-[10px] text-slate-400 mt-1 font-semibold">💡 Drag pin to move start location</p>
                     </div>
                   </Popup>
                 </Marker>
