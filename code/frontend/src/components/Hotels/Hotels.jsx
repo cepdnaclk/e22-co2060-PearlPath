@@ -38,13 +38,19 @@ const Hotels = () => {
         // Map backend to frontend schema
         const backendHotels = data.response.map(h => ({
           id: h._id,
+          _id: h._id,
+          name: h.name,
           propertyName: h.name,
           city: h.location,
+          location: h.location,
           starRating: h.starRating || 4,
           pricePerNight: h.pricePerNight,
           amenities: h.amenities || ["Free WiFi", "A/C"],
           description: h.description,
-          imageUrl: h.imageUrl || "https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop"
+          imageUrl: h.imageUrl || "https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop",
+          contactNumber: h.contactNumber,
+          whatsappNumber: h.whatsappNumber,
+          ownerId: h.ownerId
         }));
         
         setHotels(backendHotels);

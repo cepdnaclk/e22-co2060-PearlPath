@@ -89,10 +89,23 @@ const Home = () => {
 
         {/* Quick Action Tabs */}
         <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-8 mb-4">
+          {user?.role === 'hotel_owner' && (
+            <Link to="/add-property" className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-sunset-gold to-sunset-orange rounded-full shadow-md hover:shadow-lg transition-all text-white whitespace-nowrap group">
+              <Plus className="text-white group-hover:scale-125 transition-transform" />
+              <span className="font-bold">Add Hotels</span>
+            </Link>
+          )}
 
-          <Link to="/routes" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-teal/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
+          {user?.role === 'vehicle_owner' && (
+            <Link to="/add-vehicle" className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-sunset-orange to-sunset-gold rounded-full shadow-md hover:shadow-lg transition-all text-white whitespace-nowrap group">
+              <Plus className="text-white group-hover:scale-125 transition-transform" />
+              <span className="font-bold">Add Vehicles</span>
+            </Link>
+          )}
+
+          <Link to="/routes" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-teal/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group font-semibold">
             <Compass className="text-sunset-teal group-hover:rotate-45 transition-transform" />
-            <span className="font-semibold">Interactive Map</span>
+            <span>Interactive Map</span>
           </Link>
 
           {!user && (

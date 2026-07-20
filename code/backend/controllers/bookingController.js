@@ -196,7 +196,8 @@ const getBookings = async (req, res) => {
         const bookings = await Booking.find({ userId })
             .populate('hotelId')
             .populate('vehicleId')
-            .populate('tourId');
+            .populate('tourId')
+            .populate('providerId', 'firstName lastName email phone');
         res.status(200).json({ response: bookings });
     } catch (error) {
         console.error("Get bookings error:", error);
