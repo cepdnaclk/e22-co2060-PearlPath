@@ -21,5 +21,12 @@ const hotelSchema = new Schema({
     }
 }, { timestamps: true });
 
+if (mongoose.models && mongoose.models.Hotel) {
+    delete mongoose.models.Hotel;
+}
+if (mongoose.modelSchemas && mongoose.modelSchemas.Hotel) {
+    delete mongoose.modelSchemas.Hotel;
+}
+
 const Hotel = mongoose.model('Hotel', hotelSchema);
 module.exports = Hotel;
