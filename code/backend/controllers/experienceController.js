@@ -16,10 +16,19 @@ const getExperiences = async (req, res) => {
 // Create a new experience
 const createExperience = async (req, res) => {
     try {
-        const { title, category, location, description, pricePerPerson, duration, images, organizerName, organizerPhone, organizerEmail } = req.body;
+        const { 
+            title, category, location, description, pricePerPerson, duration, images, 
+            realOwnerName, realOwnerPhone, realOwnerEmail, realOwnerAddress,
+            organizerName, organizerPhone, organizerEmail 
+        } = req.body;
 
-        if (!title || !category || !location || !description || !pricePerPerson || !duration) {
-            return res.status(400).json({ message: 'Please provide all required fields' });
+        const ownerName = realOwnerName || organizerName;
+        const ownerPhone = realOwnerPhone || organizerPhone;
+        const ownerEmail = realOwnerEmail || organizerEmail || '';
+        const ownerAddress = realOwnerAddress || '';
+
+        if (!title || !category || !location || !description || !pricePerPerson || !duration || !ownerName || !ownerPhone) {
+            return res.status(400).json({ message: 'Please provide all required fields including real owner name and phone number' });
         }
 
         // Determine provider type from user role
@@ -37,16 +46,22 @@ const createExperience = async (req, res) => {
             duration,
             images: Array.isArray(images) ? images : (images ? [images] : []),
             providedBy: req.user._id,
+            createdBy: req.user._id,
             providerType,
-            organizerName: organizerName || '',
-            organizerPhone: organizerPhone || '',
-            organizerEmail: organizerEmail || ''
+            realOwnerName: ownerName,
+            realOwnerPhone: ownerPhone,
+            realOwnerEmail: ownerEmail,
+            realOwnerAddress: ownerAddress,
+            organizerName: ownerName,
+            organizerPhone: ownerPhone,
+            organizerEmail: ownerEmail
         });
 
         await newExperience.save();
 
         const populatedExperience = await Experience.findById(newExperience._id)
             .populate('providedBy', 'firstName lastName email')
+            .populate('createdBy', 'firstName lastName email')
             .lean();
 
         res.status(201).json({ message: 'Experience created successfully', experience: populatedExperience });
@@ -67,7 +82,11 @@ const updateExperience = async (req, res) => {
             return res.status(403).json({ message: 'Not authorized to update this experience' });
         }
 
-        const { title, category, location, description, pricePerPerson, duration, images, organizerName, organizerPhone, organizerEmail } = req.body;
+        const { 
+            title, category, location, description, pricePerPerson, duration, images, 
+            realOwnerName, realOwnerPhone, realOwnerEmail, realOwnerAddress,
+            organizerName, organizerPhone, organizerEmail 
+        } = req.body;
 
         experience.title = title || experience.title;
         experience.category = category || experience.category;
@@ -76,14 +95,25 @@ const updateExperience = async (req, res) => {
         experience.pricePerPerson = pricePerPerson !== undefined ? parseFloat(pricePerPerson) : experience.pricePerPerson;
         experience.duration = duration || experience.duration;
         experience.images = Array.isArray(images) ? images : experience.images;
-        experience.organizerName = organizerName !== undefined ? organizerName : experience.organizerName;
-        experience.organizerPhone = organizerPhone !== undefined ? organizerPhone : experience.organizerPhone;
-        experience.organizerEmail = organizerEmail !== undefined ? organizerEmail : experience.organizerEmail;
+
+        const ownerName = realOwnerName !== undefined ? realOwnerName : (organizerName !== undefined ? organizerName : experience.realOwnerName);
+        const ownerPhone = realOwnerPhone !== undefined ? realOwnerPhone : (organizerPhone !== undefined ? organizerPhone : experience.realOwnerPhone);
+        const ownerEmail = realOwnerEmail !== undefined ? realOwnerEmail : (organizerEmail !== undefined ? organizerEmail : experience.realOwnerEmail);
+        const ownerAddress = realOwnerAddress !== undefined ? realOwnerAddress : experience.realOwnerAddress;
+
+        experience.realOwnerName = ownerName;
+        experience.realOwnerPhone = ownerPhone;
+        experience.realOwnerEmail = ownerEmail;
+        experience.realOwnerAddress = ownerAddress;
+        experience.organizerName = ownerName;
+        experience.organizerPhone = ownerPhone;
+        experience.organizerEmail = ownerEmail;
 
         await experience.save();
 
         const populatedExperience = await Experience.findById(experience._id)
             .populate('providedBy', 'firstName lastName email')
+            .populate('createdBy', 'firstName lastName email')
             .lean();
 
         res.status(200).json({ message: 'Experience updated successfully', experience: populatedExperience });

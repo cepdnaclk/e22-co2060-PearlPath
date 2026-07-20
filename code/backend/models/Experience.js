@@ -14,11 +14,18 @@ const experienceSchema = new Schema({
     duration: { type: String, required: true },
     images: [{ type: String, required: true }],
     providedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
     providerType: { 
         type: String, 
         enum: ['hotel', 'hotel_owner', 'vehicle_owner', 'tour_guide'], 
         required: true 
     },
+    // Real Activity Owner / Operator Contact Details
+    realOwnerName: { type: String, required: true },
+    realOwnerPhone: { type: String, required: true },
+    realOwnerEmail: { type: String, default: '' },
+    realOwnerAddress: { type: String, default: '' },
+    // Backward compatibility aliases
     organizerName: { type: String },
     organizerPhone: { type: String },
     organizerEmail: { type: String }

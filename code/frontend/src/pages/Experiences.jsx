@@ -26,69 +26,6 @@ import {
   MessageSquare
 } from 'lucide-react';
 
-const mockExperiences = [
-  {
-    _id: 'mock1',
-    title: 'Minneriya Elephant Gathering Safari',
-    category: 'Wildlife',
-    location: 'Minneriya National Park',
-    description: 'Witness the largest gathering of Asian elephants in the wild. Watch hundreds of elephants feed, play and bathe in the Minneriya tank.',
-    pricePerPerson: 15000,
-    duration: '4 Hours',
-    images: ['/experiences/minneriya.jpg'],
-    providedBy: { firstName: 'PearlPath', lastName: 'Guide' },
-    providerType: 'tour_guide',
-    organizerName: 'Minneriya Wild Safari Tours',
-    organizerPhone: '+94 77 345 6789',
-    organizerEmail: 'safari@minneriya.lk'
-  },
-  {
-    _id: 'mock2',
-    title: 'Kitulgala White-Water Rafting',
-    category: 'Adventure',
-    location: 'Kitulgala',
-    description: 'Get your adrenaline pumping with a thrilling white-water rafting session on the Kelani River in Kitulgala, tackling major rapids.',
-    pricePerPerson: 8000,
-    duration: '3 Hours',
-    images: ['/experiences/kitulgala.jpg'],
-    providedBy: { firstName: 'Adventure', lastName: 'Lanka' },
-    providerType: 'vehicle_owner',
-    organizerName: 'Kitulgala River Rafting Center',
-    organizerPhone: '+94 71 890 1234',
-    organizerEmail: 'info@kitulgalarafting.lk'
-  },
-  {
-    _id: 'mock3',
-    title: 'Ella Traditional Clay-pot Cooking Class',
-    category: 'Culinary',
-    location: 'Ella',
-    description: 'Learn to cook authentic Sri Lankan rice and curry using traditional clay pots, wood-fired hearths, and local fresh herbs.',
-    pricePerPerson: 6000,
-    duration: '2.5 Hours',
-    images: ['/experiences/ella.jpg'],
-    providedBy: { firstName: 'Grandma\'s', lastName: 'Kitchen' },
-    providerType: 'hotel',
-    organizerName: 'Amma\'s Secret Spice Kitchen',
-    organizerPhone: '+94 76 543 2109',
-    organizerEmail: 'cook@ellaspices.com'
-  },
-  {
-    _id: 'mock4',
-    title: 'Kandy Temple & Cultural Heritage Tour',
-    category: 'Cultural',
-    location: 'Kandy',
-    description: 'Explore the sacred Temple of the Tooth Relic, stroll through historic streets, and witness a traditional Kandyan dance performance.',
-    pricePerPerson: 9500,
-    duration: 'Half Day',
-    images: ['/experiences/kandy.jpg'],
-    providedBy: { firstName: 'Culture', lastName: 'Heritage' },
-    providerType: 'tour_guide',
-    organizerName: 'Kandyan Heritage Cultural Association',
-    organizerPhone: '+94 81 223 4567',
-    organizerEmail: 'contact@kandydance.lk'
-  }
-];
-
 const Experiences = () => {
   const { user, authFetch } = useAuth();
   const { selectedCurrency, convertPrice, getCurrencySymbol } = useCurrency();
@@ -105,6 +42,12 @@ const Experiences = () => {
   // Full Details Modal State (for viewing complete experience details)
   const [selectedExperienceDetails, setSelectedExperienceDetails] = useState(null);
 
+  // Contact Modal State (for Tourists)
+  const [contactModalExperience, setContactModalExperience] = useState(null);
+
+  // Check if current user is an experience provider
+  const isProvider = user && ['hotel', 'hotel_owner', 'vehicle_owner', 'tour_guide'].includes(user.role);
+
   // Form Modal State
   const [modalOpen, setModalOpen] = useState(false);
   const [editingExperienceId, setEditingExperienceId] = useState(null);
@@ -116,30 +59,23 @@ const Experiences = () => {
     pricePerPerson: '',
     description: '',
     imageUrl: '',
-    organizerName: '',
-    organizerPhone: '',
-    organizerEmail: ''
+    realOwnerName: '',
+    realOwnerPhone: '',
+    realOwnerEmail: '',
+    realOwnerAddress: ''
   });
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState(null);
 
-  // Contact Modal State (for Tourists)
-  const [contactModalExperience, setContactModalExperience] = useState(null);
-
-  // Check if current user is an experience provider
-  const isProvider = user && ['hotel', 'hotel_owner', 'vehicle_owner', 'tour_guide'].includes(user.role);
-
   const fetchExperiences = async () => {
-    setLoading(true);
     try {
-      const response = await fetch('http://127.0.0.1:3001/api/experiences');
-      if (!response.ok) {
-        throw new Error('Failed to fetch marketplace experiences');
-      }
-      const data = await response.json();
+      setLoading(true);
+      const res = await fetch('http://127.0.0.1:3001/api/experiences');
+      if (!res.ok) throw new Error('Failed to load experiences');
+      const data = await res.json();
       setDbExperiences(data.response || []);
     } catch (err) {
-      console.error(err);
+      console.error("Fetch experiences error:", err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -167,9 +103,10 @@ const Experiences = () => {
       pricePerPerson: experience.pricePerPerson ? experience.pricePerPerson.toString() : '',
       description: experience.description || '',
       imageUrl: experience.images?.[0] || '',
-      organizerName: experience.organizerName || '',
-      organizerPhone: experience.organizerPhone || '',
-      organizerEmail: experience.organizerEmail || ''
+      realOwnerName: experience.realOwnerName || experience.organizerName || '',
+      realOwnerPhone: experience.realOwnerPhone || experience.organizerPhone || '',
+      realOwnerEmail: experience.realOwnerEmail || experience.organizerEmail || '',
+      realOwnerAddress: experience.realOwnerAddress || ''
     });
     setModalOpen(true);
   };
@@ -202,9 +139,10 @@ const Experiences = () => {
       pricePerPerson: '',
       description: '',
       imageUrl: '',
-      organizerName: '',
-      organizerPhone: '',
-      organizerEmail: ''
+      realOwnerName: '',
+      realOwnerPhone: '',
+      realOwnerEmail: '',
+      realOwnerAddress: ''
     });
     setEditingExperienceId(null);
     setFormError(null);
@@ -224,9 +162,13 @@ const Experiences = () => {
       pricePerPerson: parseFloat(formData.pricePerPerson),
       description: formData.description,
       images: formData.imageUrl ? [formData.imageUrl] : ['https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop'],
-      organizerName: formData.organizerName,
-      organizerPhone: formData.organizerPhone,
-      organizerEmail: formData.organizerEmail
+      realOwnerName: formData.realOwnerName,
+      realOwnerPhone: formData.realOwnerPhone,
+      realOwnerEmail: formData.realOwnerEmail,
+      realOwnerAddress: formData.realOwnerAddress,
+      organizerName: formData.realOwnerName,
+      organizerPhone: formData.realOwnerPhone,
+      organizerEmail: formData.realOwnerEmail
     };
 
     try {
@@ -285,8 +227,8 @@ const Experiences = () => {
     { id: 'Cultural', label: 'Cultural', icon: Waves },
   ];
 
-  // Combine static mock experiences and DB experiences
-  const allExperiences = [...dbExperiences, ...mockExperiences];
+  // Experiences loaded from database
+  const allExperiences = dbExperiences;
 
   // Filter experiences by category and search keyword
   const filteredExperiences = allExperiences.filter(exp => {
@@ -488,36 +430,44 @@ const Experiences = () => {
                         {experience.description}
                       </p>
 
-                      {/* Experience Owner / Organizer Contact Section */}
+                      {/* Contact Activity Operator Section */}
                       <div className="bg-[#141418]/80 border border-white/10 rounded-2xl p-3.5 mb-5 space-y-2 text-xs">
                         <div className="text-[10px] uppercase font-extrabold text-[#FF8C00] tracking-wider flex items-center gap-1.5">
                           <UserCheck size={13} />
-                          <span>Experience Owner / Organizer</span>
+                          <span>Contact Activity Operator</span>
                         </div>
+                        
                         <div className="font-bold text-gray-200 text-sm truncate">
-                          {experience.organizerName || `${experience.providedBy?.firstName || 'Local'} ${experience.providedBy?.lastName || 'Organizer'}`}
+                          {experience.realOwnerName || experience.organizerName || "Activity Operator"}
                         </div>
 
+                        {experience.realOwnerAddress && (
+                          <div className="text-[11px] text-gray-400 flex items-center gap-1">
+                            <MapPin size={11} className="text-gray-500 shrink-0" />
+                            <span className="truncate">{experience.realOwnerAddress}</span>
+                          </div>
+                        )}
+
                         <div className="flex flex-wrap gap-2 pt-1">
-                          {(experience.organizerPhone || experience.providedBy?.phone) && (
+                          {(experience.realOwnerPhone || experience.organizerPhone) && (
                             <a 
-                              href={`tel:${experience.organizerPhone || experience.providedBy?.phone}`}
+                              href={`tel:${experience.realOwnerPhone || experience.organizerPhone}`}
                               className="flex items-center gap-1.5 bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30 px-3 py-1.5 rounded-xl font-semibold transition-all text-xs"
-                              title="Call Organizer"
+                              title="Call Operator"
                             >
                               <Phone size={12} />
-                              <span>{experience.organizerPhone || experience.providedBy?.phone}</span>
+                              <span>Call Operator</span>
                             </a>
                           )}
                           
-                          {(experience.organizerEmail || experience.providedBy?.email) && (
+                          {(experience.realOwnerEmail || experience.organizerEmail) && (
                             <a 
-                              href={`mailto:${experience.organizerEmail || experience.providedBy?.email}`}
+                              href={`mailto:${experience.realOwnerEmail || experience.organizerEmail}`}
                               className="flex items-center gap-1.5 bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 border border-blue-500/30 px-3 py-1.5 rounded-xl font-semibold transition-all text-xs truncate max-w-full"
-                              title="Email Organizer"
+                              title="Email Operator"
                             >
                               <Mail size={12} />
-                              <span className="truncate">{experience.organizerEmail || experience.providedBy?.email}</span>
+                              <span>Email Operator</span>
                             </a>
                           )}
                         </div>
@@ -710,32 +660,38 @@ const Experiences = () => {
                 ></textarea>
               </div>
 
-              {/* Experience Owner / Organizer Contact Details */}
-              <div className="bg-[#0f0f11]/60 border border-white/10 p-4 rounded-2xl space-y-4">
-                <div className="text-xs font-bold text-[#FF8C00] uppercase tracking-wider flex items-center gap-1.5 border-b border-white/5 pb-2">
+              {/* Real Activity Owner / Contact Info Section */}
+              <div className="bg-[#0f0f11]/80 border border-white/10 p-5 rounded-2xl space-y-4">
+                <div className="text-xs font-extrabold text-[#FF8C00] uppercase tracking-wider flex items-center gap-1.5 border-b border-white/5 pb-2">
                   <UserCheck size={14} />
-                  <span>Experience Owner / Organizer Contact (For Tourists)</span>
+                  <span>Real Activity Owner / Contact Info (For Tourists)</span>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Organizer / Business Name</label>
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    Real Owner / Operator Name <span className="text-[#FF8C00]">*</span>
+                  </label>
                   <input
                     type="text"
-                    name="organizerName"
-                    value={formData.organizerName}
+                    name="realOwnerName"
+                    required
+                    value={formData.realOwnerName}
                     onChange={handleInputChange}
-                    placeholder="e.g., Minneriya Wild Safari Tours / Kitulgala Rafting Team"
+                    placeholder="e.g., Saman Rafting Guides / Minneriya Wild Safari Operators"
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#FF8C00]/80 transition-all font-medium"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Contact Phone / WhatsApp</label>
+                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                      Direct Phone Number for Tourists <span className="text-[#FF8C00]">*</span>
+                    </label>
                     <input
                       type="text"
-                      name="organizerPhone"
-                      value={formData.organizerPhone}
+                      name="realOwnerPhone"
+                      required
+                      value={formData.realOwnerPhone}
                       onChange={handleInputChange}
                       placeholder="e.g., +94 77 123 4567"
                       className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#FF8C00]/80 transition-all font-medium"
@@ -743,16 +699,32 @@ const Experiences = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Contact Email (Optional)</label>
+                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                      Direct Email (Optional)
+                    </label>
                     <input
                       type="email"
-                      name="organizerEmail"
-                      value={formData.organizerEmail}
+                      name="realOwnerEmail"
+                      value={formData.realOwnerEmail}
                       onChange={handleInputChange}
-                      placeholder="e.g., contact@organizer.com"
+                      placeholder="e.g., contact@activityoperator.com"
                       className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#FF8C00]/80 transition-all font-medium"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    Meeting Point / Office Location (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    name="realOwnerAddress"
+                    value={formData.realOwnerAddress}
+                    onChange={handleInputChange}
+                    placeholder="e.g., Main Rafting Office, Kelani River Bank, Kitulgala"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#FF8C00]/80 transition-all font-medium"
+                  />
                 </div>
               </div>
 
@@ -778,7 +750,7 @@ const Experiences = () => {
         </div>
       )}
 
-      {/* Contact Organizer Modal Popup */}
+      {/* Contact Activity Operator Modal Popup */}
       {contactModalExperience && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div 
@@ -791,7 +763,7 @@ const Experiences = () => {
               <div className="flex items-center gap-2">
                 <UserCheck className="text-[#FF8C00]" size={24} />
                 <div>
-                  <h3 className="text-lg font-bold text-white leading-tight">Contact Experience Owner</h3>
+                  <h3 className="text-lg font-bold text-white leading-tight">Contact Activity Operator</h3>
                   <p className="text-xs text-gray-400 line-clamp-1">{contactModalExperience.title}</p>
                 </div>
               </div>
@@ -805,40 +777,46 @@ const Experiences = () => {
 
             <div className="space-y-4 mb-6">
               <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-                <span className="text-[10px] text-gray-400 uppercase font-extrabold tracking-wider block mb-1">Organizer / Business Name</span>
-                <span className="text-base font-bold text-white">
-                  {contactModalExperience.organizerName || `${contactModalExperience.providedBy?.firstName || 'Local'} ${contactModalExperience.providedBy?.lastName || 'Organizer'}`}
+                <span className="text-[10px] text-gray-400 uppercase font-extrabold tracking-wider block mb-1">Real Activity Owner / Business Name</span>
+                <span className="text-base font-bold text-white block">
+                  {contactModalExperience.realOwnerName || contactModalExperience.organizerName || "Activity Operator"}
                 </span>
+                {contactModalExperience.realOwnerAddress && (
+                  <span className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                    <MapPin size={12} className="text-[#FF8C00]" />
+                    {contactModalExperience.realOwnerAddress}
+                  </span>
+                )}
               </div>
 
-              {(contactModalExperience.organizerPhone || contactModalExperience.providedBy?.phone) && (
+              {(contactModalExperience.realOwnerPhone || contactModalExperience.organizerPhone) && (
                 <div className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-2xl">
                   <div>
-                    <span className="text-[10px] text-emerald-400 font-extrabold uppercase tracking-wider block">Phone / WhatsApp</span>
-                    <span className="text-sm font-bold text-white">{contactModalExperience.organizerPhone || contactModalExperience.providedBy?.phone}</span>
+                    <span className="text-[10px] text-emerald-400 font-extrabold uppercase tracking-wider block">Direct Phone Number</span>
+                    <span className="text-sm font-bold text-white">{contactModalExperience.realOwnerPhone || contactModalExperience.organizerPhone}</span>
                   </div>
                   <a
-                    href={`tel:${contactModalExperience.organizerPhone || contactModalExperience.providedBy?.phone}`}
+                    href={`tel:${contactModalExperience.realOwnerPhone || contactModalExperience.organizerPhone}`}
                     className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 transition-all shrink-0"
                   >
                     <Phone size={14} />
-                    <span>Call Now</span>
+                    <span>Call Operator</span>
                   </a>
                 </div>
               )}
 
-              {(contactModalExperience.organizerEmail || contactModalExperience.providedBy?.email) && (
+              {(contactModalExperience.realOwnerEmail || contactModalExperience.organizerEmail) && (
                 <div className="flex items-center justify-between bg-blue-500/10 border border-blue-500/30 p-4 rounded-2xl">
                   <div className="truncate pr-2">
-                    <span className="text-[10px] text-blue-400 font-extrabold uppercase tracking-wider block">Email Address</span>
-                    <span className="text-sm font-bold text-white truncate block">{contactModalExperience.organizerEmail || contactModalExperience.providedBy?.email}</span>
+                    <span className="text-[10px] text-blue-400 font-extrabold uppercase tracking-wider block">Direct Email Address</span>
+                    <span className="text-sm font-bold text-white truncate block">{contactModalExperience.realOwnerEmail || contactModalExperience.organizerEmail}</span>
                   </div>
                   <a
-                    href={`mailto:${contactModalExperience.organizerEmail || contactModalExperience.providedBy?.email}`}
+                    href={`mailto:${contactModalExperience.realOwnerEmail || contactModalExperience.organizerEmail}`}
                     className="bg-blue-500 hover:bg-blue-600 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-blue-500/20 transition-all shrink-0"
                   >
                     <Mail size={14} />
-                    <span>Send Email</span>
+                    <span>Email Operator</span>
                   </a>
                 </div>
               )}
@@ -921,35 +899,42 @@ const Experiences = () => {
                 </div>
               </div>
 
-              {/* Experience Owner / Organizer Contact Section */}
+              {/* Real Activity Owner / Operator Contact Section */}
               <div className="bg-[#0f0f11] border border-white/10 rounded-2xl p-5 space-y-3">
                 <div className="text-xs font-extrabold text-[#FF8C00] uppercase tracking-wider flex items-center gap-2 border-b border-white/5 pb-2">
                   <UserCheck size={16} />
-                  <span>Experience Owner / Organizer Contact Information</span>
+                  <span>Real Activity Operator Contact Information</span>
                 </div>
 
                 <div className="text-base font-bold text-white">
-                  {selectedExperienceDetails.organizerName || `${selectedExperienceDetails.providedBy?.firstName || 'Local'} ${selectedExperienceDetails.providedBy?.lastName || 'Organizer'}`}
+                  {selectedExperienceDetails.realOwnerName || selectedExperienceDetails.organizerName || "Activity Operator"}
                 </div>
 
+                {selectedExperienceDetails.realOwnerAddress && (
+                  <div className="text-xs text-gray-400 flex items-center gap-1.5">
+                    <MapPin size={13} className="text-[#FF8C00]" />
+                    <span>{selectedExperienceDetails.realOwnerAddress}</span>
+                  </div>
+                )}
+
                 <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                  {(selectedExperienceDetails.organizerPhone || selectedExperienceDetails.providedBy?.phone) && (
+                  {(selectedExperienceDetails.realOwnerPhone || selectedExperienceDetails.organizerPhone) && (
                     <a 
-                      href={`tel:${selectedExperienceDetails.organizerPhone || selectedExperienceDetails.providedBy?.phone}`}
+                      href={`tel:${selectedExperienceDetails.realOwnerPhone || selectedExperienceDetails.organizerPhone}`}
                       className="flex-1 flex items-center justify-center gap-2 bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-white border border-emerald-500/40 px-4 py-3 rounded-xl font-bold text-sm transition-all"
                     >
                       <Phone size={16} />
-                      <span>Call {selectedExperienceDetails.organizerPhone || selectedExperienceDetails.providedBy?.phone}</span>
+                      <span>Call Operator ({selectedExperienceDetails.realOwnerPhone || selectedExperienceDetails.organizerPhone})</span>
                     </a>
                   )}
 
-                  {(selectedExperienceDetails.organizerEmail || selectedExperienceDetails.providedBy?.email) && (
+                  {(selectedExperienceDetails.realOwnerEmail || selectedExperienceDetails.organizerEmail) && (
                     <a 
-                      href={`mailto:${selectedExperienceDetails.organizerEmail || selectedExperienceDetails.providedBy?.email}`}
+                      href={`mailto:${selectedExperienceDetails.realOwnerEmail || selectedExperienceDetails.organizerEmail}`}
                       className="flex-1 flex items-center justify-center gap-2 bg-blue-500/20 hover:bg-blue-500 text-blue-400 hover:text-white border border-blue-500/40 px-4 py-3 rounded-xl font-bold text-sm transition-all"
                     >
                       <Mail size={16} />
-                      <span>Send Email</span>
+                      <span>Email Operator</span>
                     </a>
                   )}
                 </div>
