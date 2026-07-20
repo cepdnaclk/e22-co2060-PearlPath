@@ -190,6 +190,26 @@ const EditProfile = () => {
               <div className="md:col-span-2">
                 <label className="block text-sm font-bold text-gray-700 mb-2">Profile Picture Image</label>
                 
+                {/* Image URL Input */}
+                <div className="mb-4">
+                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">Option 1: Paste Image URL</label>
+                  <input 
+                    name="profilePictureUrl" 
+                    value={formData.profilePictureUrl} 
+                    onChange={handleChange} 
+                    type="url" 
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-sunset-teal focus:ring-2 focus:ring-sunset-teal/20 transition-all outline-none text-sm" 
+                    placeholder="e.g. https://images.unsplash.com/photo-..." 
+                  />
+                </div>
+
+                <div className="flex items-center gap-4 my-4">
+                  <div className="flex-1 border-t border-gray-200"></div>
+                  <span className="text-xs text-gray-400 font-bold uppercase">OR Upload File</span>
+                  <div className="flex-1 border-t border-gray-200"></div>
+                </div>
+
+                {/* File Upload Box */}
                 <div className="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:bg-gray-50 transition-colors relative">
                   <input
                     type="file"

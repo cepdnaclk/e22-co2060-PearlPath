@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, Car, Users, DollarSign, Settings, Wind } from 'lucide-react';
+import { Upload, Car, Users, DollarSign, Settings, Wind, Link as LinkIcon } from 'lucide-react';
 import Navbar from '../Navbar/Navbar';
 import { useAuth } from '../../context/AuthContext';
 
@@ -11,6 +11,7 @@ const AddVehicle = () => {
     pricePerDay: '',
     transmission: 'Auto',
     airConditioning: true,
+    imageUrl: '',
   });
 
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -23,6 +24,10 @@ const AddVehicle = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
+
+    if (name === 'imageUrl') {
+      setImagePreview(value.trim() ? value.trim() : null);
+    }
   };
 
   const handleImageChange = (e) => {
@@ -41,6 +46,8 @@ const AddVehicle = () => {
     setIsSubmitted(true);
     
     try {
+      const selectedImage = formData.imageUrl.trim() || imagePreview || "https://images.unsplash.com/photo-1590362891991-f776e747a58f?q=80&w=800&auto=format&fit=crop";
+
       const payload = {
         makeAndModel: formData.makeModel,
         vehicleType: formData.type,
@@ -48,7 +55,7 @@ const AddVehicle = () => {
         pricePerDay: Number(formData.pricePerDay),
         transmission: formData.transmission,
         hasAC: formData.airConditioning,
-        images: imagePreview ? [imagePreview] : ["https://images.unsplash.com/photo-1590362891991-f776e747a58f?q=80&w=800&auto=format&fit=crop"]
+        images: [selectedImage]
       };
 
       await authFetch('http://127.0.0.1:3001/api/vehicles', {
@@ -196,12 +203,35 @@ const AddVehicle = () => {
                 </div>
               </div>
 
-              {/* Right Column - Image Upload */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+              {/* Right Column - Image Upload & URL */}
+              <div className="space-y-4">
+                <label className="block text-sm font-semibold text-slate-700">
                   Vehicle Photo
                 </label>
-                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-2xl relative overflow-hidden group hover:border-sunset-orange transition-colors h-full min-h-[300px]">
+
+                {/* Option 1: Image URL */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1.5 flex items-center gap-1">
+                    <LinkIcon size={14} /> Option 1: Paste Image URL
+                  </label>
+                  <input
+                    type="url"
+                    name="imageUrl"
+                    value={formData.imageUrl}
+                    onChange={handleChange}
+                    placeholder="e.g. https://images.unsplash.com/photo-..."
+                    className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-sunset-orange focus:border-sunset-orange transition-colors text-sm"
+                  />
+                </div>
+
+                <div className="flex items-center gap-4 my-2">
+                  <div className="flex-1 border-t border-slate-200"></div>
+                  <span className="text-xs text-slate-400 font-bold uppercase">OR Upload File</span>
+                  <div className="flex-1 border-t border-slate-200"></div>
+                </div>
+
+                {/* Option 2: File Upload */}
+                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-2xl relative overflow-hidden group hover:border-sunset-orange transition-colors min-h-[220px]">
                   {imagePreview ? (
                     <div className="absolute inset-0">
                       <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
@@ -211,7 +241,7 @@ const AddVehicle = () => {
                     </div>
                   ) : (
                     <div className="space-y-2 text-center flex flex-col items-center justify-center">
-                      <Upload className="mx-auto h-12 w-12 text-slate-400 group-hover:text-sunset-orange transition-colors" />
+                      <Upload className="mx-auto h-10 w-10 text-slate-400 group-hover:text-sunset-orange transition-colors" />
                       <div className="flex text-sm text-slate-600">
                         <span className="relative cursor-pointer bg-white rounded-md font-medium text-sunset-orange hover:text-sunset-gold focus-within:outline-none">
                           <span>Upload a file</span>

@@ -125,7 +125,10 @@ const Home = () => {
             </>
           )}
 
-          <button className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-orange/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
+          <button 
+            onClick={() => document.getElementById('exploration-grid')?.scrollIntoView({ behavior: 'smooth' })}
+            className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-orange/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group"
+          >
             <Star className="text-sunset-orange group-hover:scale-110 transition-transform" />
             <span className="font-semibold">Top Rated</span>
           </button>
@@ -220,7 +223,7 @@ const Home = () => {
         ) : (
           <>
             {/* EXPLORATION GRID (Masonry Layout) */}
-            <div className="mb-12">
+            <div className="mb-12" id="exploration-grid">
               <h2 className="text-3xl font-extrabold text-gray-900 mb-2">The Exploration Grid</h2>
               <p className="text-gray-500 mb-8 font-medium">Curated stays matching the Pearl Path standard.</p>
 
