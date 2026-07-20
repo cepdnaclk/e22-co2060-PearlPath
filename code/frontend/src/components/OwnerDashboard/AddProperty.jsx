@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UploadCloud, MapPin, Building, Star, FileText, DollarSign, Check, X, Trash2, Plus } from 'lucide-react';
+import { UploadCloud, MapPin, Building, Star, FileText, DollarSign, Check, X, Trash2, Plus, Phone, MessageSquare } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
@@ -28,6 +28,8 @@ const AddProperty = () => {
     rooms: '1',
     address: '',
     city: '',
+    contactNumber: '',
+    whatsappNumber: '',
     description: '',
     pricePerNight: '',
     amenities: []
@@ -118,7 +120,9 @@ const AddProperty = () => {
         images: validUrls,
         starRating: Number(formData.starRating),
         rooms: Number(formData.rooms),
-        amenities: formData.amenities
+        amenities: formData.amenities,
+        contactNumber: formData.contactNumber,
+        whatsappNumber: formData.whatsappNumber
       };
 
       const response = await authFetch('http://127.0.0.1:3001/api/hotels', {
@@ -275,6 +279,49 @@ const AddProperty = () => {
                   placeholder="e.g. Mirissa, Sri Lanka"
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-sunset-teal/50 focus:border-sunset-teal transition-colors"
                   required
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Card: Contact Information for Tourists */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
+            <h2 className="text-xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+              <Phone size={20} className="text-green-600" />
+              Contact Information for Pre-Booking Enquiries
+            </h2>
+            <p className="text-sm text-gray-500 mb-6">
+              Tourists will use these details to call or message your hotel before booking.
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
+                  <Phone size={16} className="text-sunset-orange" />
+                  Contact Phone Number
+                </label>
+                <input
+                  type="tel"
+                  name="contactNumber"
+                  value={formData.contactNumber}
+                  onChange={handleChange}
+                  placeholder="e.g. +94 77 123 4567"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-sunset-orange/50 focus:border-sunset-orange transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
+                  <MessageSquare size={16} className="text-emerald-500" />
+                  WhatsApp Number
+                </label>
+                <input
+                  type="tel"
+                  name="whatsappNumber"
+                  value={formData.whatsappNumber}
+                  onChange={handleChange}
+                  placeholder="e.g. +94 77 123 4567"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-colors"
                 />
               </div>
             </div>

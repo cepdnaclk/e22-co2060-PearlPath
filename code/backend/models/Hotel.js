@@ -12,6 +12,8 @@ const hotelSchema = new Schema({
     rooms: { type: Number, default: 1 },
     starRating: { type: Number, default: 3 },
     amenities: [{ type: String }],
+    contactNumber: { type: String },
+    whatsappNumber: { type: String },
     status: {
         type: String,
         enum: ['pending', 'approved', 'rejected'],

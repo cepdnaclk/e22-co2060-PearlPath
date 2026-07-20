@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
-import { MapPin, Star, Wifi, Coffee, Wind, Waves, Calendar, Users, Home, User } from 'lucide-react';
+import { MapPin, Star, Wifi, Coffee, Wind, Waves, Calendar, Users, Home, User, Phone, MessageSquare } from 'lucide-react';
 import ReviewSection from '../Reviews/ReviewSection';
 import { useCurrency } from '../../context/CurrencyContext';
 
@@ -175,16 +175,39 @@ const HotelDetails = () => {
             {/* Contact Information */}
             <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Contact Property</h2>
+              
+              {/* Phone & WhatsApp Quick Actions */}
+              <div className="flex flex-wrap gap-3 mb-6">
+                {(hotel.contactNumber || hotel.ownerId?.phone) && (
+                  <a
+                    href={`tel:${hotel.contactNumber || hotel.ownerId?.phone}`}
+                    className="flex-1 min-w-[160px] inline-flex items-center justify-center gap-2 bg-gradient-to-r from-sunset-orange to-sunset-gold text-white font-bold px-5 py-3 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all text-sm"
+                  >
+                    <Phone size={18} />
+                    Call Hotel ({hotel.contactNumber || hotel.ownerId?.phone})
+                  </a>
+                )}
+
+                {(hotel.whatsappNumber || hotel.contactNumber || hotel.ownerId?.phone) && (
+                  <a
+                    href={`https://wa.me/${((hotel.whatsappNumber || hotel.contactNumber || hotel.ownerId?.phone) || '').replace(/[^0-9]/g, '').replace(/^0/, '94')}?text=${encodeURIComponent(`Hi! I am interested in ${hotel.name} on PearlPath.`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 min-w-[160px] inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-3 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all text-sm"
+                  >
+                    <MessageSquare size={18} />
+                    Chat on WhatsApp
+                  </a>
+                )}
+              </div>
+
               {hotel.ownerId ? (
-                <div className="space-y-3 text-gray-600 font-medium">
+                <div className="space-y-2 text-gray-600 font-medium text-sm pt-4 border-t border-gray-100">
                   <p><strong>Owner:</strong> {hotel.ownerId.firstName} {hotel.ownerId.lastName}</p>
                   <p><strong>Email:</strong> <a href={`mailto:${hotel.ownerId.email}`} className="text-sunset-teal hover:underline">{hotel.ownerId.email}</a></p>
-                  {hotel.ownerId.phone && (
-                    <p><strong>Phone:</strong> <a href={`tel:${hotel.ownerId.phone}`} className="text-sunset-teal hover:underline">{hotel.ownerId.phone}</a></p>
-                  )}
                 </div>
               ) : (
-                <p className="text-gray-500 italic">Contact information not available.</p>
+                <p className="text-gray-500 italic text-sm">Contact information not available.</p>
               )}
             </div>
 

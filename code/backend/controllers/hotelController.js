@@ -27,7 +27,9 @@ const createHotel = async (req, res) => {
             images: req.body.images || [],
             rooms: req.body.rooms || 1,
             starRating: req.body.starRating || 3,
-            amenities: req.body.amenities || []
+            amenities: req.body.amenities || [],
+            contactNumber: req.body.contactNumber || '',
+            whatsappNumber: req.body.whatsappNumber || ''
         });
 
         await newHotel.save();
@@ -83,7 +85,9 @@ const updateHotel = async (req, res) => {
                     images: req.body.images && req.body.images.length > 0 ? req.body.images : hotel.images,
                     starRating: req.body.starRating || hotel.starRating,
                     rooms: req.body.rooms !== undefined ? req.body.rooms : hotel.rooms,
-                    amenities: req.body.amenities || hotel.amenities
+                    amenities: req.body.amenities || hotel.amenities,
+                    contactNumber: req.body.contactNumber !== undefined ? req.body.contactNumber : hotel.contactNumber,
+                    whatsappNumber: req.body.whatsappNumber !== undefined ? req.body.whatsappNumber : hotel.whatsappNumber
                 }
             },
             { new: true }
