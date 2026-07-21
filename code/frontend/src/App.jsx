@@ -4,6 +4,8 @@ import Home from './components/Home/Home'
 import SignInPage from './components/Auth/SignInPage'
 import RegisterPage from './components/Auth/RegisterPage'
 import ForgotPassword from './components/Auth/ForgotPassword'
+import VerifyEmail from './components/Auth/VerifyEmail'
+import RoutesPage from './components/Routes/RoutesPage'
 import { VehicleProvider } from './context/VehicleContext'
 import Vehicles from './components/Vehicles/Vehicles'
 import VehicleDetails from './components/Vehicles/VehicleDetails'
@@ -16,41 +18,74 @@ import AddProperty from './components/OwnerDashboard/AddProperty'
 import EditProperty from './components/OwnerDashboard/EditProperty'
 import Hotels from './components/Hotels/Hotels'
 import HotelDetails from './components/Hotels/HotelDetails'
+import TourGuides from './components/TourGuides/TourGuides'
+import TourGuideDetails from './components/TourGuides/TourGuideDetails'
+import EditProfile from './components/TourGuideDashboard/EditProfile'
 import Profile from './components/Profile/Profile'
 import MyBookings from './components/Profile/MyBookings'
+import Destinations from './components/Destinations/Destinations'
+import DestinationDetails from './components/Destinations/DestinationDetails'
+import TravelChatWidget from './components/TravelChatWidget'
+import { CurrencyProvider } from './context/CurrencyContext'
+import Experiences from './pages/Experiences'
 
 function App() {
+  const handleSendMessage = async (message, history) => {
+    try {
+      const response = await fetch('http://localhost:3001/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, conversationHistory: history })
+      });
+      const data = await response.json();
+      return { reply: data.reply, context: data.context };
+    } catch (error) {
+      console.error('Error connecting to chat:', error);
+      return { reply: "I'm sorry, I'm having trouble connecting right now.", context: null };
+    }
+  };
+
   return (
-    <VehicleProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/login" element={<SignInPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
+    <CurrencyProvider>
+      <VehicleProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/login" element={<SignInPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route path="/routes" element={<RoutesPage />} />
+            <Route path="/destinations" element={<Destinations />} />
+            <Route path="/destinations/:id" element={<DestinationDetails />} />
 
-          <Route path="/admin/dashboard" element={<ProtectedRoute roles={['admin', 'super_admin']}><AdminDashboard /></ProtectedRoute>} />
-          <Route path="/super-admin/dashboard" element={<ProtectedRoute roles={['super_admin']}><SuperAdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/dashboard" element={<ProtectedRoute roles={['admin', 'super_admin']}><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/super-admin/dashboard" element={<ProtectedRoute roles={['super_admin']}><SuperAdminDashboard /></ProtectedRoute>} />
 
-          <Route path="/add-property" element={<ProtectedRoute roles={['hotel_owner']}><AddProperty /></ProtectedRoute>} />
-          <Route path="/edit-property/:id" element={<ProtectedRoute roles={['hotel_owner']}><EditProperty /></ProtectedRoute>} />
-          <Route path="/hotels" element={<Hotels />} />
-          <Route path="/hotel/:id" element={<HotelDetails />} />
-          <Route path="/hotel/preview" element={<HotelDetails />} />
-          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
-          <Route path="/provider-bookings" element={<ProtectedRoute roles={['hotel_owner', 'vehicle_owner', 'tour_guide']}><ProviderBookings /></ProtectedRoute>} />
-          
-          <Route path="/vehicles" element={<Vehicles />} />
-          <Route path="/vehicle/:id" element={<VehicleDetails />} />
-          <Route path="/add-vehicle" element={<ProtectedRoute roles={['vehicle_owner']}><AddVehicle /></ProtectedRoute>} />
+            <Route path="/tour-guides" element={<TourGuides />} />
+            <Route path="/tour-guide/:id" element={<TourGuideDetails />} />
+            <Route path="/tour-guide/edit-profile" element={<ProtectedRoute roles={['tour_guide']}><EditProfile /></ProtectedRoute>} />
 
-        </Routes>
-      </Router>
-    </VehicleProvider>
+            <Route path="/add-property" element={<ProtectedRoute roles={['hotel_owner']}><AddProperty /></ProtectedRoute>} />
+            <Route path="/edit-property/:id" element={<ProtectedRoute roles={['hotel_owner']}><EditProperty /></ProtectedRoute>} />
+            <Route path="/hotels" element={<Hotels />} />
+            <Route path="/hotel/:id" element={<HotelDetails />} />
+            <Route path="/hotel/preview" element={<HotelDetails />} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
+            <Route path="/provider-bookings" element={<ProtectedRoute roles={['hotel_owner', 'vehicle_owner', 'tour_guide']}><ProviderBookings /></ProtectedRoute>} />
+            
+            <Route path="/vehicles" element={<Vehicles />} />
+            <Route path="/vehicle/:id" element={<VehicleDetails />} />
+            <Route path="/add-vehicle" element={<ProtectedRoute roles={['vehicle_owner']}><AddVehicle /></ProtectedRoute>} />
+            <Route path="/experiences" element={<Experiences />} />
+          </Routes>
+          <TravelChatWidget onSendMessage={handleSendMessage} />
+        </Router>
+      </VehicleProvider>
+    </CurrencyProvider>
   )
 }
 
-export default App
-
+export default App;

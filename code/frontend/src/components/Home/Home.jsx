@@ -3,11 +3,13 @@ import { Link } from 'react-router-dom';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 import QuickViewModal from '../QuickView/QuickViewModal';
+import { useCurrency } from '../../context/CurrencyContext';
 import { VehicleContext } from '../../context/VehicleContext';
 import { Calendar, User, Search, MapPin, Map, Navigation, Star, Compass, Wind, CarFront, Plus, Building, Car, ClipboardList } from 'lucide-react';
-
+import { beautifulPlaces } from '../../data/destinations';
 const Home = () => {
   const [selectedProperty, setSelectedProperty] = useState(null);
+  const { convertPrice, getCurrencySymbol } = useCurrency();
   const { selectedVehicle } = useContext(VehicleContext);
   const [properties, setProperties] = useState([]);
 
@@ -25,74 +27,6 @@ const Home = () => {
   });
 
   useEffect(() => {
-    const beautifulPlaces = [
-      {
-        _id: 'place1',
-        name: 'Sigiriya Rock Fortress',
-        location: 'Sigiriya',
-        image: '/destinations/sigiriya.png',
-        imageUrl: '/destinations/sigiriya.png',
-        rating: '4.9',
-        description: 'An ancient rock fortress and palace ruin situated in the central Matale District of Sri Lanka. It is a UNESCO World Heritage Site.',
-        amenities: ['Historical Site', 'Hiking', 'Photography', 'Viewpoint'],
-        price: 'Ticketed'
-      },
-      {
-        _id: 'place2',
-        name: 'Nine Arches Bridge',
-        location: 'Ella',
-        image: '/destinations/nine_arches.png',
-        imageUrl: '/destinations/nine_arches.png',
-        rating: '4.8',
-        description: 'The Nine Arches Bridge also called the Bridge in the Sky, is a viaduct bridge in Sri Lanka. It is one of the best examples of colonial-era railway construction in the country.',
-        amenities: ['Sightseeing', 'Photography', 'Nature Walk'],
-        price: 'Free'
-      },
-      {
-        _id: 'place3',
-        name: 'Yala National Park',
-        location: 'Yala',
-        image: '/destinations/yala.png',
-        imageUrl: '/destinations/yala.png',
-        rating: '4.7',
-        description: 'Yala is the most visited and second largest national park in Sri Lanka, bordering the Indian Ocean. Known for its high density of leopards.',
-        amenities: ['Safari', 'Wildlife', 'Photography', 'Nature Tour'],
-        price: 'Ticketed'
-      },
-      {
-        _id: 'place4',
-        name: 'Galle Dutch Fort',
-        location: 'Galle',
-        image: '/destinations/galle_fort.png',
-        imageUrl: '/destinations/galle_fort.png',
-        rating: '4.8',
-        description: 'Galle Fort, in the Bay of Galle on the south west coast of Sri Lanka, was built first in 1588 by the Portuguese.',
-        amenities: ['Historical Site', 'Shopping', 'Dining', 'Sunset View'],
-        price: 'Free'
-      },
-      {
-        _id: 'place5',
-        name: 'Temple of the Tooth',
-        location: 'Kandy',
-        image: '/destinations/kandy_temple.png',
-        imageUrl: '/destinations/kandy_temple.png',
-        rating: '4.9',
-        description: 'Sri Dalada Maligawa or the Temple of the Sacred Tooth Relic is a Buddhist temple in the city of Kandy, Sri Lanka.',
-        amenities: ['Religious Site', 'Cultural', 'Museum'],
-        price: 'Ticketed'
-      },
-      {
-        _id: 'place6',
-        name: 'Mirissa Beach',
-        location: 'Mirissa',
-        image: '/destinations/mirissa.png',
-        imageUrl: '/destinations/mirissa.png',
-        rating: '4.7',
-        description: 'Mirissa and its breathtaking sandy beach pretty much transforms your dreams and visions of a tropical paradise into an everyday reality.',
-        amenities: ['Beach', 'Surfing', 'Whale Watching', 'Nightlife'],
-        price: 'Free'
-      }
-    ];
     setProperties(beautifulPlaces);
   }, []);
 
@@ -153,6 +87,58 @@ const Home = () => {
       {/* MAIN CONTENT */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 -mt-10 relative z-30">
 
+        {/* Quick Action Tabs */}
+        <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-8 mb-4">
+          {user?.role === 'hotel_owner' && (
+            <Link to="/add-property" className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-sunset-gold to-sunset-orange rounded-full shadow-md hover:shadow-lg transition-all text-white whitespace-nowrap group">
+              <Plus className="text-white group-hover:scale-125 transition-transform" />
+              <span className="font-bold">Add Hotels</span>
+            </Link>
+          )}
+
+          {user?.role === 'vehicle_owner' && (
+            <Link to="/add-vehicle" className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-sunset-orange to-sunset-gold rounded-full shadow-md hover:shadow-lg transition-all text-white whitespace-nowrap group">
+              <Plus className="text-white group-hover:scale-125 transition-transform" />
+              <span className="font-bold">Add Vehicles</span>
+            </Link>
+          )}
+
+          <Link to="/routes" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-teal/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group font-semibold">
+            <Compass className="text-sunset-teal group-hover:rotate-45 transition-transform" />
+            <span>Interactive Map</span>
+          </Link>
+
+          {!user && (
+            <>
+              <Link to="/register?role=hotel_owner" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-gold/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
+                <Building className="text-sunset-gold group-hover:scale-110 transition-transform" />
+                <span className="font-semibold">Become a Hotel Owner</span>
+              </Link>
+              <Link to="/register?role=tour_guide" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-teal/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
+                <MapPin className="text-sunset-teal group-hover:scale-110 transition-transform" />
+                <span className="font-semibold">Become a Tour Guide</span>
+              </Link>
+              <Link to="/register?role=vehicle_owner" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-orange/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
+                <Car className="text-sunset-orange group-hover:scale-110 transition-transform" />
+                <span className="font-semibold">List Your Vehicle</span>
+              </Link>
+            </>
+          )}
+
+          <button 
+            onClick={() => document.getElementById('exploration-grid')?.scrollIntoView({ behavior: 'smooth' })}
+            className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-orange/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group"
+          >
+            <Star className="text-sunset-orange group-hover:scale-110 transition-transform" />
+            <span className="font-semibold">Top Rated</span>
+          </button>
+
+          <Link to="/experiences" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-gold/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
+            <Wind className="text-sunset-gold group-hover:animate-spin transition-transform" />
+            <span className="font-semibold">Experiences</span>
+          </Link>
+        </div>
+
         {/* Provider Portal View */}
         {user && ['hotel_owner', 'vehicle_owner', 'tour_guide'].includes(user.role) ? (
           <div className="bg-white rounded-3xl shadow-xl p-10 border border-gray-100 animate-slide-up">
@@ -170,6 +156,19 @@ const Home = () => {
                   <p className="text-sm text-gray-400">View and manage all your incoming booking requests.</p>
                 </div>
               </Link>
+
+              {/* Edit Tour Profile Link */}
+              {user.role === 'tour_guide' && (
+                <Link to="/tour-guide/edit-profile" className="bg-gradient-to-br from-sunset-gold to-sunset-orange p-8 rounded-2xl text-white hover:shadow-2xl hover:-translate-y-1 transition-all group flex flex-col justify-between h-48">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Plus size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-1">Edit Tour Profile</h3>
+                    <p className="text-sm text-white/80">Manage your tour guide listing details.</p>
+                  </div>
+                </Link>
+              )}
 
               {/* Add Property/Vehicle Link */}
               {user.role === 'hotel_owner' && (
@@ -218,58 +217,13 @@ const Home = () => {
                   </div>
                 </Link>
               )}
+
             </div>
           </div>
         ) : (
           <>
-            <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-8 mb-4">
-              {user?.role === 'hotel_owner' && (
-                <Link to="/add-property" className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-sunset-gold to-sunset-orange rounded-full shadow-md hover:shadow-lg transition-all text-white whitespace-nowrap group">
-                  <Plus className="text-white group-hover:scale-125 transition-transform" />
-                  <span className="font-bold">Add Hotels</span>
-                </Link>
-              )}
-
-              {user?.role === 'vehicle_owner' && (
-                <Link to="/add-vehicle" className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-sunset-orange to-sunset-gold rounded-full shadow-md hover:shadow-lg transition-all text-white whitespace-nowrap group">
-                  <Plus className="text-white group-hover:scale-125 transition-transform" />
-                  <span className="font-bold">Add Vehicles</span>
-                </Link>
-              )}
-              <button className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-teal/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
-                <Compass className="text-sunset-teal group-hover:rotate-45 transition-transform" />
-                <span className="font-semibold">Interactive Map</span>
-              </button>
-
-              {!user && (
-                <>
-                  <Link to="/register?role=hotel_owner" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-gold/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
-                    <Building className="text-sunset-gold group-hover:scale-110 transition-transform" />
-                    <span className="font-semibold">Become a Hotel Owner</span>
-                  </Link>
-                  <Link to="/register?role=tour_guide" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-teal/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
-                    <MapPin className="text-sunset-teal group-hover:scale-110 transition-transform" />
-                    <span className="font-semibold">Become a Tour Guide</span>
-                  </Link>
-                  <Link to="/register?role=vehicle_owner" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-orange/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
-                    <Car className="text-sunset-orange group-hover:scale-110 transition-transform" />
-                    <span className="font-semibold">List Your Vehicle</span>
-                  </Link>
-                </>
-              )}
-
-              <button className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-orange/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
-                <Star className="text-sunset-orange group-hover:scale-110 transition-transform" />
-                <span className="font-semibold">Top Rated</span>
-              </button>
-              <button className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-gold/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group">
-                <Wind className="text-sunset-gold group-hover:animate-spin transition-transform" />
-                <span className="font-semibold">Experiences</span>
-              </button>
-            </div>
-
             {/* EXPLORATION GRID (Masonry Layout) */}
-            <div className="mb-12">
+            <div className="mb-12" id="exploration-grid">
               <h2 className="text-3xl font-extrabold text-gray-900 mb-2">The Exploration Grid</h2>
               <p className="text-gray-500 mb-8 font-medium">Curated stays matching the Pearl Path standard.</p>
 
@@ -306,7 +260,7 @@ const Home = () => {
 
                         <div className="h-0 overflow-hidden group-hover:h-8 transition-all duration-300 flex items-center mt-2">
                           {property.pricePerNight && <span className="text-sm text-gray-300 mr-2">from</span>}
-                          <span className="text-lg font-bold text-sunset-gold">{property.pricePerNight ? `LKR ${property.pricePerNight.toLocaleString()}` : property.price}</span>
+                          <span className="text-lg font-bold text-sunset-gold">{property.pricePerNight ? `${getCurrencySymbol()} ${convertPrice(property.pricePerNight).toLocaleString()}` : property.price}</span>
                         </div>
                       </div>
 
@@ -361,7 +315,7 @@ const Home = () => {
                       </div>
                       <h3 className="text-xl font-bold text-white mb-2">Register Your Vehicle</h3>
                       <p className="text-gray-400 text-sm mb-6 flex-grow">Provide transportation services and help travelers navigate the island comfortably and safely.</p>
-                      <Link to="/register?role=vehicle_owner" className="w-full py-3 px-4 bg-sunset-orange text-white font-bold rounded-xl hover:bg-white hover:text-sunset-orange transition-colors">
+                      <Link to="/register?role=vehicle_owner" className="w-full py-3 px-4 bg-[#ff7c3b] text-white font-bold rounded-xl hover:bg-white hover:text-[#ff7c3b] transition-colors">
                         Register Vehicle
                       </Link>
                     </div>

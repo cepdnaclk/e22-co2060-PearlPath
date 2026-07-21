@@ -3,9 +3,11 @@ import { useAuth } from '../../context/AuthContext';
 import Navbar from '../Navbar/Navbar';
 import VehicleCard from './VehicleCard';
 import { Filter, SlidersHorizontal } from 'lucide-react';
+import { useCurrency } from '../../context/CurrencyContext';
 
 const Vehicles = () => {
   const { user, authFetch } = useAuth();
+  const { convertPrice, getCurrencySymbol } = useCurrency();
   const [vehicles, setVehicles] = useState([]);
   const [filters, setFilters] = useState({
     type: 'All',
@@ -104,7 +106,7 @@ const Vehicles = () => {
                       Max Price / Day
                     </label>
                     <span className="text-sm font-bold text-sunset-orange">
-                      LKR {filters.maxPrice.toLocaleString()}
+                      {getCurrencySymbol()} {convertPrice(filters.maxPrice).toLocaleString()}
                     </span>
                   </div>
                   <input
@@ -118,8 +120,8 @@ const Vehicles = () => {
                     className="w-full accent-sunset-orange"
                   />
                   <div className="flex justify-between text-xs text-slate-400 mt-2 font-medium">
-                    <span>LKR 1,000</span>
-                    <span>LKR 50,000+</span>
+                    <span>{getCurrencySymbol()} {convertPrice(1000).toLocaleString()}</span>
+                    <span>{getCurrencySymbol()} {convertPrice(50000).toLocaleString()}+</span>
                   </div>
                 </div>
 

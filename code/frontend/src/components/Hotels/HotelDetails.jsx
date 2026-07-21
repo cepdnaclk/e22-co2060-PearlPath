@@ -3,12 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
-import { MapPin, Star, Wifi, Coffee, Wind, Waves, Calendar, Users, Home, User } from 'lucide-react';
+import { MapPin, Star, Wifi, Coffee, Wind, Waves, Calendar, Users, Home, User, Phone, MessageSquare } from 'lucide-react';
+import ReviewSection from '../Reviews/ReviewSection';
+import { useCurrency } from '../../context/CurrencyContext';
 
 const HotelDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, authFetch } = useAuth();
+  const { convertPrice, getCurrencySymbol } = useCurrency();
   
   const [hotel, setHotel] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -168,6 +171,78 @@ const HotelDetails = () => {
                 ))}
               </div>
             </div>
+
+            {/* Contact Information */}
+            <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Phone className="text-sunset-teal" size={22} />
+                Contact Property
+              </h2>
+              
+              {(hotel.contactNumber || hotel.whatsappNumber || (typeof hotel.ownerId === 'object' && hotel.ownerId?.phone)) ? (
+                <div className="space-y-4">
+                  <div className="flex flex-wrap gap-3">
+                    {(hotel.contactNumber || (typeof hotel.ownerId === 'object' && hotel.ownerId?.phone)) && (
+                      <a
+                        href={`tel:${hotel.contactNumber || hotel.ownerId?.phone}`}
+                        className="flex-1 min-w-[160px] inline-flex items-center justify-center gap-2 bg-gradient-to-r from-sunset-orange to-sunset-gold text-white font-bold px-5 py-3 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all text-sm"
+                      >
+                        <Phone size={18} />
+                        Call Hotel ({hotel.contactNumber || hotel.ownerId?.phone})
+                      </a>
+                    )}
+
+                    {(hotel.whatsappNumber || hotel.contactNumber || (typeof hotel.ownerId === 'object' && hotel.ownerId?.phone)) && (
+                      <a
+                        href={`https://wa.me/${(hotel.whatsappNumber || hotel.contactNumber || hotel.ownerId?.phone || '').replace(/[^0-9]/g, '').replace(/^0/, '94')}?text=${encodeURIComponent(`Hi! I am interested in ${hotel.name} on PearlPath.`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 min-w-[160px] inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-3 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all text-sm"
+                      >
+                        <MessageSquare size={18} />
+                        Chat on WhatsApp
+                      </a>
+                    )}
+                  </div>
+
+                  <div className="space-y-2.5 text-gray-600 font-medium text-sm pt-4 border-t border-gray-100">
+                    {hotel.contactNumber && (
+                      <p className="flex items-center gap-2">
+                        <Phone size={15} className="text-sunset-orange" />
+                        <strong>Contact Phone:</strong> <a href={`tel:${hotel.contactNumber}`} className="text-sunset-teal font-semibold hover:underline">{hotel.contactNumber}</a>
+                      </p>
+                    )}
+
+                    {hotel.whatsappNumber && (
+                      <p className="flex items-center gap-2">
+                        <MessageSquare size={15} className="text-emerald-500" />
+                        <strong>WhatsApp:</strong> <a href={`https://wa.me/${hotel.whatsappNumber.replace(/[^0-9]/g, '').replace(/^0/, '94')}`} target="_blank" rel="noopener noreferrer" className="text-emerald-600 font-semibold hover:underline">{hotel.whatsappNumber}</a>
+                      </p>
+                    )}
+
+                    {typeof hotel.ownerId === 'object' && hotel.ownerId?.email && (
+                      <p className="flex items-center gap-2">
+                        <User size={15} className="text-sunset-teal" />
+                        <strong>Owner Email:</strong> <a href={`mailto:${hotel.ownerId.email}`} className="text-sunset-teal hover:underline">{hotel.ownerId.email}</a>
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-gray-500 italic text-sm p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-2">
+                  <p className="not-italic text-gray-700 font-semibold">No contact numbers set yet.</p>
+                  <p>As a hotel owner, click <strong>"Edit"</strong> on your property listing to enter your Contact Phone Number and WhatsApp Number.</p>
+                  {typeof hotel.ownerId === 'object' && hotel.ownerId?.email && (
+                    <p className="not-italic text-gray-600 pt-2 border-t border-gray-200">
+                      <strong>Owner Email:</strong> <a href={`mailto:${hotel.ownerId.email}`} className="text-sunset-teal hover:underline">{hotel.ownerId.email}</a>
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Reviews Section */}
+            <ReviewSection targetId={hotel._id} targetModel="Hotel" />
           </div>
 
           {/* Booking Section */}
@@ -175,7 +250,7 @@ const HotelDetails = () => {
             <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 sticky top-28">
               <div className="mb-6 flex items-end justify-between">
                 <div>
-                  <span className="text-3xl font-extrabold text-sunset-teal">LKR {hotel.pricePerNight?.toLocaleString()}</span>
+                  <span className="text-3xl font-extrabold text-sunset-teal">{getCurrencySymbol()} {hotel.pricePerNight ? convertPrice(hotel.pricePerNight).toLocaleString() : 'N/A'}</span>
                   <span className="text-gray-500 font-medium"> / night</span>
                 </div>
               </div>
@@ -219,7 +294,7 @@ const HotelDetails = () => {
                   {calculateTotalPrice() > 0 && (
                     <div className="pt-4 border-t border-gray-100 flex justify-between items-center text-lg font-bold">
                       <span className="text-gray-800">Total Price</span>
-                      <span className="text-sunset-teal">LKR {calculateTotalPrice().toLocaleString()}</span>
+                      <span className="text-sunset-teal">{getCurrencySymbol()} {convertPrice(calculateTotalPrice()).toLocaleString()}</span>
                     </div>
                   )}
 

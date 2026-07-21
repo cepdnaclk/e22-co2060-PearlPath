@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Navbar from '../Navbar/Navbar';
 
@@ -6,10 +7,21 @@ const ProviderBookings = () => {
     const { authFetch } = useAuth();
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchParams] = useSearchParams();
+    const searchBookingId = searchParams.get('bookingId');
 
     useEffect(() => {
         fetchBookings();
     }, []);
+
+    useEffect(() => {
+        if (!loading && searchBookingId) {
+            const element = document.getElementById(`booking-${searchBookingId}`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    }, [loading, searchBookingId]);
 
     const fetchBookings = async () => {
         try {
@@ -58,7 +70,15 @@ const ProviderBookings = () => {
                 {loading ? <p>Loading...</p> : bookings.length === 0 ? <p>No booking requests found.</p> : (
                     <div className="space-y-4">
                         {bookings.map(booking => (
-                            <div key={booking._id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center">
+                            <div 
+                                key={booking._id} 
+                                id={`booking-${booking._id}`}
+                                className={`bg-white p-6 rounded-xl shadow-sm border transition-all duration-550 flex justify-between items-center ${
+                                    searchBookingId === booking._id 
+                                        ? 'border-sunset-orange ring-2 ring-sunset-orange/20 shadow-md bg-orange-50/10 scale-[1.01]' 
+                                        : 'border-gray-100'
+                                }`}
+                            >
                                 <div>
                                     <h3 className="font-bold text-lg text-sunset-dark">
                                         {booking.hotelId ? `Hotel: ${booking.hotelId.name}` : booking.vehicleId ? `Vehicle: ${booking.vehicleId.makeAndModel}` : 'Listing Booking'}

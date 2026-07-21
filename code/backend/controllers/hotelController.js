@@ -2,7 +2,12 @@ const Hotel = require('../models/Hotel');
 
 const getHotels = async (req, res) => {
     try {
-        const hotels = await Hotel.find({ status: 'approved' }).select('-images').lean();
+        const query = { status: 'approved', ownerId: { $ne: null } };
+        if (req.query.location) {
+            const escapedLocation = req.query.location.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+            query.location = { $regex: new RegExp(`\\b${escapedLocation}\\b`, 'i') };
+        }
+        const hotels = await Hotel.find(query).select('-images').lean();
         res.status(200).json({ response: hotels });
     } catch (error) {
         console.error("Get hotels error:", error);
@@ -22,7 +27,9 @@ const createHotel = async (req, res) => {
             images: req.body.images || [],
             rooms: req.body.rooms || 1,
             starRating: req.body.starRating || 3,
-            amenities: req.body.amenities || []
+            amenities: req.body.amenities || [],
+            contactNumber: req.body.contactNumber || '',
+            whatsappNumber: req.body.whatsappNumber || ''
         });
 
         await newHotel.save();
@@ -35,7 +42,7 @@ const createHotel = async (req, res) => {
 
 const getHotelById = async (req, res) => {
     try {
-        const hotel = await Hotel.findById(req.params.id);
+        const hotel = await Hotel.findById(req.params.id).populate('ownerId', 'email phone firstName lastName');
         if (!hotel) return res.status(404).json({ message: 'Hotel not found' });
         res.status(200).json({ response: hotel });
     } catch (error) {
@@ -62,26 +69,36 @@ const updateHotel = async (req, res) => {
             return res.status(404).json({ message: 'Hotel not found' });
         }
         
-        if (hotel.ownerId.toString() !== req.user._id.toString()) {
+        // Allow hotel_owner role or property owner or admin to update
+        const isOwner = hotel.ownerId && hotel.ownerId.toString() === req.user._id.toString();
+        const isAdmin = req.user.role === 'admin';
+        const isHotelOwner = req.user.role === 'hotel_owner';
+
+        if (!isOwner && !isAdmin && !isHotelOwner) {
             return res.status(403).json({ message: 'Not authorized to update this hotel' });
         }
 
-        const updatedHotel = await Hotel.findByIdAndUpdate(
-            req.params.id,
-            {
-                $set: {
-                    name: req.body.name || hotel.name,
-                    description: req.body.description || hotel.description,
-                    pricePerNight: req.body.pricePerNight || hotel.pricePerNight,
-                    location: req.body.location || hotel.location,
-                    imageUrl: req.body.imageUrl || hotel.imageUrl,
-                    images: req.body.images && req.body.images.length > 0 ? req.body.images : hotel.images,
-                    starRating: req.body.starRating || hotel.starRating,
-                    amenities: req.body.amenities || hotel.amenities
-                }
-            },
-            { new: true }
-        );
+        hotel.ownerId = req.user._id;
+        if (req.body.name) hotel.name = req.body.name;
+        if (req.body.description !== undefined) hotel.description = req.body.description;
+        if (req.body.pricePerNight !== undefined) hotel.pricePerNight = req.body.pricePerNight;
+        if (req.body.location) hotel.location = req.body.location;
+        if (req.body.imageUrl) hotel.imageUrl = req.body.imageUrl;
+        if (req.body.images && req.body.images.length > 0) hotel.images = req.body.images;
+        if (req.body.starRating !== undefined) hotel.starRating = req.body.starRating;
+        if (req.body.rooms !== undefined) hotel.rooms = req.body.rooms;
+        if (req.body.amenities) hotel.amenities = req.body.amenities;
+        
+        if (req.body.contactNumber !== undefined) {
+            hotel.contactNumber = req.body.contactNumber;
+            hotel.markModified('contactNumber');
+        }
+        if (req.body.whatsappNumber !== undefined) {
+            hotel.whatsappNumber = req.body.whatsappNumber;
+            hotel.markModified('whatsappNumber');
+        }
+
+        const updatedHotel = await hotel.save();
 
         res.status(200).json({ message: 'Hotel updated successfully', hotel: updatedHotel });
     } catch (error) {

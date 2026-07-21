@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Star, Wifi, Coffee, Wind, Waves } from 'lucide-react';
+import { useCurrency } from '../../context/CurrencyContext';
 
 const HotelCard = ({ hotel, isOwnerView }) => {
+  const { convertPrice, getCurrencySymbol } = useCurrency();
   // Helper to render amenity icons based on name
   const renderAmenityIcon = (amenity) => {
     switch (amenity) {
@@ -18,8 +20,8 @@ const HotelCard = ({ hotel, isOwnerView }) => {
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group flex flex-col sm:flex-row">
       <div className="sm:w-1/3 relative h-48 sm:h-auto overflow-hidden">
         <img 
-          src={hotel.imageUrl} 
-          alt={hotel.propertyName} 
+          src={hotel.imageUrl || (hotel.images && hotel.images[0]) || "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=400&auto=format&fit=crop"} 
+          alt={hotel.propertyName || hotel.name} 
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
       </div>
@@ -60,7 +62,7 @@ const HotelCard = ({ hotel, isOwnerView }) => {
           <div>
             <span className="text-xs text-gray-500 uppercase tracking-wider font-bold">Price per night</span>
             <div className="text-2xl font-extrabold text-sunset-teal">
-              LKR {hotel.pricePerNight ? hotel.pricePerNight.toLocaleString() : 'N/A'}
+              {getCurrencySymbol()} {hotel.pricePerNight ? convertPrice(hotel.pricePerNight).toLocaleString() : 'N/A'}
             </div>
           </div>
           <div className="flex gap-2">
@@ -73,7 +75,7 @@ const HotelCard = ({ hotel, isOwnerView }) => {
               </Link>
             )}
             <Link 
-              to={`/hotel/${hotel.id}`}
+              to={`/hotel/${hotel._id || hotel.id}`}
               className="bg-gray-900 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-sunset-teal transition-colors text-sm"
             >
               View Details

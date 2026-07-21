@@ -17,7 +17,12 @@ const userSchema = new Schema({
         type: String,
         enum: ['pending', 'approved', 'rejected'],
         default: 'pending'
-    }
+    },
+    resetPasswordCode: { type: String },
+    resetPasswordExpires: { type: Date },
+    isEmailVerified: { type: Boolean, default: false },
+    emailVerificationCode: { type: String },
+    emailVerificationExpires: { type: Date }
 }, { timestamps: true });
 
 // Hash password before saving

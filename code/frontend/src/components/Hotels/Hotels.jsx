@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter, SlidersHorizontal, Lock } from 'lucide-react';
+import { Search, Filter, SlidersHorizontal, Lock, Building } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useCurrency } from '../../context/CurrencyContext';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 import HotelCard from './HotelCard';
@@ -10,6 +11,7 @@ const AMENITY_FILTERS = ["Free WiFi", "Pool", "Breakfast Included", "Spa", "Ocea
 
 const Hotels = () => {
   const { user, authFetch } = useAuth();
+  const { convertPrice, getCurrencySymbol } = useCurrency();
   const [loading, setLoading] = useState(true);
 
   const [hotels, setHotels] = useState([]);
@@ -36,13 +38,19 @@ const Hotels = () => {
         // Map backend to frontend schema
         const backendHotels = data.response.map(h => ({
           id: h._id,
+          _id: h._id,
+          name: h.name,
           propertyName: h.name,
           city: h.location,
+          location: h.location,
           starRating: h.starRating || 4,
           pricePerNight: h.pricePerNight,
           amenities: h.amenities || ["Free WiFi", "A/C"],
           description: h.description,
-          imageUrl: h.imageUrl || "https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop"
+          imageUrl: h.imageUrl || "https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop",
+          contactNumber: h.contactNumber,
+          whatsappNumber: h.whatsappNumber,
+          ownerId: h.ownerId
         }));
         
         setHotels(backendHotels);
@@ -68,10 +76,10 @@ const Hotels = () => {
 
     // Price Filter
     if (minPrice) {
-      result = result.filter(h => h.pricePerNight >= parseInt(minPrice));
+      result = result.filter(h => convertPrice(h.pricePerNight) >= parseInt(minPrice));
     }
     if (maxPrice) {
-      result = result.filter(h => h.pricePerNight <= parseInt(maxPrice));
+      result = result.filter(h => convertPrice(h.pricePerNight) <= parseInt(maxPrice));
     }
 
     // Amenities Filter
@@ -173,7 +181,7 @@ const Hotels = () => {
 
               {/* Price Range */}
               <div className="mb-6">
-                <label className="block text-sm font-bold text-gray-700 mb-2">Price Per Night (LKR)</label>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Price Per Night ({getCurrencySymbol()})</label>
                 <div className="flex items-center gap-2">
                   <input 
                     type="number" 
@@ -243,9 +251,17 @@ const Hotels = () => {
               </div>
             </div>
 
-            {/* Hotel List */}
             <div className="space-y-6">
-              {filteredHotels.length > 0 ? (
+              {hotels.length === 0 ? (
+                <div className="bg-white p-12 rounded-3xl text-center border border-gray-100 shadow-sm">
+                  <Building size={48} className="text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">No Stays Found</h3>
+                  <p className="text-gray-500 mb-6">No properties listed in this area yet. Are you a hotel owner? Be the first to list your property!</p>
+                  <Link to="/register?role=hotel_owner" className="inline-flex px-6 py-3 bg-sunset-teal text-white font-bold rounded-xl text-sm hover:bg-opacity-90 transition-all shadow-md">
+                    Become a Hotel Owner
+                  </Link>
+                </div>
+              ) : filteredHotels.length > 0 ? (
                 filteredHotels.map(hotel => (
                   <HotelCard key={hotel.id} hotel={hotel} isOwnerView={user?.role === 'hotel_owner'} />
                 ))

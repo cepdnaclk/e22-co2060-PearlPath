@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
-import { Calendar, Home, Car, User, MapPin, CreditCard, ChevronRight, Trash2, X, Hash, Clock } from 'lucide-react';
+import { Calendar, Home, Car, User, MapPin, CreditCard, ChevronRight, Trash2, X, Hash, Clock, Phone, MessageSquare } from 'lucide-react';
 
 const MyBookings = () => {
   const { authFetch } = useAuth();
@@ -12,6 +12,15 @@ const MyBookings = () => {
   const [error, setError] = useState(null);
   const [activeFilter, setActiveFilter] = useState('hotels');
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchBookingId = searchParams.get('bookingId');
+
+  const handleCloseModal = () => {
+    setSelectedBooking(null);
+    if (searchBookingId) {
+      setSearchParams({});
+    }
+  };
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -23,6 +32,50 @@ const MyBookings = () => {
           // Sort bookings by createdAt descending
           const sortedBookings = (data.response || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
           setBookings(sortedBookings);
+
+          if (searchBookingId) {
+            const foundBooking = sortedBookings.find(b => b._id === searchBookingId);
+            if (foundBooking) {
+              if (foundBooking.hotelId) setActiveFilter('hotels');
+              else if (foundBooking.vehicleId) setActiveFilter('vehicles');
+              else if (foundBooking.tourId) setActiveFilter('tours');
+
+              let title = 'Booking';
+              let Icon = Calendar;
+              let image = null;
+              let location = null;
+              let targetLink = '#';
+
+              if (foundBooking.hotelId) {
+                title = foundBooking.hotelId.name;
+                Icon = Home;
+                image = foundBooking.hotelId.imageUrl;
+                location = foundBooking.hotelId.location;
+                targetLink = `/hotel/${foundBooking.hotelId._id}`;
+              } else if (foundBooking.vehicleId) {
+                title = `${foundBooking.vehicleId.make} ${foundBooking.vehicleId.model}`;
+                Icon = Car;
+                image = foundBooking.vehicleId.images?.[0] || foundBooking.vehicleId.imageUrl;
+                location = foundBooking.vehicleId.location;
+                targetLink = `/vehicle/${foundBooking.vehicleId._id}`;
+              } else if (foundBooking.tourId) {
+                title = foundBooking.tourId.name || 'Tour Booking';
+                Icon = User;
+              }
+
+              setSelectedBooking({
+                booking: foundBooking,
+                title,
+                Icon,
+                image,
+                location,
+                isHotel: !!foundBooking.hotelId,
+                isVehicle: !!foundBooking.vehicleId,
+                isTour: !!foundBooking.tourId,
+                targetLink
+              });
+            }
+          }
         } else {
           setError(data.message || 'Failed to fetch bookings.');
         }
@@ -35,7 +88,7 @@ const MyBookings = () => {
     };
 
     fetchBookings();
-  }, [authFetch]);
+  }, [authFetch, searchBookingId]);
 
   const handleRemove = async (bookingId) => {
     if (!window.confirm('Are you sure you want to remove this booking?')) return;
@@ -276,7 +329,7 @@ const MyBookings = () => {
           <div
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
-            onClick={() => setSelectedBooking(null)}
+            onClick={handleCloseModal}
           >
             <div
               className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden"
@@ -294,7 +347,7 @@ const MyBookings = () => {
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <button
-                  onClick={() => setSelectedBooking(null)}
+                  onClick={handleCloseModal}
                   className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-md hover:bg-white transition-colors"
                 >
                   <X size={18} className="text-gray-700" />
@@ -366,6 +419,35 @@ const MyBookings = () => {
                     <span>Booked on: <span className="font-semibold text-gray-700">{new Date(booking.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span></span>
                   </div>
                 </div>
+
+                {/* Direct Contact Buttons for Property */}
+                {(booking.hotelId?.contactNumber || booking.hotelId?.whatsappNumber || booking.providerId?.phone) && (
+                  <div className="p-4 bg-orange-50/70 rounded-2xl border border-orange-100">
+                    <span className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Direct Contact / Pre-Checkin Inquiry</span>
+                    <div className="flex flex-wrap gap-2">
+                      {(booking.hotelId?.contactNumber || booking.providerId?.phone) && (
+                        <a
+                          href={`tel:${booking.hotelId?.contactNumber || booking.providerId?.phone}`}
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 bg-white border border-gray-200 text-gray-800 text-xs font-bold py-2.5 px-3 rounded-xl hover:border-sunset-orange shadow-sm transition-all"
+                        >
+                          <Phone size={14} className="text-sunset-orange" />
+                          Call ({booking.hotelId?.contactNumber || booking.providerId?.phone})
+                        </a>
+                      )}
+                      {(booking.hotelId?.whatsappNumber || booking.hotelId?.contactNumber || booking.providerId?.phone) && (
+                        <a
+                          href={`https://wa.me/${((booking.hotelId?.whatsappNumber || booking.hotelId?.contactNumber || booking.providerId?.phone) || '').replace(/[^0-9]/g, '').replace(/^0/, '94')}?text=${encodeURIComponent(`Hi! I have a booking (ID: ${booking._id}) for ${title} on PearlPath.`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-3 rounded-xl shadow-sm transition-all"
+                        >
+                          <MessageSquare size={14} />
+                          WhatsApp
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <Link
                   to={targetLink}

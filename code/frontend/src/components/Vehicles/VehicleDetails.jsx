@@ -4,11 +4,14 @@ import { useAuth } from '../../context/AuthContext';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 import { Car, Users, Settings, Wind, Calendar, User, MapPin } from 'lucide-react';
+import ReviewSection from '../Reviews/ReviewSection';
+import { useCurrency } from '../../context/CurrencyContext';
 
 const VehicleDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, authFetch } = useAuth();
+  const { convertPrice, getCurrencySymbol } = useCurrency();
   
   const [vehicle, setVehicle] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -209,6 +212,25 @@ const VehicleDetails = () => {
 
               </div>
             </div>
+
+            {/* Contact Information */}
+            <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Contact Owner</h2>
+              {vehicle.ownerId ? (
+                <div className="space-y-3 text-gray-600 font-medium">
+                  <p><strong>Owner:</strong> {vehicle.ownerId.firstName} {vehicle.ownerId.lastName}</p>
+                  <p><strong>Email:</strong> <a href={`mailto:${vehicle.ownerId.email}`} className="text-sunset-teal hover:underline">{vehicle.ownerId.email}</a></p>
+                  {vehicle.ownerId.phone && (
+                    <p><strong>Phone:</strong> <a href={`tel:${vehicle.ownerId.phone}`} className="text-sunset-teal hover:underline">{vehicle.ownerId.phone}</a></p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-gray-500 italic">Contact information not available.</p>
+              )}
+            </div>
+
+            {/* Reviews Section */}
+            <ReviewSection targetId={vehicle._id} targetModel="Vehicle" />
           </div>
 
           {/* Booking Section */}
@@ -216,7 +238,7 @@ const VehicleDetails = () => {
             <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 sticky top-28">
               <div className="mb-6 flex items-end justify-between">
                 <div>
-                  <span className="text-3xl font-extrabold text-sunset-teal">LKR {vehicle.pricePerDay?.toLocaleString()}</span>
+                  <span className="text-3xl font-extrabold text-sunset-teal">{getCurrencySymbol()} {vehicle.pricePerDay ? convertPrice(vehicle.pricePerDay).toLocaleString() : 'N/A'}</span>
                   <span className="text-gray-500 font-medium"> / day</span>
                 </div>
               </div>
@@ -243,7 +265,7 @@ const VehicleDetails = () => {
                   {calculateTotalPrice() > 0 && (
                     <div className="pt-4 border-t border-gray-100 flex justify-between items-center text-lg font-bold">
                       <span className="text-gray-800">Total Price</span>
-                      <span className="text-sunset-teal">LKR {calculateTotalPrice().toLocaleString()}</span>
+                      <span className="text-sunset-teal">{getCurrencySymbol()} {convertPrice(calculateTotalPrice()).toLocaleString()}</span>
                     </div>
                   )}
 
