@@ -44,13 +44,40 @@ const QuickViewModal = ({ property, onClose }) => {
           
           {/* Amenities Grid */}
           <h3 className="text-lg font-semibold text-gray-800 mb-3">Popular Amenities</h3>
-          <div className="flex flex-wrap gap-2 mb-8">
+          <div className="flex flex-wrap gap-2 mb-6">
             {property.amenities.map(amenity => (
               <span key={amenity} className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm flex items-center gap-1 border border-gray-200">
                 ✔️ {amenity}
               </span>
             ))}
           </div>
+
+          {/* Quick Contact Options for Hotels */}
+          {(property.contactNumber || property.whatsappNumber || property.ownerId?.phone) && (
+            <div className="mb-6 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+              <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2.5">Direct Contact for Pre-Booking Inquiry</h4>
+              <div className="flex flex-wrap gap-2">
+                {(property.contactNumber || property.ownerId?.phone) && (
+                  <a
+                    href={`tel:${property.contactNumber || property.ownerId?.phone}`}
+                    className="inline-flex items-center gap-1.5 bg-white border border-gray-200 hover:border-sunset-orange text-gray-800 text-xs font-bold px-3.5 py-2.5 rounded-xl transition-all shadow-sm hover:shadow-md"
+                  >
+                    📞 Call: {property.contactNumber || property.ownerId?.phone}
+                  </a>
+                )}
+                {(property.whatsappNumber || property.contactNumber || property.ownerId?.phone) && (
+                  <a
+                    href={`https://wa.me/${((property.whatsappNumber || property.contactNumber || property.ownerId?.phone) || '').replace(/[^0-9]/g, '').replace(/^0/, '94')}?text=${encodeURIComponent(`Hi! I am interested in ${property.name} on PearlPath.`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl transition-all shadow-sm hover:shadow-md"
+                  >
+                    💬 WhatsApp Hotel
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="mt-auto border-t border-gray-100 pt-6 flex items-center justify-between">
             <div>

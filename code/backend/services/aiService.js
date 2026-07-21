@@ -1,4 +1,10 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+let GoogleGenerativeAI = null;
+try {
+  GoogleGenerativeAI = require('@google/generative-ai').GoogleGenerativeAI;
+} catch (err) {
+  console.warn('[AI Service] @google/generative-ai module not loaded');
+}
+
 const Tour = require('../models/Tour');
 const Booking = require('../models/Booking');
 const mongoose = require('mongoose');
@@ -17,7 +23,7 @@ try {
 }
 
 let genAI = null;
-if (process.env.GEMINI_API_KEY) {
+if (process.env.GEMINI_API_KEY && GoogleGenerativeAI) {
   genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 }
 
