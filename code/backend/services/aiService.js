@@ -16,6 +16,7 @@ const Tour = require('../models/Tour');
 const Booking = require('../models/Booking');
 const Hotel = require('../models/Hotel');
 const TourGuide = require('../models/TourGuide');
+const User = require('../models/User');
 const mongoose = require('mongoose');
 
 let FAQ;
@@ -58,11 +59,13 @@ function extractLocation(message) {
   return null;
 }
 
-function localRuleChatbot(message, contextData) {
+function localRuleChatbot(message, contextData, userProfile = null) {
   const msg = message.toLowerCase();
+  const userName = userProfile ? userProfile.firstName : "";
+  const greeting = userName ? `Ayubowan, ${userName}! 🌅` : `Ayubowan! 🌅`;
   
   if (!contextData) {
-    return `Ayubowan! 🌅 Welcome to **PearlPath**, your premium guide to Sri Lanka! 
+    return `${greeting} Welcome to **PearlPath**, your premium guide to Sri Lanka! 
 
 I am **Traver**, your travel assistant. Currently, my cloud AI services are running locally in demonstration mode. 
 
@@ -80,13 +83,13 @@ How would you like to start your journey today? 🇱🇰`;
   if (type === 'hotels') {
     if (data && data.length > 0) {
       const hotelList = data.map(h => `• **${h.name}** in *${h.location}* — $${h.pricePerNight}/night (${h.starRating}⭐)`).join('\n');
-      return `I found some top-rated hotels in Sri Lanka for you! 🏨
+      return `I found some top-rated hotels in Sri Lanka for you, ${userName || 'traveler'}! 🏨
 
 ${hotelList}
 
 You can browse them in the carousel below and click **"View Hotel"** to check rooms, amenities, and book online!`;
     } else {
-      return `I couldn't find any hotels matching your criteria right now. 
+      return `I couldn't find any hotels matching your criteria right now, ${userName || 'traveler'}. 
 
 Try checking our [Hotels Catalog](/hotels) to view all current listings!`;
     }
@@ -101,7 +104,7 @@ ${guideList}
 
 Check out their profiles in the carousel below to contact them or read reviews.`;
     } else {
-      return `We don't have guides listed in that specific location yet. 
+      return `We don't have guides listed in that specific location yet, ${userName || 'traveler'}. 
 
 Browse our complete [Tour Guides Directory](/tour-guides) to find guides across Sri Lanka!`;
     }
@@ -116,7 +119,7 @@ ${tourList}
 
 Select a tour from the list below to view the itinerary and start booking!`;
     } else {
-      return `I couldn't find any specific tours right now. 
+      return `I couldn't find any specific tours right now, ${userName || 'traveler'}. 
 
 Head over to our [Experiences](/experiences) page to view popular travel packages!`;
     }
@@ -125,13 +128,13 @@ Head over to our [Experiences](/experiences) page to view popular travel package
   if (type === 'bookings') {
     if (data && data.length > 0) {
       const bookingList = data.map(b => `• Booking **#${b._id.toString().slice(-6)}** — Status: **${b.bookingStatus}**`).join('\n');
-      return `Here are your recent booking details: 📅
+      return `Here are your recent booking details, ${userName || 'traveler'}: 📅
 
 ${bookingList}
 
 Visit your [My Bookings Dashboard](/my-bookings) to modify, cancel, or view invoice details.`;
     } else {
-      return `You don't have any bookings registered with this account yet. 
+      return `You don't have any bookings registered with this account yet, ${userName || 'traveler'}. 
 
 Find a hotel under [Hotels](/hotels) or list your own service!`;
     }
@@ -140,13 +143,13 @@ Find a hotel under [Hotels](/hotels) or list your own service!`;
   if (type === 'faqs') {
     if (data && data.length > 0) {
       const faqList = data.map(f => `**Q: ${f.question}**\n*A: ${f.answer}*`).join('\n\n');
-      return `Here is what I found regarding your questions: ℹ️
+      return `Here is what I found regarding your questions, ${userName || 'traveler'}: ℹ️
 
 ${faqList}
 
 If you need more help, feel free to contact our support desk!`;
     } else {
-      return `Here are some quick platform instructions:
+      return `Here are some quick platform instructions, ${userName || 'traveler'}:
 
 - **Register as Hotel Owner / Guide**: Click the "Register" button on the top right, select the appropriate account type, and fill the signup form.
 - **Bookings**: Navigate to Hotels, select a property, choose your dates, and click "Book Now".`;
@@ -163,10 +166,10 @@ If you need more help, feel free to contact our support desk!`;
 - [Update Profile](/profile)
 - [Explore Experiences](/experiences)
 
-Let me know if you need help finding anything else!`;
+Let me know if you need help finding anything else, ${userName || 'traveler'}!`;
   }
 
-  return `Ayubowan! How can I help you plan your vacation in Sri Lanka today? 🇱🇰`;
+  return `Ayubowan${userName ? ' ' + userName : ''}! How can I help you plan your vacation in Sri Lanka today? 🇱🇰`;
 }
 
 async function getIntent(message) {
@@ -297,7 +300,6 @@ async function retrieveContext(intent, message, userId) {
 
         let hotels = await Hotel.find(query).limit(5).lean();
         if (hotels.length === 0) {
-          // If no approved matching, try to fetch some random hotels
           hotels = await Hotel.find(budget ? { pricePerNight: { $lte: budget } } : {}).limit(5).lean();
         }
         context = { type: 'hotels', data: hotels };
@@ -327,7 +329,6 @@ async function retrieveContext(intent, message, userId) {
           const bookings = await Booking.find({ user: userId }).populate('tour hotel').lean();
           context = { type: 'bookings', data: bookings };
         } else {
-          // For demo / unlogged-in users, retrieve some generic bookings so user can see bookings rendering
           const bookings = await Booking.find().limit(2).populate('tour hotel').lean();
           context = { type: 'bookings', data: bookings, note: 'Showing demo bookings' };
         }
@@ -339,7 +340,6 @@ async function retrieveContext(intent, message, userId) {
         try {
           faqs = await FAQ.find({ $text: { $search: message } }).limit(3).lean();
         } catch (e) {
-          // Text index search fallback
           const words = message.split(' ').filter(w => w.length > 3);
           const regexQueries = words.map(w => ({ question: new RegExp(w, 'i') }));
           if (regexQueries.length > 0) {
@@ -380,15 +380,18 @@ async function retrieveContext(intent, message, userId) {
   return context;
 }
 
-async function generateResponse(message, conversationHistory, contextData) {
+async function generateResponse(message, conversationHistory, contextData, userProfile = null) {
   try {
     let contextString = "";
     if (contextData && contextData.data && contextData.data.length > 0) {
       contextString = `\n\nContext Information (Use this to answer factual questions if relevant):\n${JSON.stringify(contextData, null, 2)}`;
     }
 
+    const userName = userProfile ? userProfile.firstName : "traveler";
     const systemPrompt = `[System Instructions: You are Traver, a friendly and professional Sri Lanka travel agent working for PearlPath. Your goal is to help users with their travel plans in Sri Lanka.
     
+You are speaking to a user named "${userName}". Address them as such when appropriate (e.g. at the start of conversation or greetings).
+
 **Platform Help Guidelines:**
 If the user asks how to use the website, provide these instructions:
 - **To register as a hotel owner / service provider:** Click "Sign Up" or "Register" at the top right, select the account type during registration, and fill in their details to list their properties.
@@ -447,20 +450,28 @@ Answer factual claims ONLY from the given Context Information. If the context in
       });
       return response.choices[0].message.content;
     } else {
-      return localRuleChatbot(message, contextData);
+      return localRuleChatbot(message, contextData, userProfile);
     }
   } catch (error) {
     console.error("Error generating response:", error);
-    // Return local mock chatbot response as emergency fallback
-    return localRuleChatbot(message, contextData);
+    return localRuleChatbot(message, contextData, userProfile);
   }
 }
 
 async function handleChatMessage(message, conversationHistory = [], userId = null) {
   try {
+    let userProfile = null;
+    if (userId && mongoose.Types.ObjectId.isValid(userId)) {
+      try {
+        userProfile = await User.findById(userId).lean();
+      } catch (err) {
+        console.error("Error fetching user for chatbot profile:", err.message);
+      }
+    }
+
     const intent = await getIntent(message);
     const context = await retrieveContext(intent, message, userId);
-    const reply = await generateResponse(message, conversationHistory, context);
+    const reply = await generateResponse(message, conversationHistory, context, userProfile);
     
     return { reply, context };
   } catch (error) {

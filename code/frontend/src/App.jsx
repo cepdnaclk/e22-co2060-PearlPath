@@ -29,13 +29,21 @@ import TravelChatWidget from './components/TravelChatWidget'
 import { CurrencyProvider } from './context/CurrencyContext'
 import Experiences from './pages/Experiences'
 
+import { useAuth } from './context/AuthContext'
+
 function App() {
+  const { user } = useAuth();
+
   const handleSendMessage = async (message, history) => {
     try {
       const response = await fetch('http://localhost:3001/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, conversationHistory: history })
+        body: JSON.stringify({ 
+          message, 
+          conversationHistory: history,
+          userId: user ? user._id : null
+        })
       });
       const data = await response.json();
       return { reply: data.reply, context: data.context };

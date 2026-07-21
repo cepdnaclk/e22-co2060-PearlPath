@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, X, Send, User, MapPin, Calendar, Compass, Star, ChevronRight, HelpCircle } from 'lucide-react';
+import { MessageCircle, X, Send, User, MapPin, Calendar, Compass, Star, ChevronRight, HelpCircle, Volume2, VolumeX, Mic, MicOff, Trash2 } from 'lucide-react';
 
 // Lightweight custom Markdown component to render bold texts, bullet lists, and links properly
 const MarkdownText = ({ text }) => {
@@ -64,14 +64,70 @@ const MarkdownText = ({ text }) => {
   );
 };
 
+const playBubbleSound = (isOutgoing, isMuted) => {
+  if (isMuted) return;
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    
+    const now = ctx.currentTime;
+    if (isOutgoing) {
+      // Short upward sweep for outgoing pop
+      osc.frequency.setValueAtTime(420, now);
+      osc.frequency.exponentialRampToValueAtTime(750, now + 0.12);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
+      osc.start(now);
+      osc.stop(now + 0.12);
+    } else {
+      // Short double pop for incoming bubble
+      osc.frequency.setValueAtTime(300, now);
+      osc.frequency.exponentialRampToValueAtTime(480, now + 0.1);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+      osc.start(now);
+      osc.stop(now + 0.1);
+    }
+  } catch (e) {
+    console.warn("Web Audio pop sound blocked/unsupported:", e);
+  }
+};
+
 const TravelChatWidget = ({ onSendMessage }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    { role: 'bot', content: 'Ayubowan! 🌅 I am Traver, your PearlPath travel assistant. Let me help you find the best hotels, tour guides, and activities in Sri Lanka!', timestamp: new Date() }
-  ]);
+  const [isMuted, setIsMuted] = useState(() => {
+    return localStorage.getItem('pearlpath_chat_muted') === 'true';
+  });
+
+  const [messages, setMessages] = useState(() => {
+    const saved = localStorage.getItem('pearlpath_chat_history');
+    if (saved) {
+      try {
+        const loaded = JSON.parse(saved);
+        return loaded.map(msg => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }));
+      } catch (e) {
+        console.error("Error parsing chat history:", e);
+      }
+    }
+    return [
+      { role: 'bot', content: 'Ayubowan! 🌅 I am Traver, your PearlPath travel assistant. Let me help you find the best hotels, tour guides, and activities in Sri Lanka!', timestamp: new Date() }
+    ];
+  });
+
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  
   const messagesEndRef = useRef(null);
+  const recognitionRef = useRef(null);
   const navigate = useNavigate();
 
   const suggestions = [
@@ -90,12 +146,108 @@ const TravelChatWidget = ({ onSendMessage }) => {
     scrollToBottom();
   }, [messages, isTyping]);
 
+  // Speech recognition setup
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const rec = new SpeechRecognition();
+      rec.continuous = false;
+      rec.interimResults = false;
+      rec.lang = 'en-US';
+
+      rec.onstart = () => {
+        setIsListening(true);
+      };
+
+      rec.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setInputValue(prev => prev + (prev ? ' ' : '') + transcript);
+      };
+
+      rec.onerror = (event) => {
+        console.error("Speech recognition error:", event.error);
+        setIsListening(false);
+      };
+
+      rec.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = rec;
+    }
+  }, []);
+
+  const toggleListening = () => {
+    if (!recognitionRef.current) {
+      alert("Speech recognition is not supported in this browser. Please try Google Chrome or MS Edge.");
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      try {
+        recognitionRef.current.start();
+      } catch (err) {
+        console.error("Speech recognition start failed:", err);
+      }
+    }
+  };
+
+  const handleSpeak = (text) => {
+    if (!text) return;
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+      return;
+    }
+
+    const cleanText = text
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1')
+      .replace(/[•\-*]/g, '');
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    const voices = window.speechSynthesis.getVoices();
+    const englishVoice = voices.find(v => v.lang.startsWith('en-IN') || v.lang.startsWith('en-GB')) || voices.find(v => v.lang.startsWith('en'));
+    if (englishVoice) {
+      utterance.voice = englishVoice;
+    }
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const toggleMute = () => {
+    setIsMuted(prev => {
+      const next = !prev;
+      localStorage.setItem('pearlpath_chat_muted', String(next));
+      return next;
+    });
+  };
+
+  const handleResetChat = () => {
+    if (window.confirm("Are you sure you want to clear this conversation?")) {
+      const initial = [
+        { role: 'bot', content: 'Ayubowan! 🌅 I am Traver, your PearlPath travel assistant. Let me help you find the best hotels, tour guides, and activities in Sri Lanka!', timestamp: new Date() }
+      ];
+      setMessages(initial);
+      localStorage.setItem('pearlpath_chat_history', JSON.stringify(initial));
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+      }
+    }
+  };
+
   const handleSend = async (messageText) => {
     const textToSend = messageText || inputValue;
     if (!textToSend.trim()) return;
 
+    playBubbleSound(true, isMuted);
+
     const userMessage = { role: 'user', content: textToSend.trim(), timestamp: new Date() };
-    setMessages(prev => [...prev, userMessage]);
+    setMessages(prev => {
+      const updated = [...prev, userMessage];
+      localStorage.setItem('pearlpath_chat_history', JSON.stringify(updated));
+      return updated;
+    });
     if (!messageText) setInputValue('');
     setIsTyping(true);
 
@@ -111,13 +263,19 @@ const TravelChatWidget = ({ onSendMessage }) => {
         };
       }
 
+      playBubbleSound(false, isMuted);
+
       const botMessage = {
         role: 'bot',
         content: replyData.reply,
         context: replyData.context,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, botMessage]);
+      setMessages(prev => {
+        const updated = [...prev, botMessage];
+        localStorage.setItem('pearlpath_chat_history', JSON.stringify(updated));
+        return updated;
+      });
     } catch (error) {
       console.error("Chat error:", error);
       setMessages(prev => [...prev, {
@@ -287,13 +445,35 @@ const TravelChatWidget = ({ onSendMessage }) => {
                 </p>
               </div>
             </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="text-white hover:text-orange-100 transition-colors bg-white/10 hover:bg-white/20 p-1.5 rounded-full border-none cursor-pointer"
-              aria-label="Close chat"
-            >
-              <X size={18} />
-            </button>
+            
+            <div className="flex items-center gap-1 bg-orange-700/30 px-2 py-1 rounded-full border border-orange-400/25">
+              {/* Sound Toggle Button */}
+              <button
+                onClick={toggleMute}
+                className="text-white hover:text-orange-100 transition-colors bg-transparent border-none cursor-pointer p-1"
+                title={isMuted ? "Unmute Sounds" : "Mute Sounds"}
+              >
+                {isMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+              </button>
+
+              {/* Reset History Button */}
+              <button
+                onClick={handleResetChat}
+                className="text-white hover:text-orange-100 transition-colors bg-transparent border-none cursor-pointer p-1"
+                title="Clear Chat Logs"
+              >
+                <Trash2 size={14} />
+              </button>
+
+              {/* Close Button */}
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-white hover:text-orange-100 transition-colors bg-transparent border-none cursor-pointer p-1"
+                aria-label="Close chat"
+              >
+                <X size={15} />
+              </button>
+            </div>
           </div>
 
           {/* Messages Area */}
@@ -301,7 +481,7 @@ const TravelChatWidget = ({ onSendMessage }) => {
             {messages.map((msg, index) => (
               <div key={index} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                 <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
+                  className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm shadow-sm relative group/msg ${
                     msg.role === 'user'
                       ? 'rounded-tr-none text-white'
                       : 'rounded-tl-none text-gray-800 bg-white border border-gray-100/90'
@@ -311,7 +491,16 @@ const TravelChatWidget = ({ onSendMessage }) => {
                   {msg.role === 'user' ? (
                     msg.content
                   ) : (
-                    <MarkdownText text={msg.content} />
+                    <div className="pr-4">
+                      <MarkdownText text={msg.content} />
+                      <button
+                        onClick={() => handleSpeak(msg.content)}
+                        className="absolute top-1.5 right-1.5 text-gray-400 hover:text-orange-500 bg-transparent hover:bg-gray-100/50 p-1.5 rounded-full cursor-pointer transition-colors border-none opacity-0 group-hover/msg:opacity-100"
+                        title="Speak Out Loud"
+                      >
+                        <Volume2 size={13} />
+                      </button>
+                    </div>
                   )}
                   {msg.role === 'bot' && msg.context && renderContextCarousel(msg.context)}
                 </div>
@@ -353,9 +542,28 @@ const TravelChatWidget = ({ onSendMessage }) => {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask Traver about hotels, guides or bookings..."
-              className="flex-1 bg-gray-50 border border-gray-200 text-gray-800 text-sm rounded-full px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-medium"
+              placeholder={isListening ? "Listening..." : "Ask Traver about hotels, guides or bookings..."}
+              className={`flex-1 border text-sm rounded-full px-4 py-2.5 focus:outline-none transition-all font-medium ${
+                isListening 
+                  ? 'bg-red-50 border-red-300 text-red-800 placeholder-red-400 focus:ring-2 focus:ring-red-500/10' 
+                  : 'bg-gray-50 border-gray-200 text-gray-800 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500'
+              }`}
             />
+            
+            {/* Microphone Button (Speech to Text) */}
+            <button
+              onClick={toggleListening}
+              className={`p-2.5 rounded-full flex items-center justify-center transition-all active:scale-95 cursor-pointer border shadow-sm ${
+                isListening
+                  ? 'bg-red-500 text-white border-red-600 animate-pulse'
+                  : 'bg-white text-gray-500 hover:text-orange-500 border-gray-200 hover:border-orange-200'
+              }`}
+              title={isListening ? "Stop Recording" : "Dictate Message"}
+            >
+              {isListening ? <MicOff size={16} /> : <Mic size={16} />}
+            </button>
+
+            {/* Send Button */}
             <button
               onClick={() => handleSend()}
               disabled={!inputValue.trim() || isTyping}
