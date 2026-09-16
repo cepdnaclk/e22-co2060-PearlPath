@@ -27,6 +27,7 @@ import DestinationDetails from './components/Destinations/DestinationDetails'
 import TravelChatWidget from './components/TravelChatWidget'
 import { CurrencyProvider } from './context/CurrencyContext'
 import Experiences from './pages/Experiences'
+import TripPlanner from './components/TripPlanner/TripPlanner'
 
 function App() {
   const handleSendMessage = async (message, history) => {
@@ -74,6 +75,7 @@ function App() {
             <Route path="/vehicle/:id" element={<VehicleDetails />} />
             <Route path="/add-vehicle" element={<ProtectedRoute roles={['vehicle_owner']}><AddVehicle /></ProtectedRoute>} />
             <Route path="/experiences" element={<Experiences />} />
+            <Route path="/trip-planner" element={<TripPlanner />} />
           </Routes>
           <TravelChatWidget onSendMessage={handleSendMessage} />
         </Router>
