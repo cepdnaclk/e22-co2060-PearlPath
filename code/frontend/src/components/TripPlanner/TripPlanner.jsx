@@ -98,7 +98,7 @@ const TripPlanner = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] font-outfit flex flex-col">
+    <div className="min-h-screen bg-slate-200 font-outfit flex flex-col">
       <Navbar />
       <div className="flex-1 max-w-7xl w-full mx-auto px-4 py-8 mt-20">
         <div className="text-center mb-10">

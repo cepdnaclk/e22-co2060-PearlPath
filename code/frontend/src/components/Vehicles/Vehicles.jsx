@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import Navbar from '../Navbar/Navbar';
 import VehicleCard from './VehicleCard';
+import VehicleSkeleton from './VehicleSkeleton';
 import { Filter, SlidersHorizontal } from 'lucide-react';
 import { useCurrency } from '../../context/CurrencyContext';
 
@@ -9,6 +10,10 @@ const Vehicles = () => {
   const { user, authFetch } = useAuth();
   const { convertPrice, getCurrencySymbol } = useCurrency();
   const [vehicles, setVehicles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [sortBy, setSortBy] = useState('default');
   const [filters, setFilters] = useState({
     type: 'All',
     maxPrice: 40000,
@@ -19,6 +24,7 @@ const Vehicles = () => {
   useEffect(() => {
     const fetchVehicles = async () => {
       try {
+        setLoading(true);
         let response;
         if (user && user.role === 'vehicle_owner') {
           response = await authFetch('http://127.0.0.1:3001/api/vehicles/owner');
@@ -30,6 +36,9 @@ const Vehicles = () => {
         setVehicles(data);
       } catch (err) {
         console.error("Error fetching vehicles:", err);
+        setError("Failed to fetch vehicles. Please try again later.");
+      } finally {
+        setLoading(false);
       }
     };
     
@@ -50,6 +59,10 @@ const Vehicles = () => {
     if (filters.autoOnly && vehicle.transmission !== 'Auto') return false;
     if (filters.acOnly && !vehicle.hasAC) return false;
     return true;
+  }).sort((a, b) => {
+    if (sortBy === 'price_asc') return a.pricePerDay - b.pricePerDay;
+    if (sortBy === 'price_desc') return b.pricePerDay - a.pricePerDay;
+    return 0; // default
   });
 
   return (
@@ -71,8 +84,19 @@ const Vehicles = () => {
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="flex flex-col lg:flex-row gap-8">
           
+          {/* Mobile Filter Button */}
+          <div className="lg:hidden w-full">
+            <button 
+              onClick={() => setShowMobileFilters(!showMobileFilters)}
+              className="w-full flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-800 py-3 rounded-xl font-bold shadow-sm"
+            >
+              <Filter size={20} className="text-sunset-orange" />
+              {showMobileFilters ? 'Hide Filters' : 'Show Filters'}
+            </button>
+          </div>
+
           {/* Left Sidebar (Filters) - 25% */}
-          <div className="lg:w-1/4">
+          <div className={`lg:w-1/4 ${showMobileFilters ? 'block' : 'hidden lg:block'}`}>
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 sticky top-24">
               <div className="flex items-center gap-2 mb-6 pb-4 border-b border-slate-100">
                 <SlidersHorizontal size={20} className="text-sunset-orange" />
@@ -163,17 +187,39 @@ const Vehicles = () => {
           </div>
 
           {/* Right Main Content (Vehicles Grid) - 75% */}
-          <div className="lg:w-3/4">
-            <div className="mb-6 flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-slate-900">
-                Available Vehicles
-              </h2>
-              <span className="bg-orange-50 text-sunset-orange px-3 py-1 rounded-full text-sm font-bold">
-                {filteredVehicles.length} Results
-              </span>
+          <div className="lg:w-3/4 w-full">
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <h2 className="text-2xl font-bold text-slate-900">
+                  Available Vehicles
+                </h2>
+                <span className="bg-orange-50 text-sunset-orange px-3 py-1 rounded-full text-sm font-bold">
+                  {filteredVehicles.length} Results
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-bold text-slate-600">Sort by:</span>
+                <select 
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="bg-slate-50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-sunset-orange focus:border-sunset-orange block p-2.5 cursor-pointer outline-none"
+                >
+                  <option value="default">Default</option>
+                  <option value="price_asc">Price: Low to High</option>
+                  <option value="price_desc">Price: High to Low</option>
+                </select>
+              </div>
             </div>
 
-            {filteredVehicles.length > 0 ? (
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {Array.from({ length: 6 }).map((_, i) => <VehicleSkeleton key={i} />)}
+              </div>
+            ) : error ? (
+              <div className="bg-red-50 p-6 rounded-2xl text-center border border-red-100 text-red-600 font-medium">
+                {error}
+              </div>
+            ) : filteredVehicles.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredVehicles.map(vehicle => (
                   <VehicleCard key={vehicle.id} vehicle={vehicle} />

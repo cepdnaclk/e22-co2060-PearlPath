@@ -4,6 +4,7 @@ import { Search, Filter, SlidersHorizontal, Lock } from 'lucide-react';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 import TourGuideCard from './TourGuideCard';
+import TourGuideSkeleton from './TourGuideSkeleton';
 import { useCurrency } from '../../context/CurrencyContext';
 
 const LANGUAGE_FILTERS = ["English", "Sinhala", "Tamil", "French", "German", "Spanish", "Russian"];
@@ -12,6 +13,8 @@ const TourGuides = () => {
   const [user, setUser] = useState(null);
   const { convertPrice, getCurrencySymbol } = useCurrency();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const [guides, setGuides] = useState([]);
   const [filteredGuides, setFilteredGuides] = useState([]);
@@ -50,6 +53,7 @@ const TourGuides = () => {
         setFilteredGuides(backendGuides);
       } catch (error) {
         console.error("Failed to fetch tour guides:", error);
+        setError("Failed to fetch tour guides. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -95,8 +99,6 @@ const TourGuides = () => {
     );
   };
 
-  if (loading) return null;
-
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 font-outfit flex flex-col">
@@ -135,9 +137,20 @@ const TourGuides = () => {
       </div>
 
       <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        {/* Mobile Filter Button */}
+        <div className="lg:hidden mb-4">
+          <button 
+            onClick={() => setShowMobileFilters(!showMobileFilters)}
+            className="w-full flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-800 py-3 rounded-xl font-bold shadow-sm"
+          >
+            <Filter size={20} className="text-sunset-teal" />
+            {showMobileFilters ? 'Hide Filters' : 'Show Filters'}
+          </button>
+        </div>
+
         <div className="flex flex-col lg:flex-row gap-8">
           
-          <aside className="lg:w-1/4 shrink-0">
+          <aside className={`lg:w-1/4 shrink-0 ${showMobileFilters ? 'block' : 'hidden lg:block'}`}>
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-28">
               <div className="flex items-center gap-2 mb-6 text-gray-900 border-b border-gray-100 pb-4">
                 <SlidersHorizontal size={20} className="text-sunset-teal" />
@@ -220,7 +233,13 @@ const TourGuides = () => {
             </div>
 
             <div className="space-y-6">
-              {filteredGuides.length > 0 ? (
+              {loading ? (
+                Array.from({ length: 4 }).map((_, i) => <TourGuideSkeleton key={i} />)
+              ) : error ? (
+                <div className="bg-red-50 p-6 rounded-2xl text-center border border-red-100 text-red-600 font-medium">
+                  {error}
+                </div>
+              ) : filteredGuides.length > 0 ? (
                 filteredGuides.map(guide => (
                   <TourGuideCard key={guide.id} guide={guide} />
                 ))
