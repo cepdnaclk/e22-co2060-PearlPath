@@ -3,10 +3,36 @@ const Experience = require('../models/Experience');
 // Fetch all experiences
 const getExperiences = async (req, res) => {
     try {
-        const experiences = await Experience.find()
+        const query = {};
+        
+        if (req.query.search) {
+            query.$text = { $search: req.query.search };
+        } else if (req.query.location) {
+            query.location = { $regex: req.query.location, $options: 'i' };
+        }
+
+        if (req.query.category && req.query.category !== 'All') {
+            query.category = req.query.category;
+        }
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 12;
+        const skip = (page - 1) * limit;
+
+        const experiences = await Experience.find(query)
+            .skip(skip)
+            .limit(limit)
             .populate('providedBy', 'firstName lastName email')
             .lean();
-        res.status(200).json({ response: experiences });
+            
+        const total = await Experience.countDocuments(query);
+
+        res.status(200).json({ 
+            response: experiences,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit)
+        });
     } catch (error) {
         console.error("Get experiences error:", error);
         res.status(500).json({ message: 'An error occurred while fetching experiences' });

@@ -21,6 +21,8 @@ const hotelSchema = new Schema({
     }
 }, { timestamps: true });
 
+hotelSchema.index({ name: 'text', location: 'text' });
+
 if (mongoose.models && mongoose.models.Hotel) {
     delete mongoose.models.Hotel;
 }

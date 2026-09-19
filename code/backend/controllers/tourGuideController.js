@@ -39,11 +39,47 @@ const createOrUpdateProfile = async (req, res) => {
 const getAllTourGuides = async (req, res) => {
     try {
         const query = {};
-        if (req.query.location) {
+        
+        if (req.query.search) {
+            query.$text = { $search: req.query.search };
+        } else if (req.query.location) {
             query.location = { $regex: req.query.location, $options: 'i' };
         }
-        const guides = await TourGuide.find(query).populate('userId', 'email phone');
-        res.status(200).json(guides);
+
+        if (req.query.maxPrice) {
+            query.pricePerDay = { $lte: Number(req.query.maxPrice) };
+        }
+
+        if (req.query.languages) {
+            const languagesList = req.query.languages.split(',');
+            query.languages = { $in: languagesList };
+        }
+
+        let sort = {};
+        if (req.query.sortBy) {
+            if (req.query.sortBy === 'price_asc') sort.pricePerDay = 1;
+            else if (req.query.sortBy === 'price_desc') sort.pricePerDay = -1;
+            else if (req.query.sortBy === 'experience') sort.experienceYears = -1;
+        }
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 12;
+        const skip = (page - 1) * limit;
+
+        const guides = await TourGuide.find(query)
+            .sort(sort)
+            .skip(skip)
+            .limit(limit)
+            .populate('userId', 'email phone');
+            
+        const total = await TourGuide.countDocuments(query);
+
+        res.status(200).json({
+            response: guides,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit)
+        });
     } catch (error) {
         console.error("Error fetching tour guides:", error);
         res.status(500).json({ message: "Internal server error." });

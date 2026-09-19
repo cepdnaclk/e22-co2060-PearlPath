@@ -1,14 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import Navbar from '../Navbar/Navbar';
 import VehicleCard from './VehicleCard';
-import { Filter, SlidersHorizontal } from 'lucide-react';
+import SkeletonCard from '../SkeletonCard';
+import { Search, Filter, SlidersHorizontal } from 'lucide-react';
 import { useCurrency } from '../../context/CurrencyContext';
 
 const Vehicles = () => {
   const { user, authFetch } = useAuth();
   const { convertPrice, getCurrencySymbol } = useCurrency();
+  
+  const [loading, setLoading] = useState(true);
   const [vehicles, setVehicles] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
     type: 'All',
     maxPrice: 40000,
@@ -16,25 +23,67 @@ const Vehicles = () => {
     acOnly: false
   });
 
-  useEffect(() => {
-    const fetchVehicles = async () => {
-      try {
-        let response;
-        if (user && user.role === 'vehicle_owner') {
-          response = await authFetch('http://127.0.0.1:3001/api/vehicles/owner');
-        } else {
-          response = await fetch('http://127.0.0.1:3001/api/vehicles');
-        }
+  const [page, setPage] = useState(1);
+  
+  const searchTimeout = useRef(null);
+
+  const fetchVehicles = async (currentPage) => {
+    setLoading(true);
+
+    try {
+      let url = new URL('http://127.0.0.1:3001/api/vehicles');
+      
+      if (user && user.role === 'vehicle_owner') {
+        url = new URL('http://127.0.0.1:3001/api/vehicles/owner');
+      } else {
+        if (searchQuery) url.searchParams.append('search', searchQuery);
+        if (filters.type !== 'All') url.searchParams.append('type', filters.type);
+        if (filters.maxPrice) url.searchParams.append('maxPrice', filters.maxPrice);
+        if (filters.autoOnly) url.searchParams.append('autoOnly', filters.autoOnly);
+        if (filters.acOnly) url.searchParams.append('acOnly', filters.acOnly);
         
-        const data = await response.json();
-        setVehicles(data);
-      } catch (err) {
-        console.error("Error fetching vehicles:", err);
+        url.searchParams.append('page', currentPage);
+        url.searchParams.append('limit', 6);
       }
-    };
+      
+      const response = user && user.role === 'vehicle_owner' 
+        ? await authFetch(url.toString())
+        : await fetch(url.toString());
+        
+      const data = await response.json();
+      
+      const backendVehicles = user && user.role === 'vehicle_owner' ? data : data.response;
+      
+      setVehicles(backendVehicles || []);
+      
+      if (user && user.role === 'vehicle_owner') {
+        setTotal(data.length || 0);
+        setTotalPages(1);
+      } else {
+        setTotal(data.total || (backendVehicles ? backendVehicles.length : 0));
+        setTotalPages(data.totalPages || 1);
+      }
+      
+    } catch (err) {
+      console.error("Error fetching vehicles:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, filters, user]);
+
+  useEffect(() => {
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
     
-    fetchVehicles();
-  }, [user]);
+    searchTimeout.current = setTimeout(() => {
+      fetchVehicles(page);
+    }, 500);
+    
+    return () => clearTimeout(searchTimeout.current);
+  }, [searchQuery, filters, user, page]);
 
   const handleFilterChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -43,14 +92,6 @@ const Vehicles = () => {
       [name]: type === 'checkbox' ? checked : value
     }));
   };
-
-  const filteredVehicles = vehicles.filter(vehicle => {
-    if (filters.type !== 'All' && vehicle.vehicleType !== filters.type) return false;
-    if (vehicle.pricePerDay > filters.maxPrice) return false;
-    if (filters.autoOnly && vehicle.transmission !== 'Auto') return false;
-    if (filters.acOnly && !vehicle.hasAC) return false;
-    return true;
-  });
 
   return (
     <div className="min-h-screen bg-slate-50 font-outfit">
@@ -80,6 +121,21 @@ const Vehicles = () => {
               </div>
 
               <div className="space-y-6">
+                {/* Search Keyword */}
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">Search Make / Model</label>
+                  <div className="relative">
+                    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input 
+                      type="text" 
+                      placeholder="E.g. Toyota Aqua" 
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-sunset-orange focus:border-sunset-orange transition-all text-sm"
+                    />
+                  </div>
+                </div>
+
                 {/* Vehicle Type */}
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-3">
@@ -169,33 +225,90 @@ const Vehicles = () => {
                 Available Vehicles
               </h2>
               <span className="bg-orange-50 text-sunset-orange px-3 py-1 rounded-full text-sm font-bold">
-                {filteredVehicles.length} Results
+                {total} Results
               </span>
             </div>
 
-            {filteredVehicles.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredVehicles.map(vehicle => (
-                  <VehicleCard key={vehicle.id} vehicle={vehicle} />
-                ))}
-              </div>
-            ) : (
-              <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
-                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Filter size={24} className="text-slate-400" />
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {loading ? (
+                <>
+                  <SkeletonCard />
+                  <SkeletonCard />
+                  <SkeletonCard />
+                </>
+              ) : vehicles.length > 0 ? (
+                <>
+                  {vehicles.map((vehicle) => (
+                    <VehicleCard key={vehicle._id} vehicle={vehicle} />
+                  ))}
+                </>
+              ) : (
+                <div className="col-span-full bg-white rounded-2xl border border-slate-200 p-12 text-center">
+                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Filter size={24} className="text-slate-400" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">No vehicles found</h3>
+                  <p className="text-slate-500 max-w-md mx-auto">
+                    We couldn't find any vehicles matching your current filters. Try adjusting your price range or removing some requirements.
+                  </p>
+                  <button 
+                    onClick={() => {
+                      setSearchQuery('');
+                      setFilters({ type: 'All', maxPrice: 40000, autoOnly: false, acOnly: false });
+                    }}
+                    className="mt-6 px-6 py-2 bg-orange-50 text-sunset-orange hover:bg-orange-100 rounded-xl font-bold transition-colors"
+                  >
+                    Clear all filters
+                  </button>
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">No vehicles found</h3>
-                <p className="text-slate-500 max-w-md mx-auto">
-                  We couldn't find any vehicles matching your current filters. Try adjusting your price range or removing some requirements.
-                </p>
-                <button 
-                  onClick={() => setFilters({ type: 'All', maxPrice: 40000, autoOnly: false, acOnly: false })}
-                  className="mt-6 px-6 py-2 bg-orange-50 text-sunset-orange hover:bg-orange-100 rounded-xl font-bold transition-colors"
+              )}
+            </div>
+
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-8">
+                <button
+                  disabled={page === 1}
+                  onClick={() => {
+                    setPage(prev => prev - 1);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
                 >
-                  Clear all filters
+                  Previous
+                </button>
+                
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                    <button
+                      key={pageNum}
+                      onClick={() => {
+                        setPage(pageNum);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className={`w-10 h-10 rounded-xl font-bold transition-colors shadow-sm ${
+                        page === pageNum 
+                          ? 'bg-sunset-teal text-white border-transparent' 
+                          : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  disabled={page === totalPages}
+                  onClick={() => {
+                    setPage(prev => prev + 1);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                >
+                  Next
                 </button>
               </div>
             )}
+
           </div>
 
         </div>
