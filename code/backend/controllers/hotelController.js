@@ -3,12 +3,51 @@ const Hotel = require('../models/Hotel');
 const getHotels = async (req, res) => {
     try {
         const query = { status: 'approved', ownerId: { $ne: null } };
-        if (req.query.location) {
+        
+        if (req.query.search) {
+            query.$text = { $search: req.query.search };
+        } else if (req.query.location) {
             const escapedLocation = req.query.location.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
             query.location = { $regex: new RegExp(`\\b${escapedLocation}\\b`, 'i') };
         }
-        const hotels = await Hotel.find(query).select('-images').lean();
-        res.status(200).json({ response: hotels });
+
+        if (req.query.minPrice || req.query.maxPrice) {
+            query.pricePerNight = {};
+            if (req.query.minPrice) query.pricePerNight.$gte = Number(req.query.minPrice);
+            if (req.query.maxPrice) query.pricePerNight.$lte = Number(req.query.maxPrice);
+        }
+
+        if (req.query.amenities) {
+            const amenitiesList = req.query.amenities.split(',');
+            query.amenities = { $all: amenitiesList };
+        }
+
+        let sort = {};
+        if (req.query.sortBy) {
+            if (req.query.sortBy === 'price_asc') sort.pricePerNight = 1;
+            else if (req.query.sortBy === 'price_desc') sort.pricePerNight = -1;
+            else if (req.query.sortBy === 'top_rated') sort.starRating = -1;
+        }
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 12;
+        const skip = (page - 1) * limit;
+
+        const hotels = await Hotel.find(query)
+            .sort(sort)
+            .skip(skip)
+            .limit(limit)
+            .select('-images')
+            .lean();
+            
+        const total = await Hotel.countDocuments(query);
+        
+        res.status(200).json({ 
+            response: hotels,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit)
+        });
     } catch (error) {
         console.error("Get hotels error:", error);
         res.status(500).json({ message: 'An error occurred while fetching hotels' });
