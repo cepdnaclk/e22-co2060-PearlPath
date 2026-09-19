@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import Navbar from '../Navbar/Navbar';
 import VehicleCard from './VehicleCard';
@@ -11,9 +11,9 @@ const Vehicles = () => {
   const { convertPrice, getCurrencySymbol } = useCurrency();
   
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [vehicles, setVehicles] = useState([]);
   const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
@@ -24,30 +24,11 @@ const Vehicles = () => {
   });
 
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
   
   const searchTimeout = useRef(null);
-  
-  const observer = useRef();
-  const lastElementRef = useCallback(node => {
-    if (loading || loadingMore) return;
-    if (observer.current) observer.current.disconnect();
-    
-    observer.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore) {
-        setPage(prev => prev + 1);
-      }
-    });
-    
-    if (node) observer.current.observe(node);
-  }, [loading, loadingMore, hasMore]);
 
-  const fetchVehicles = async (currentPage, isReset = false) => {
-    if (isReset) {
-      setLoading(true);
-    } else {
-      setLoadingMore(true);
-    }
+  const fetchVehicles = async (currentPage) => {
+    setLoading(true);
 
     try {
       let url = new URL('http://127.0.0.1:3001/api/vehicles');
@@ -73,46 +54,36 @@ const Vehicles = () => {
       
       const backendVehicles = user && user.role === 'vehicle_owner' ? data : data.response;
       
-      if (isReset) {
-        setVehicles(backendVehicles || []);
-      } else {
-        setVehicles(prev => [...prev, ...(backendVehicles || [])]);
-      }
+      setVehicles(backendVehicles || []);
       
       if (user && user.role === 'vehicle_owner') {
         setTotal(data.length || 0);
-        setHasMore(false);
+        setTotalPages(1);
       } else {
         setTotal(data.total || (backendVehicles ? backendVehicles.length : 0));
-        setHasMore(data.page < data.totalPages);
+        setTotalPages(data.totalPages || 1);
       }
       
     } catch (err) {
       console.error("Error fetching vehicles:", err);
     } finally {
       setLoading(false);
-      setLoadingMore(false);
     }
   };
 
   useEffect(() => {
     setPage(1);
-    setHasMore(true);
-    
-    if (searchTimeout.current) clearTimeout(searchTimeout.current);
-    
-    searchTimeout.current = setTimeout(() => {
-      fetchVehicles(1, true);
-    }, 500);
-    
-    return () => clearTimeout(searchTimeout.current);
   }, [searchQuery, filters, user]);
 
   useEffect(() => {
-    if (page > 1) {
-      fetchVehicles(page, false);
-    }
-  }, [page]);
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    
+    searchTimeout.current = setTimeout(() => {
+      fetchVehicles(page);
+    }, 500);
+    
+    return () => clearTimeout(searchTimeout.current);
+  }, [searchQuery, filters, user, page]);
 
   const handleFilterChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -267,19 +238,9 @@ const Vehicles = () => {
                 </>
               ) : vehicles.length > 0 ? (
                 <>
-                  {vehicles.map((vehicle, index) => {
-                    if (vehicles.length === index + 1) {
-                      return <div ref={lastElementRef} key={vehicle._id}><VehicleCard vehicle={vehicle} /></div>
-                    }
-                    return <VehicleCard key={vehicle._id} vehicle={vehicle} />
-                  })}
-                  
-                  {loadingMore && (
-                    <>
-                      <SkeletonCard />
-                      <SkeletonCard />
-                    </>
-                  )}
+                  {vehicles.map((vehicle) => (
+                    <VehicleCard key={vehicle._id} vehicle={vehicle} />
+                  ))}
                 </>
               ) : (
                 <div className="col-span-full bg-white rounded-2xl border border-slate-200 p-12 text-center">
@@ -303,17 +264,49 @@ const Vehicles = () => {
               )}
             </div>
 
-            {!loading && vehicles.length > 0 && !hasMore && (
-              <p className="text-center text-gray-500 mt-8 font-medium w-full">You've reached the end of the list.</p>
-            )}
-            
-            {!loading && hasMore && !loadingMore && (
-              <button 
-                onClick={() => setPage(prev => prev + 1)}
-                className="w-full mt-8 py-3 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-colors shadow-sm"
-              >
-                Load More
-              </button>
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-8">
+                <button
+                  disabled={page === 1}
+                  onClick={() => {
+                    setPage(prev => prev - 1);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                >
+                  Previous
+                </button>
+                
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                    <button
+                      key={pageNum}
+                      onClick={() => {
+                        setPage(pageNum);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className={`w-10 h-10 rounded-xl font-bold transition-colors shadow-sm ${
+                        page === pageNum 
+                          ? 'bg-sunset-teal text-white border-transparent' 
+                          : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  disabled={page === totalPages}
+                  onClick={() => {
+                    setPage(prev => prev + 1);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                >
+                  Next
+                </button>
+              </div>
             )}
 
           </div>

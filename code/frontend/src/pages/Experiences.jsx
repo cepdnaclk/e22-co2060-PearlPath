@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
@@ -40,25 +40,10 @@ const Experiences = () => {
   const [searchTerm, setSearchTerm] = useState('');
   
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   const searchTimeout = useRef(null);
-
-  const observer = useRef();
-  const lastElementRef = useCallback(node => {
-    if (loading || loadingMore) return;
-    if (observer.current) observer.current.disconnect();
-    
-    observer.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore) {
-        setPage(prev => prev + 1);
-      }
-    });
-    
-    if (node) observer.current.observe(node);
-  }, [loading, loadingMore, hasMore]);
 
   // Full Details Modal State (for viewing complete experience details)
   const [selectedExperienceDetails, setSelectedExperienceDetails] = useState(null);
@@ -88,12 +73,8 @@ const Experiences = () => {
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState(null);
 
-  const fetchExperiences = async (currentPage, isReset = false) => {
-    if (isReset) {
-      setLoading(true);
-    } else {
-      setLoadingMore(true);
-    }
+  const fetchExperiences = async (currentPage) => {
+    setLoading(true);
 
     try {
       let url = new URL('http://127.0.0.1:3001/api/experiences');
@@ -107,40 +88,30 @@ const Experiences = () => {
       const data = await res.json();
       
       const newExperiences = data.response || [];
-      if (isReset) {
-        setDbExperiences(newExperiences);
-      } else {
-        setDbExperiences(prev => [...prev, ...newExperiences]);
-      }
+      setDbExperiences(newExperiences);
       
       setTotal(data.total || newExperiences.length);
-      setHasMore(data.page < data.totalPages);
+      setTotalPages(data.totalPages || 1);
     } catch (err) {
       console.error("Fetch experiences error:", err);
       setError(err.message);
     } finally {
       setLoading(false);
-      setLoadingMore(false);
     }
   };
 
   useEffect(() => {
     setPage(1);
-    setHasMore(true);
-    
-    if (searchTimeout.current) clearTimeout(searchTimeout.current);
-    searchTimeout.current = setTimeout(() => {
-      fetchExperiences(1, true);
-    }, 500);
-    
-    return () => clearTimeout(searchTimeout.current);
   }, [searchTerm, selectedCategory]);
 
   useEffect(() => {
-    if (page > 1) {
-      fetchExperiences(page, false);
-    }
-  }, [page]);
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    searchTimeout.current = setTimeout(() => {
+      fetchExperiences(page);
+    }, 500);
+    
+    return () => clearTimeout(searchTimeout.current);
+  }, [searchTerm, selectedCategory, page]);
 
   useEffect(() => {
     if (searchParams.get('openAddModal') === 'true') {
@@ -414,22 +385,18 @@ const Experiences = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-left">
-            {filteredExperiences.map((experience, index) => {
-              // Convert LKR price to active currency
-              const convertedPrice = convertPrice(experience.pricePerPerson);
+            {dbExperiences.map((experience) => {
+              const convertedPrice = convertPrice(experience.pricePerPerson || 0);
               const symbol = getCurrencySymbol();
-
-              // Safe check if logged-in user is the provider who created this experience
-              const canEdit = user && experience.providedBy && (
-                experience.providedBy._id === user._id || 
-                experience.providedBy === user._id
-              );
+              
+              const isOwner = user && user.role === 'tour_guide' && experience.ownerId === user._id;
+              const canEdit = isOwner || (user && user.role === 'admin');
 
               return (
                 <div 
                   key={experience._id} 
-                  ref={filteredExperiences.length === index + 1 ? lastElementRef : null}
-                  className="bg-[#1a1a1f]/60 backdrop-blur-md border border-white/10 rounded-3xl overflow-hidden hover:shadow-[#FF8C00]/10 hover:shadow-2xl hover:border-white/20 transition-all duration-300 group flex flex-col h-full hover:-translate-y-1"
+                  className="bg-[#1a1a1f]/80 backdrop-blur-md border border-white/10 rounded-3xl overflow-hidden hover:border-[#FF8C00]/50 transition-all duration-300 shadow-2xl hover:shadow-[#FF8C00]/10 group flex flex-col cursor-pointer h-full hover:-translate-y-1"
+                  onClick={() => setSelectedExperienceDetails(experience)}
                 >
                   {/* Card Image */}
                   <div 
@@ -556,32 +523,53 @@ const Experiences = () => {
               );
             })}
             
-            {loadingMore && (
-              <div className="bg-[#1a1a1f]/60 border border-white/10 rounded-3xl overflow-hidden shadow-2xl h-[420px] animate-pulse flex flex-col">
-                <div className="bg-gray-800/80 h-56 w-full"></div>
-                <div className="p-6 flex-1 flex flex-col justify-between">
-                  <div className="space-y-3">
-                    <div className="h-6 bg-gray-800/80 rounded w-1/3"></div>
-                    <div className="h-6 bg-gray-800/80 rounded w-3/4"></div>
-                    <div className="h-12 bg-gray-800/80 rounded w-full"></div>
-                  </div>
-                </div>
-              </div>
-            )}
+
           </div>
         )}
         
-        {!loading && dbExperiences.length > 0 && !hasMore && (
-          <p className="text-center text-gray-500 mt-8 font-medium w-full">You've reached the end of the list.</p>
-        )}
-        
-        {!loading && hasMore && !loadingMore && (
-          <button 
-            onClick={() => setPage(prev => prev + 1)}
-            className="w-full mt-8 py-3 bg-white/5 border border-white/10 text-gray-300 font-bold rounded-xl hover:bg-white/10 transition-colors shadow-sm"
-          >
-            Load More
-          </button>
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-12 mb-8">
+            <button
+              disabled={page === 1}
+              onClick={() => {
+                setPage(prev => prev - 1);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-gray-300 font-bold hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+            >
+              Previous
+            </button>
+            
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                <button
+                  key={pageNum}
+                  onClick={() => {
+                    setPage(pageNum);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className={`w-10 h-10 rounded-xl font-bold transition-colors shadow-sm ${
+                    page === pageNum 
+                      ? 'bg-[#FF8C00] text-white border-transparent' 
+                      : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              ))}
+            </div>
+
+            <button
+              disabled={page === totalPages}
+              onClick={() => {
+                setPage(prev => prev + 1);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-gray-300 font-bold hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+            >
+              Next
+            </button>
+          </div>
         )}
       </main>
 

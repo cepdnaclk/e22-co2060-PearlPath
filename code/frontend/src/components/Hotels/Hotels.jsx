@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Filter, SlidersHorizontal, Lock, Building } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -15,9 +15,9 @@ const Hotels = () => {
   const { convertPrice, getCurrencySymbol } = useCurrency();
   
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [hotels, setHotels] = useState([]);
   const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   
   // Filter states
   const [searchCity, setSearchCity] = useState('');
@@ -28,45 +28,29 @@ const Hotels = () => {
   
   // Pagination states
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
 
   // Debounce ref for search
   const searchTimeout = useRef(null);
-  
-  const observer = useRef();
-  const lastElementRef = useCallback(node => {
-    if (loading || loadingMore) return;
-    if (observer.current) observer.current.disconnect();
-    
-    observer.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore) {
-        setPage(prev => prev + 1);
-      }
-    });
-    
-    if (node) observer.current.observe(node);
-  }, [loading, loadingMore, hasMore]);
 
-  const fetchHotels = async (currentPage, isReset = false) => {
-    if (isReset) {
-      setLoading(true);
-    } else {
-      setLoadingMore(true);
-    }
+  // Full Details Modal State (for viewing complete hotel details)
+  const [selectedHotelDetails, setSelectedHotelDetails] = useState(null);
+
+  const fetchHotels = async (currentPage) => {
+    setLoading(true);
 
     try {
-      let url = new URL('http://127.0.0.1:3001/api/hotels');
-      
+      let url;
       if (user && user.role === 'hotel_owner') {
         url = new URL('http://127.0.0.1:3001/api/hotels/provider');
       } else {
+        url = new URL('http://127.0.0.1:3001/api/hotels');
         if (searchCity) url.searchParams.append('search', searchCity);
         if (minPrice) url.searchParams.append('minPrice', minPrice);
         if (maxPrice) url.searchParams.append('maxPrice', maxPrice);
         if (selectedAmenities.length > 0) url.searchParams.append('amenities', selectedAmenities.join(','));
         if (sortBy) url.searchParams.append('sortBy', sortBy);
         url.searchParams.append('page', currentPage);
-        url.searchParams.append('limit', 6); // Fetch 6 items per page for testing infinite scroll
+        url.searchParams.append('limit', 6);
       }
       
       const response = user && user.role === 'hotel_owner' 
@@ -92,44 +76,33 @@ const Hotels = () => {
         ownerId: h.ownerId
       }));
 
-      if (isReset) {
-        setHotels(backendHotels);
-      } else {
-        setHotels(prev => [...prev, ...backendHotels]);
-      }
+      setHotels(backendHotels);
       
       setTotal(data.total || backendHotels.length);
-      setHasMore(data.page < data.totalPages);
+      setTotalPages(data.totalPages || 1);
       
     } catch (error) {
       console.error("Failed to fetch hotels:", error);
     } finally {
       setLoading(false);
-      setLoadingMore(false);
     }
   };
 
-  // Fetch when filters change (reset page to 1)
+  // Reset page to 1 when filters change
   useEffect(() => {
     setPage(1);
-    setHasMore(true);
-    
-    // Debounce to avoid too many requests while typing
+  }, [searchCity, minPrice, maxPrice, selectedAmenities, sortBy, user]);
+
+  // Fetch data (debounced)
+  useEffect(() => {
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
     
     searchTimeout.current = setTimeout(() => {
-      fetchHotels(1, true);
+      fetchHotels(page);
     }, 500);
     
     return () => clearTimeout(searchTimeout.current);
-  }, [searchCity, minPrice, maxPrice, selectedAmenities, sortBy, user]);
-
-  // Fetch when page changes (infinite scroll)
-  useEffect(() => {
-    if (page > 1) {
-      fetchHotels(page, false);
-    }
-  }, [page]);
+  }, [searchCity, minPrice, maxPrice, selectedAmenities, sortBy, user, page]);
 
   const handleAmenityChange = (amenity) => {
     setSelectedAmenities(prev => 
@@ -284,30 +257,57 @@ const Hotels = () => {
                 </>
               ) : hotels.length > 0 ? (
                 <>
-                  {hotels.map((hotel, index) => {
-                    if (hotels.length === index + 1) {
-                      return <div ref={lastElementRef} key={hotel.id}><HotelCard hotel={hotel} isOwnerView={user?.role === 'hotel_owner'} /></div>
-                    }
-                    return <HotelCard key={hotel.id} hotel={hotel} isOwnerView={user?.role === 'hotel_owner'} />
-                  })}
-                  
-                  {loadingMore && (
-                    <div className="mt-4">
-                      <SkeletonCard />
-                    </div>
-                  )}
+                  {hotels.map((hotel) => (
+                    <HotelCard 
+                      key={hotel.id} 
+                      hotel={hotel} 
+                      isOwnerView={user?.role === 'hotel_owner'} 
+                    />
+                  ))}
 
-                  {!hasMore && hotels.length > 0 && (
-                    <p className="text-center text-gray-500 mt-6 font-medium">You've reached the end of the list.</p>
-                  )}
-                  
-                  {hasMore && !loadingMore && (
-                    <button 
-                      onClick={() => setPage(prev => prev + 1)}
-                      className="w-full mt-6 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition-colors"
-                    >
-                      Load More
-                    </button>
+                  {totalPages > 1 && (
+                    <div className="col-span-1 lg:col-span-2 flex items-center justify-center gap-2 mt-8">
+                      <button
+                        disabled={page === 1}
+                        onClick={() => {
+                          setPage(prev => prev - 1);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                      >
+                        Previous
+                      </button>
+                      
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                          <button
+                            key={pageNum}
+                            onClick={() => {
+                              setPage(pageNum);
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            className={`w-10 h-10 rounded-xl font-bold transition-colors shadow-sm ${
+                              page === pageNum 
+                                ? 'bg-sunset-teal text-white border-transparent' 
+                                : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        ))}
+                      </div>
+
+                      <button
+                        disabled={page === totalPages}
+                        onClick={() => {
+                          setPage(prev => prev + 1);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                      >
+                        Next
+                      </button>
+                    </div>
                   )}
                 </>
               ) : (

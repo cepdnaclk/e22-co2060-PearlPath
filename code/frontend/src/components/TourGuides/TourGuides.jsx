@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Filter, SlidersHorizontal, Lock } from 'lucide-react';
 import Navbar from '../Navbar/Navbar';
@@ -14,10 +14,10 @@ const TourGuides = () => {
   const { convertPrice, getCurrencySymbol } = useCurrency();
   
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   
   const [guides, setGuides] = useState([]);
   const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   const [searchLocation, setSearchLocation] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
@@ -25,23 +25,8 @@ const TourGuides = () => {
   const [sortBy, setSortBy] = useState('recommended');
 
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
   
   const searchTimeout = useRef(null);
-  
-  const observer = useRef();
-  const lastElementRef = useCallback(node => {
-    if (loading || loadingMore) return;
-    if (observer.current) observer.current.disconnect();
-    
-    observer.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore) {
-        setPage(prev => prev + 1);
-      }
-    });
-    
-    if (node) observer.current.observe(node);
-  }, [loading, loadingMore, hasMore]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -50,12 +35,8 @@ const TourGuides = () => {
     }
   }, []);
 
-  const fetchGuides = async (currentPage, isReset = false) => {
-    if (isReset) {
-      setLoading(true);
-    } else {
-      setLoadingMore(true);
-    }
+  const fetchGuides = async (currentPage) => {
+    setLoading(true);
 
     try {
       let url = new URL('http://127.0.0.1:3001/api/tour-guides');
@@ -85,41 +66,31 @@ const TourGuides = () => {
         }));
       }
       
-      if (isReset) {
-        setGuides(backendGuides);
-      } else {
-        setGuides(prev => [...prev, ...backendGuides]);
-      }
+      setGuides(backendGuides);
       
       setTotal(data.total || backendGuides.length);
-      setHasMore(data.page < data.totalPages);
+      setTotalPages(data.totalPages || 1);
       
     } catch (error) {
       console.error("Failed to fetch tour guides:", error);
     } finally {
       setLoading(false);
-      setLoadingMore(false);
     }
   };
 
   useEffect(() => {
     setPage(1);
-    setHasMore(true);
-    
-    if (searchTimeout.current) clearTimeout(searchTimeout.current);
-    
-    searchTimeout.current = setTimeout(() => {
-      fetchGuides(1, true);
-    }, 500);
-    
-    return () => clearTimeout(searchTimeout.current);
   }, [searchLocation, maxPrice, selectedLanguages, sortBy]);
 
   useEffect(() => {
-    if (page > 1) {
-      fetchGuides(page, false);
-    }
-  }, [page]);
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    
+    searchTimeout.current = setTimeout(() => {
+      fetchGuides(page);
+    }, 500);
+    
+    return () => clearTimeout(searchTimeout.current);
+  }, [searchLocation, maxPrice, selectedLanguages, sortBy, page]);
 
   const handleLanguageChange = (lang) => {
     setSelectedLanguages(prev => 
@@ -259,30 +230,53 @@ const TourGuides = () => {
                 </>
               ) : guides.length > 0 ? (
                 <>
-                  {guides.map((guide, index) => {
-                    if (guides.length === index + 1) {
-                      return <div ref={lastElementRef} key={guide.id}><TourGuideCard guide={guide} /></div>
-                    }
-                    return <TourGuideCard key={guide.id} guide={guide} />
-                  })}
+                  {guides.map((guide) => (
+                    <TourGuideCard key={guide.id} guide={guide} />
+                  ))}
                   
-                  {loadingMore && (
-                    <div className="mt-4">
-                      <SkeletonCard />
-                    </div>
-                  )}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-2 mt-8">
+                      <button
+                        disabled={page === 1}
+                        onClick={() => {
+                          setPage(prev => prev - 1);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                      >
+                        Previous
+                      </button>
+                      
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                          <button
+                            key={pageNum}
+                            onClick={() => {
+                              setPage(pageNum);
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            className={`w-10 h-10 rounded-xl font-bold transition-colors shadow-sm ${
+                              page === pageNum 
+                                ? 'bg-sunset-teal text-white border-transparent' 
+                                : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        ))}
+                      </div>
 
-                  {!hasMore && guides.length > 0 && (
-                    <p className="text-center text-gray-500 mt-6 font-medium">You've reached the end of the list.</p>
-                  )}
-                  
-                  {hasMore && !loadingMore && (
-                    <button 
-                      onClick={() => setPage(prev => prev + 1)}
-                      className="w-full mt-6 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition-colors"
-                    >
-                      Load More
-                    </button>
+                      <button
+                        disabled={page === totalPages}
+                        onClick={() => {
+                          setPage(prev => prev + 1);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                      >
+                        Next
+                      </button>
+                    </div>
                   )}
                 </>
               ) : (
