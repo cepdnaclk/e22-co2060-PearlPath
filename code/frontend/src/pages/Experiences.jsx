@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
@@ -38,6 +38,27 @@ const Experiences = () => {
   // Search & Filter State
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
+  
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [total, setTotal] = useState(0);
+
+  const searchTimeout = useRef(null);
+
+  const observer = useRef();
+  const lastElementRef = useCallback(node => {
+    if (loading || loadingMore) return;
+    if (observer.current) observer.current.disconnect();
+    
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        setPage(prev => prev + 1);
+      }
+    });
+    
+    if (node) observer.current.observe(node);
+  }, [loading, loadingMore, hasMore]);
 
   // Full Details Modal State (for viewing complete experience details)
   const [selectedExperienceDetails, setSelectedExperienceDetails] = useState(null);
@@ -67,23 +88,61 @@ const Experiences = () => {
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState(null);
 
-  const fetchExperiences = async () => {
-    try {
+  const fetchExperiences = async (currentPage, isReset = false) => {
+    if (isReset) {
       setLoading(true);
-      const res = await fetch('http://127.0.0.1:3001/api/experiences');
+    } else {
+      setLoadingMore(true);
+    }
+
+    try {
+      let url = new URL('http://127.0.0.1:3001/api/experiences');
+      if (searchTerm) url.searchParams.append('search', searchTerm);
+      if (selectedCategory && selectedCategory !== 'All') url.searchParams.append('category', selectedCategory);
+      url.searchParams.append('page', currentPage);
+      url.searchParams.append('limit', 6);
+
+      const res = await fetch(url.toString());
       if (!res.ok) throw new Error('Failed to load experiences');
       const data = await res.json();
-      setDbExperiences(data.response || []);
+      
+      const newExperiences = data.response || [];
+      if (isReset) {
+        setDbExperiences(newExperiences);
+      } else {
+        setDbExperiences(prev => [...prev, ...newExperiences]);
+      }
+      
+      setTotal(data.total || newExperiences.length);
+      setHasMore(data.page < data.totalPages);
     } catch (err) {
       console.error("Fetch experiences error:", err);
       setError(err.message);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
   useEffect(() => {
-    fetchExperiences();
+    setPage(1);
+    setHasMore(true);
+    
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    searchTimeout.current = setTimeout(() => {
+      fetchExperiences(1, true);
+    }, 500);
+    
+    return () => clearTimeout(searchTimeout.current);
+  }, [searchTerm, selectedCategory]);
+
+  useEffect(() => {
+    if (page > 1) {
+      fetchExperiences(page, false);
+    }
+  }, [page]);
+
+  useEffect(() => {
     if (searchParams.get('openAddModal') === 'true') {
       setModalOpen(true);
     }
@@ -229,16 +288,7 @@ const Experiences = () => {
 
   // Experiences loaded from database
   const allExperiences = dbExperiences;
-
-  // Filter experiences by category and search keyword
-  const filteredExperiences = allExperiences.filter(exp => {
-    const matchesCategory = selectedCategory === 'All' || exp.category?.toLowerCase() === selectedCategory.toLowerCase();
-    const matchesSearch = !searchTerm.trim() || 
-      exp.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      exp.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      exp.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const filteredExperiences = allExperiences;
 
   return (
     <div className="min-h-screen bg-sunset-dark text-white font-outfit flex flex-col">
@@ -294,7 +344,7 @@ const Experiences = () => {
             </div>
 
             <div className="text-xs text-gray-400 font-semibold px-4 py-3 bg-white/5 rounded-2xl border border-white/10 shrink-0 self-start sm:self-auto">
-              Showing <span className="text-[#FF8C00] font-bold">{filteredExperiences.length}</span> of {allExperiences.length} experiences
+              Showing <span className="text-[#FF8C00] font-bold">{total}</span> experiences
             </div>
           </div>
 
@@ -303,9 +353,6 @@ const Experiences = () => {
             {categories.map((cat) => {
               const Icon = cat.icon;
               const isActive = selectedCategory === cat.id;
-              const count = cat.id === 'All' 
-                ? allExperiences.length 
-                : allExperiences.filter(e => e.category?.toLowerCase() === cat.id.toLowerCase()).length;
 
               return (
                 <button
@@ -319,11 +366,6 @@ const Experiences = () => {
                 >
                   <Icon size={16} className={isActive ? 'text-white' : 'text-[#FF8C00]'} />
                   <span>{cat.label}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                    isActive ? 'bg-white/25 text-white' : 'bg-white/5 text-gray-400'
-                  }`}>
-                    {count}
-                  </span>
                 </button>
               );
             })}
@@ -372,7 +414,7 @@ const Experiences = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-left">
-            {filteredExperiences.map(experience => {
+            {filteredExperiences.map((experience, index) => {
               // Convert LKR price to active currency
               const convertedPrice = convertPrice(experience.pricePerPerson);
               const symbol = getCurrencySymbol();
@@ -386,6 +428,7 @@ const Experiences = () => {
               return (
                 <div 
                   key={experience._id} 
+                  ref={filteredExperiences.length === index + 1 ? lastElementRef : null}
                   className="bg-[#1a1a1f]/60 backdrop-blur-md border border-white/10 rounded-3xl overflow-hidden hover:shadow-[#FF8C00]/10 hover:shadow-2xl hover:border-white/20 transition-all duration-300 group flex flex-col h-full hover:-translate-y-1"
                 >
                   {/* Card Image */}
@@ -512,7 +555,33 @@ const Experiences = () => {
                 </div>
               );
             })}
+            
+            {loadingMore && (
+              <div className="bg-[#1a1a1f]/60 border border-white/10 rounded-3xl overflow-hidden shadow-2xl h-[420px] animate-pulse flex flex-col">
+                <div className="bg-gray-800/80 h-56 w-full"></div>
+                <div className="p-6 flex-1 flex flex-col justify-between">
+                  <div className="space-y-3">
+                    <div className="h-6 bg-gray-800/80 rounded w-1/3"></div>
+                    <div className="h-6 bg-gray-800/80 rounded w-3/4"></div>
+                    <div className="h-12 bg-gray-800/80 rounded w-full"></div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
+        )}
+        
+        {!loading && dbExperiences.length > 0 && !hasMore && (
+          <p className="text-center text-gray-500 mt-8 font-medium w-full">You've reached the end of the list.</p>
+        )}
+        
+        {!loading && hasMore && !loadingMore && (
+          <button 
+            onClick={() => setPage(prev => prev + 1)}
+            className="w-full mt-8 py-3 bg-white/5 border border-white/10 text-gray-300 font-bold rounded-xl hover:bg-white/10 transition-colors shadow-sm"
+          >
+            Load More
+          </button>
         )}
       </main>
 
