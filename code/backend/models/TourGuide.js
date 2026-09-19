@@ -13,5 +13,7 @@ const tourGuideSchema = new Schema({
     contactEmail: { type: String }
 }, { timestamps: true });
 
+tourGuideSchema.index({ name: 'text', location: 'text' });
+
 const TourGuide = mongoose.model('TourGuide', tourGuideSchema);
 module.exports = TourGuide;

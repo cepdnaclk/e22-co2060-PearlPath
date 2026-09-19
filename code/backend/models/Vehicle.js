@@ -48,4 +48,6 @@ const vehicleSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+vehicleSchema.index({ makeAndModel: 'text' });
+
 module.exports = mongoose.model('Vehicle', vehicleSchema);
