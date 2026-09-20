@@ -126,7 +126,7 @@ const ProviderBookings = () => {
                                 >
                                     <div>
                                         <h3 className="font-bold text-lg text-sunset-dark">
-                                            {booking.hotelId ? `Hotel: ${booking.hotelId.name}` : booking.vehicleId ? `Vehicle: ${booking.vehicleId.makeAndModel}` : 'Listing Booking'}
+                                            {booking.hotelId ? `Hotel: ${booking.hotelId.name}` : booking.vehicleId ? `Vehicle: ${booking.vehicleId.makeAndModel}` : booking.tourId ? `Tour Guide: ${booking.tourId.name}` : 'Listing Booking'}
                                         </h3>
                                         <p className="text-sm text-gray-500 mt-1">
                                             Dates: {new Date(booking.startDate).toLocaleDateString()} to {new Date(booking.endDate).toLocaleDateString()}

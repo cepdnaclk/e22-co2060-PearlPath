@@ -74,7 +74,7 @@ const ProviderCalendar = ({ serviceType, serviceId, title }) => {
     if (loading) return <div>Loading Calendar...</div>;
 
     return (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center provider-calendar-wrapper">
             <h3 className="font-bold text-lg text-sunset-dark mb-4">{title} Availability</h3>
             <Calendar 
                 onClickDay={handleDateClick}

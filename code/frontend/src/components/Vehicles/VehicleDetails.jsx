@@ -304,8 +304,16 @@ const VehicleDetails = () => {
                             }
                             return false;
                         }}
-                        className="custom-calendar w-full border-gray-200 rounded-xl"
+                        className="custom-calendar w-full border-gray-200 rounded-xl tourist-calendar"
                       />
+                      {bookingData.startDate && bookingData.endDate && (
+                        <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-100 flex flex-col gap-1 text-sm shadow-inner">
+                           <span className="text-gray-500 font-bold uppercase tracking-wider text-xs">Selected Dates</span>
+                           <span className="font-bold text-sunset-teal text-base">
+                               {new Date(bookingData.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - {new Date(bookingData.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                           </span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
