@@ -1,0 +1,29 @@
+.custom-calendar {
+    font-family: 'Outfit', sans-serif !important;
+    border: none !important;
+}
+
+.react-calendar__tile--active {
+    background-color: transparent !important;
+    color: black !important;
+}
+
+.booked-date {
+    background-color: #ffa94d !important;
+    color: white !important;
+    border-radius: 4px;
+}
+
+.blocked-date {
+    background-color: #ff6b6b !important;
+    color: white !important;
+    border-radius: 4px;
+}
+
+.react-calendar__tile:hover {
+    background-color: #e6fcf5 !important;
+}
+
+.booked-date:hover, .blocked-date:hover {
+    opacity: 0.8;
+}
