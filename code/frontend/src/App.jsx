@@ -27,6 +27,8 @@ import DestinationDetails from './components/Destinations/DestinationDetails'
 import TravelChatWidget from './components/TravelChatWidget'
 import { CurrencyProvider } from './context/CurrencyContext'
 import Experiences from './pages/Experiences'
+import TripPlanner from './components/TripPlanner/TripPlanner'
+import RevenueDashboard from './components/OwnerDashboard/RevenueDashboard'
 
 function App() {
   const handleSendMessage = async (message, history) => {
@@ -70,10 +72,12 @@ function App() {
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
             <Route path="/provider-bookings" element={<ProtectedRoute roles={['hotel_owner', 'vehicle_owner', 'tour_guide']}><ProviderBookings /></ProtectedRoute>} />
+            <Route path="/provider-revenue" element={<ProtectedRoute roles={['hotel_owner', 'vehicle_owner', 'tour_guide']}><RevenueDashboard /></ProtectedRoute>} />
             <Route path="/vehicles" element={<Vehicles />} />
             <Route path="/vehicle/:id" element={<VehicleDetails />} />
             <Route path="/add-vehicle" element={<ProtectedRoute roles={['vehicle_owner']}><AddVehicle /></ProtectedRoute>} />
             <Route path="/experiences" element={<Experiences />} />
+            <Route path="/trip-planner" element={<TripPlanner />} />
           </Routes>
           <TravelChatWidget onSendMessage={handleSendMessage} />
         </Router>

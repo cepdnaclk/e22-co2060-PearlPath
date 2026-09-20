@@ -14,7 +14,7 @@ const routeRouter = require('./routers/routeRouter');
 const chatRouter = require('./routers/chatRouter');
 const reviewRouter = require('./routers/reviewRouter');
 const experienceRouter = require('./routers/experienceRouter');
-
+const tripPlannerRouter = require('./routers/tripPlannerRouter');
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
@@ -56,3 +56,4 @@ app.use('/api', routeRouter);
 app.use('/api', chatRouter);
 app.use('/api', reviewRouter);
 app.use('/api', experienceRouter);
+app.use('/api/trip-planner', tripPlannerRouter);

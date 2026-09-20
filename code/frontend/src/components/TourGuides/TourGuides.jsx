@@ -14,7 +14,8 @@ const TourGuides = () => {
   const { convertPrice, getCurrencySymbol } = useCurrency();
   
   const [loading, setLoading] = useState(true);
-  
+  const [error, setError] = useState(null);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [guides, setGuides] = useState([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -33,6 +34,7 @@ const TourGuides = () => {
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
+
   }, []);
 
   const fetchGuides = async (currentPage) => {
@@ -73,6 +75,7 @@ const TourGuides = () => {
       
     } catch (error) {
       console.error("Failed to fetch tour guides:", error);
+      setError("Failed to fetch tour guides. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -138,9 +141,20 @@ const TourGuides = () => {
       </div>
 
       <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        {/* Mobile Filter Button */}
+        <div className="lg:hidden mb-4">
+          <button 
+            onClick={() => setShowMobileFilters(!showMobileFilters)}
+            className="w-full flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-800 py-3 rounded-xl font-bold shadow-sm"
+          >
+            <Filter size={20} className="text-sunset-teal" />
+            {showMobileFilters ? 'Hide Filters' : 'Show Filters'}
+          </button>
+        </div>
+
         <div className="flex flex-col lg:flex-row gap-8">
           
-          <aside className="lg:w-1/4 shrink-0">
+          <aside className={`lg:w-1/4 shrink-0 ${showMobileFilters ? 'block' : 'hidden lg:block'}`}>
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-28">
               <div className="flex items-center gap-2 mb-6 text-gray-900 border-b border-gray-100 pb-4">
                 <SlidersHorizontal size={20} className="text-sunset-teal" />
@@ -227,7 +241,13 @@ const TourGuides = () => {
                 <>
                   <SkeletonCard />
                   <SkeletonCard />
+                  <SkeletonCard />
+                  <SkeletonCard />
                 </>
+              ) : error ? (
+                <div className="bg-red-50 p-6 rounded-2xl text-center border border-red-100 text-red-600 font-medium">
+                  {error}
+                </div>
               ) : guides.length > 0 ? (
                 <>
                   {guides.map((guide) => (

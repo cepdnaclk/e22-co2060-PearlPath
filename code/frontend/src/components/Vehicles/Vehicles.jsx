@@ -14,8 +14,10 @@ const Vehicles = () => {
   const [vehicles, setVehicles] = useState([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-
   const [searchQuery, setSearchQuery] = useState('');
+  const [error, setError] = useState(null);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [sortBy, setSortBy] = useState('default');
   const [filters, setFilters] = useState({
     type: 'All',
     maxPrice: 40000,
@@ -29,6 +31,7 @@ const Vehicles = () => {
 
   const fetchVehicles = async (currentPage) => {
     setLoading(true);
+    setError(null);
 
     try {
       let url = new URL('http://127.0.0.1:3001/api/vehicles');
@@ -41,6 +44,7 @@ const Vehicles = () => {
         if (filters.maxPrice) url.searchParams.append('maxPrice', filters.maxPrice);
         if (filters.autoOnly) url.searchParams.append('autoOnly', filters.autoOnly);
         if (filters.acOnly) url.searchParams.append('acOnly', filters.acOnly);
+        if (sortBy && sortBy !== 'default') url.searchParams.append('sortBy', sortBy);
         
         url.searchParams.append('page', currentPage);
         url.searchParams.append('limit', 6);
@@ -93,6 +97,7 @@ const Vehicles = () => {
     }));
   };
 
+
   return (
     <div className="min-h-screen bg-slate-50 font-outfit">
       <Navbar />
@@ -112,8 +117,19 @@ const Vehicles = () => {
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="flex flex-col lg:flex-row gap-8">
           
+          {/* Mobile Filter Button */}
+          <div className="lg:hidden w-full">
+            <button 
+              onClick={() => setShowMobileFilters(!showMobileFilters)}
+              className="w-full flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-800 py-3 rounded-xl font-bold shadow-sm"
+            >
+              <Filter size={20} className="text-sunset-orange" />
+              {showMobileFilters ? 'Hide Filters' : 'Show Filters'}
+            </button>
+          </div>
+
           {/* Left Sidebar (Filters) - 25% */}
-          <div className="lg:w-1/4">
+          <div className={`lg:w-1/4 ${showMobileFilters ? 'block' : 'hidden lg:block'}`}>
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 sticky top-24">
               <div className="flex items-center gap-2 mb-6 pb-4 border-b border-slate-100">
                 <SlidersHorizontal size={20} className="text-sunset-orange" />
@@ -219,14 +235,28 @@ const Vehicles = () => {
           </div>
 
           {/* Right Main Content (Vehicles Grid) - 75% */}
-          <div className="lg:w-3/4">
-            <div className="mb-6 flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-slate-900">
-                Available Vehicles
-              </h2>
-              <span className="bg-orange-50 text-sunset-orange px-3 py-1 rounded-full text-sm font-bold">
-                {total} Results
-              </span>
+          <div className="lg:w-3/4 w-full">
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <h2 className="text-2xl font-bold text-slate-900">
+                  Available Vehicles
+                </h2>
+                <span className="bg-orange-50 text-sunset-orange px-3 py-1 rounded-full text-sm font-bold">
+                  {total} Results
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-bold text-slate-600">Sort by:</span>
+                <select 
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="bg-slate-50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-sunset-orange focus:border-sunset-orange block p-2.5 cursor-pointer outline-none"
+                >
+                  <option value="default">Default</option>
+                  <option value="price_asc">Price: Low to High</option>
+                  <option value="price_desc">Price: High to Low</option>
+                </select>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -236,6 +266,10 @@ const Vehicles = () => {
                   <SkeletonCard />
                   <SkeletonCard />
                 </>
+              ) : error ? (
+                <div className="col-span-full bg-red-50 p-6 rounded-2xl text-center border border-red-100 text-red-600 font-medium">
+                  {error}
+                </div>
               ) : vehicles.length > 0 ? (
                 <>
                   {vehicles.map((vehicle) => (

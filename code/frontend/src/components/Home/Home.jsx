@@ -5,7 +5,7 @@ import Footer from '../Footer/Footer';
 import QuickViewModal from '../QuickView/QuickViewModal';
 import { useCurrency } from '../../context/CurrencyContext';
 import { VehicleContext } from '../../context/VehicleContext';
-import { Calendar, User, Search, MapPin, Map, Navigation, Star, Compass, Wind, CarFront, Plus, Building, Car, ClipboardList } from 'lucide-react';
+import { Calendar, User, Search, MapPin, Map, Navigation, Star, Compass, Wind, CarFront, Plus, Building, Car, ClipboardList, Sparkles } from 'lucide-react';
 import { beautifulPlaces } from '../../data/destinations';
 const Home = () => {
   const [selectedProperty, setSelectedProperty] = useState(null);
@@ -107,6 +107,12 @@ const Home = () => {
             <Compass className="text-sunset-teal group-hover:rotate-45 transition-transform" />
             <span>Interactive Map</span>
           </Link>
+
+          <Link to="/trip-planner" className="flex items-center gap-3 px-6 py-3 bg-white rounded-full shadow-md border border-gray-100 hover:border-sunset-orange/30 hover:shadow-lg transition-all text-gray-800 whitespace-nowrap group font-semibold">
+            <Sparkles className="text-sunset-orange group-hover:scale-110 transition-transform" />
+            <span>AI Trip Planner</span>
+          </Link>
+
 
           {!user && (
             <>
