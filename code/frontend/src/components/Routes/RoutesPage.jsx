@@ -4,7 +4,9 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
-import { Search, MapPin, Navigation, Clock, Compass, Info, Locate } from 'lucide-react';
+import WeatherWidget from '../Weather/WeatherWidget';
+import { Search, MapPin, Navigation, Clock, Compass, Info, Locate, Download } from 'lucide-react';
+import { buildTripItineraryHTML, buildRouteGuideHTML, triggerPDFPrint } from '../../utils/pdfVoucherService';
 
 // Fix Leaflet Default Marker Icon issue in React
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -234,6 +236,15 @@ const RoutesPage = ({ embedded = false }) => {
       return `Direct optimal road route from ${startPoint.name} to ${cleanDest}, Sri Lanka.`;
     }
     return route.description;
+  };
+
+  const getRouteDestinationLocation = (route) => {
+    if (!route) return 'Ella';
+    if (route.destination) return route.destination;
+    const activeWps = getActiveWaypoints(route.waypoints, startPoint, searchQuery);
+    if (activeWps.length > 0) return activeWps[activeWps.length - 1].name;
+    if (searchQuery && searchQuery.trim()) return searchQuery.trim();
+    return route.name || 'Ella';
   };
 
   // Helper to filter and truncate waypoints based on current start point and active search target
@@ -538,7 +549,7 @@ const RoutesPage = ({ embedded = false }) => {
           </div>
 
           {/* Routes List */}
-          <div className="flex-1 flex flex-col gap-4 overflow-y-auto max-h-[300px] lg:max-h-[400px]">
+          <div className="flex-1 flex flex-col gap-4 overflow-y-auto overflow-x-hidden max-h-[550px] lg:max-h-[680px] pr-1">
             {loading ? (
               <div className="flex flex-col items-center justify-center py-16 bg-[#18181b] rounded-2xl border border-white/5">
                 <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-sunset-orange mb-3"></div>
@@ -555,7 +566,7 @@ const RoutesPage = ({ embedded = false }) => {
                 <div
                   key={route._id}
                   onClick={() => setSelectedRoute(route)}
-                  className={`p-5 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col gap-3 relative overflow-hidden group ${
+                  className={`p-5 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col gap-3 relative group ${
                     selectedRoute?._id === route._id
                       ? 'bg-gradient-to-br from-sunset-orange/10 to-sunset-gold/10 border-sunset-orange/40 shadow-lg scale-[1.01]'
                       : 'bg-[#18181b] border-white/5 hover:border-white/10 hover:bg-[#202024]'
@@ -586,6 +597,30 @@ const RoutesPage = ({ embedded = false }) => {
                       {selectedRoute?._id === route._id ? getActiveWaypoints(route.waypoints, startPoint, searchQuery).length : route.waypoints.length} Stops
                     </span>
                   </div>
+
+                  {/* Destination Weather & Seasonal Safety Widget */}
+                  {selectedRoute?._id === route._id && (
+                    <div className="mt-2 pt-2 border-t border-white/10 space-y-3">
+                      <WeatherWidget 
+                        location={getRouteDestinationLocation(route)} 
+                        name={getDisplayRouteName(route)} 
+                      />
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const html = buildRouteGuideHTML(route, startPoint, searchQuery, liveRouteInfo);
+                          const routeTitle = getDisplayRouteName(route);
+                          triggerPDFPrint(html, `PearlPath_Route_${routeTitle.replace(/\s+/g, '_')}`);
+                        }}
+                        className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-sunset-orange to-sunset-gold text-white font-extrabold py-3 px-4 rounded-2xl shadow-md hover:opacity-95 transition-all text-xs cursor-pointer"
+                      >
+                        <Download size={16} />
+                        Download Route Guide (PDF)
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))
             )}
@@ -602,7 +637,7 @@ const RoutesPage = ({ embedded = false }) => {
           >
             {/* Custom Dark Theme Map Tiles */}
             <TileLayer
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             />
 
@@ -811,7 +846,7 @@ const RoutesPage = ({ embedded = false }) => {
           </div>
 
           {/* Routes List */}
-          <div className="flex-1 flex flex-col gap-4 overflow-y-auto max-h-[300px] lg:max-h-[400px]">
+          <div className="flex-1 flex flex-col gap-4 overflow-y-auto overflow-x-hidden max-h-[550px] lg:max-h-[680px] pr-1">
             {loading ? (
               <div className="flex flex-col items-center justify-center py-16 bg-[#18181b] rounded-2xl border border-white/5">
                 <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-sunset-orange mb-3"></div>
@@ -828,7 +863,7 @@ const RoutesPage = ({ embedded = false }) => {
                 <div
                   key={route._id}
                   onClick={() => setSelectedRoute(route)}
-                  className={`p-5 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col gap-3 relative overflow-hidden group ${
+                  className={`p-5 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col gap-3 relative group ${
                     selectedRoute?._id === route._id
                       ? 'bg-gradient-to-br from-sunset-orange/10 to-sunset-gold/10 border-sunset-orange/40 shadow-lg scale-[1.01]'
                       : 'bg-[#18181b] border-white/5 hover:border-white/10 hover:bg-[#202024]'
@@ -859,6 +894,30 @@ const RoutesPage = ({ embedded = false }) => {
                       {selectedRoute?._id === route._id ? getActiveWaypoints(route.waypoints, startPoint, searchQuery).length : route.waypoints.length} Stops
                     </span>
                   </div>
+
+                  {/* Destination Weather & Seasonal Safety Widget */}
+                  {selectedRoute?._id === route._id && (
+                    <div className="mt-2 pt-2 border-t border-white/10 space-y-3">
+                      <WeatherWidget 
+                        location={getRouteDestinationLocation(route)} 
+                        name={getDisplayRouteName(route)} 
+                      />
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const html = buildRouteGuideHTML(route, startPoint, searchQuery, liveRouteInfo);
+                          const routeTitle = getDisplayRouteName(route);
+                          triggerPDFPrint(html, `PearlPath_Route_${routeTitle.replace(/\s+/g, '_')}`);
+                        }}
+                        className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-sunset-orange to-sunset-gold text-white font-extrabold py-3 px-4 rounded-2xl shadow-md hover:opacity-95 transition-all text-xs cursor-pointer"
+                      >
+                        <Download size={16} />
+                        Download Route Guide (PDF)
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))
             )}
@@ -875,7 +934,7 @@ const RoutesPage = ({ embedded = false }) => {
           >
             {/* Custom Dark Theme Map Tiles */}
             <TileLayer
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             />
 

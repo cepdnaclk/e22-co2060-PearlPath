@@ -31,5 +31,7 @@ const experienceSchema = new Schema({
     organizerEmail: { type: String }
 }, { timestamps: true });
 
+experienceSchema.index({ title: 'text', location: 'text' });
+
 const Experience = mongoose.model('Experience', experienceSchema);
 module.exports = Experience;

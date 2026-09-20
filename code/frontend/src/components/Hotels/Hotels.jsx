@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Filter, SlidersHorizontal, Lock, Building } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -6,100 +6,103 @@ import { useCurrency } from '../../context/CurrencyContext';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 import HotelCard from './HotelCard';
+import SkeletonCard from '../SkeletonCard';
 
 const AMENITY_FILTERS = ["Free WiFi", "Pool", "Breakfast Included", "Spa", "Ocean View", "Beachfront", "A/C"];
 
 const Hotels = () => {
   const { user, authFetch } = useAuth();
   const { convertPrice, getCurrencySymbol } = useCurrency();
+  
   const [loading, setLoading] = useState(true);
-
   const [hotels, setHotels] = useState([]);
-  const [filteredHotels, setFilteredHotels] = useState([]);
-
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  
+  // Filter states
   const [searchCity, setSearchCity] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [selectedAmenities, setSelectedAmenities] = useState([]);
   const [sortBy, setSortBy] = useState('recommended');
+  
+  // Pagination states
+  const [page, setPage] = useState(1);
 
-  useEffect(() => {
-    const fetchHotels = async () => {
-      try {
-        let response;
-        if (user && user.role === 'hotel_owner') {
-          response = await authFetch('http://127.0.0.1:3001/api/hotels/provider');
-        } else {
-          response = await fetch('http://127.0.0.1:3001/api/hotels');
-        }
-        
-        const data = await response.json();
-        
-        // Map backend to frontend schema
-        const backendHotels = data.response.map(h => ({
-          id: h._id,
-          _id: h._id,
-          name: h.name,
-          propertyName: h.name,
-          city: h.location,
-          location: h.location,
-          starRating: h.starRating || 4,
-          pricePerNight: h.pricePerNight,
-          amenities: h.amenities || ["Free WiFi", "A/C"],
-          description: h.description,
-          imageUrl: h.imageUrl || "https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop",
-          contactNumber: h.contactNumber,
-          whatsappNumber: h.whatsappNumber,
-          ownerId: h.ownerId
-        }));
-        
-        setHotels(backendHotels);
-        setFilteredHotels(backendHotels);
-      } catch (error) {
-        console.error("Failed to fetch hotels:", error);
-      } finally {
-        setLoading(false);
+  // Debounce ref for search
+  const searchTimeout = useRef(null);
+
+  // Full Details Modal State (for viewing complete hotel details)
+  const [selectedHotelDetails, setSelectedHotelDetails] = useState(null);
+
+  const fetchHotels = async (currentPage) => {
+    setLoading(true);
+
+    try {
+      let url;
+      if (user && user.role === 'hotel_owner') {
+        url = new URL('http://127.0.0.1:3001/api/hotels/provider');
+      } else {
+        url = new URL('http://127.0.0.1:3001/api/hotels');
+        if (searchCity) url.searchParams.append('search', searchCity);
+        if (minPrice) url.searchParams.append('minPrice', minPrice);
+        if (maxPrice) url.searchParams.append('maxPrice', maxPrice);
+        if (selectedAmenities.length > 0) url.searchParams.append('amenities', selectedAmenities.join(','));
+        if (sortBy) url.searchParams.append('sortBy', sortBy);
+        url.searchParams.append('page', currentPage);
+        url.searchParams.append('limit', 6);
       }
-    };
-    
-    fetchHotels();
-  }, [user]);
+      
+      const response = user && user.role === 'hotel_owner' 
+        ? await authFetch(url.toString())
+        : await fetch(url.toString());
+        
+      const data = await response.json();
+      
+      const backendHotels = data.response.map(h => ({
+        id: h._id,
+        _id: h._id,
+        name: h.name,
+        propertyName: h.name,
+        city: h.location,
+        location: h.location,
+        starRating: h.starRating || 4,
+        pricePerNight: h.pricePerNight,
+        amenities: h.amenities || ["Free WiFi", "A/C"],
+        description: h.description,
+        imageUrl: h.imageUrl || "https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop",
+        contactNumber: h.contactNumber,
+        whatsappNumber: h.whatsappNumber,
+        ownerId: h.ownerId
+      }));
 
-  // Filtering Logic
+      setHotels(backendHotels);
+      
+      setTotal(data.total || backendHotels.length);
+      setTotalPages(data.totalPages || 1);
+      
+    } catch (error) {
+      console.error("Failed to fetch hotels:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Reset page to 1 when filters change
   useEffect(() => {
-    let result = hotels;
+    setPage(1);
+  }, [searchCity, minPrice, maxPrice, selectedAmenities, sortBy, user]);
 
-    // City Filter
-    if (searchCity) {
-      result = result.filter(h => h.city.toLowerCase().includes(searchCity.toLowerCase()));
-    }
-
-    // Price Filter
-    if (minPrice) {
-      result = result.filter(h => convertPrice(h.pricePerNight) >= parseInt(minPrice));
-    }
-    if (maxPrice) {
-      result = result.filter(h => convertPrice(h.pricePerNight) <= parseInt(maxPrice));
-    }
-
-    // Amenities Filter
-    if (selectedAmenities.length > 0) {
-      result = result.filter(h => 
-        selectedAmenities.every(amenity => h.amenities.includes(amenity))
-      );
-    }
-
-    // Sorting
-    if (sortBy === 'price_asc') {
-      result.sort((a, b) => a.pricePerNight - b.pricePerNight);
-    } else if (sortBy === 'price_desc') {
-      result.sort((a, b) => b.pricePerNight - a.pricePerNight);
-    } else if (sortBy === 'top_rated') {
-      result.sort((a, b) => b.starRating - a.starRating);
-    }
-
-    setFilteredHotels([...result]);
-  }, [hotels, searchCity, minPrice, maxPrice, selectedAmenities, sortBy]);
+  // Fetch data (debounced)
+  useEffect(() => {
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    
+    searchTimeout.current = setTimeout(() => {
+      fetchHotels(page);
+    }, 500);
+    
+    return () => clearTimeout(searchTimeout.current);
+  }, [searchCity, minPrice, maxPrice, selectedAmenities, sortBy, user, page]);
 
   const handleAmenityChange = (amenity) => {
     setSelectedAmenities(prev => 
@@ -109,9 +112,6 @@ const Hotels = () => {
     );
   };
 
-  if (loading) return null;
-
-  // Unauthenticated View
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 font-outfit flex flex-col">
@@ -129,9 +129,6 @@ const Hotels = () => {
             >
               Sign In to Continue
             </Link>
-            <p className="mt-6 text-sm text-gray-500">
-              Don't have an account? <Link to="/register" className="text-sunset-teal font-bold hover:underline">Register here</Link>
-            </p>
           </div>
         </div>
         <Footer />
@@ -139,7 +136,6 @@ const Hotels = () => {
     );
   }
 
-  // Authenticated View
   return (
     <div className="min-h-screen bg-[#FDFBF7] font-outfit flex flex-col">
       <Navbar />
@@ -166,12 +162,12 @@ const Hotels = () => {
 
               {/* City Search */}
               <div className="mb-6">
-                <label className="block text-sm font-bold text-gray-700 mb-2">Location</label>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Location or Name</label>
                 <div className="relative">
                   <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input 
                     type="text" 
-                    placeholder="Search city e.g. Galle" 
+                    placeholder="E.g. Galle or Hotel Name" 
                     value={searchCity}
                     onChange={(e) => setSearchCity(e.target.value)}
                     className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-sunset-teal/50 focus:border-sunset-teal transition-all text-sm"
@@ -233,7 +229,7 @@ const Hotels = () => {
             {/* Header / Sort Bar */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
               <h2 className="text-lg font-bold text-gray-800 mb-4 sm:mb-0 space-x-1">
-                <span>{filteredHotels.length}</span>
+                <span>{total}</span>
                 <span className="text-gray-500 font-medium">properties found</span>
               </h2>
               <div className="flex items-center gap-3">
@@ -252,24 +248,73 @@ const Hotels = () => {
             </div>
 
             <div className="space-y-6">
-              {hotels.length === 0 ? (
+              {loading ? (
+                // Initial Loading Skeletons
+                <>
+                  <SkeletonCard />
+                  <SkeletonCard />
+                  <SkeletonCard />
+                </>
+              ) : hotels.length > 0 ? (
+                <>
+                  {hotels.map((hotel) => (
+                    <HotelCard 
+                      key={hotel.id} 
+                      hotel={hotel} 
+                      isOwnerView={user?.role === 'hotel_owner'} 
+                    />
+                  ))}
+
+                  {totalPages > 1 && (
+                    <div className="col-span-1 lg:col-span-2 flex items-center justify-center gap-2 mt-8">
+                      <button
+                        disabled={page === 1}
+                        onClick={() => {
+                          setPage(prev => prev - 1);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                      >
+                        Previous
+                      </button>
+                      
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                          <button
+                            key={pageNum}
+                            onClick={() => {
+                              setPage(pageNum);
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            className={`w-10 h-10 rounded-xl font-bold transition-colors shadow-sm ${
+                              page === pageNum 
+                                ? 'bg-sunset-teal text-white border-transparent' 
+                                : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        ))}
+                      </div>
+
+                      <button
+                        disabled={page === totalPages}
+                        onClick={() => {
+                          setPage(prev => prev + 1);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
+                </>
+              ) : (
                 <div className="bg-white p-12 rounded-3xl text-center border border-gray-100 shadow-sm">
                   <Building size={48} className="text-gray-300 mx-auto mb-4" />
                   <h3 className="text-xl font-bold text-gray-800 mb-2">No Stays Found</h3>
-                  <p className="text-gray-500 mb-6">No properties listed in this area yet. Are you a hotel owner? Be the first to list your property!</p>
-                  <Link to="/register?role=hotel_owner" className="inline-flex px-6 py-3 bg-sunset-teal text-white font-bold rounded-xl text-sm hover:bg-opacity-90 transition-all shadow-md">
-                    Become a Hotel Owner
-                  </Link>
-                </div>
-              ) : filteredHotels.length > 0 ? (
-                filteredHotels.map(hotel => (
-                  <HotelCard key={hotel.id} hotel={hotel} isOwnerView={user?.role === 'hotel_owner'} />
-                ))
-              ) : (
-                <div className="bg-white p-12 rounded-3xl text-center border border-gray-100 shadow-sm">
-                  <Filter size={48} className="text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">No properties found</h3>
-                  <p className="text-gray-500">Try adjusting your search filters to find more options.</p>
+                  <p className="text-gray-500 mb-6">Try adjusting your search filters to find more options.</p>
                   <button 
                     onClick={() => {
                       setSearchCity('');

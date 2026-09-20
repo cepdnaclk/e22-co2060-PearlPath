@@ -3,10 +3,11 @@ import { useAuth } from '../../context/AuthContext';
 import { Link, useSearchParams } from 'react-router-dom';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
-import { Calendar, Home, Car, User, MapPin, CreditCard, ChevronRight, Trash2, X, Hash, Clock, Phone, MessageSquare } from 'lucide-react';
+import { Calendar, Home, Car, User, MapPin, CreditCard, ChevronRight, Trash2, X, Hash, Clock, Phone, MessageSquare, Download, FileText } from 'lucide-react';
+import { buildBookingVoucherHTML, triggerPDFPrint } from '../../utils/pdfVoucherService';
 
 const MyBookings = () => {
-  const { authFetch } = useAuth();
+  const { user, authFetch } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -448,6 +449,18 @@ const MyBookings = () => {
                     </div>
                   </div>
                 )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const html = buildBookingVoucherHTML(booking, title, location, user);
+                    triggerPDFPrint(html, `PearlPath_Voucher_${booking._id.slice(-6)}`);
+                  }}
+                  className="w-full inline-flex items-center justify-center gap-2 bg-[#18181b] hover:bg-black text-white font-extrabold py-3.5 px-4 rounded-2xl border border-white/10 hover:border-sunset-orange shadow-md transition-all text-sm cursor-pointer"
+                >
+                  <Download size={18} className="text-sunset-orange" />
+                  Download Offline PDF Voucher
+                </button>
 
                 <Link
                   to={targetLink}

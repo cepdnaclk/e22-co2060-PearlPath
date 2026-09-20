@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import Navbar from '../components/Navbar/Navbar';
 import Footer from '../components/Footer/Footer';
+import WeatherWidget from '../components/Weather/WeatherWidget';
 import { 
   Plus, 
   Clock, 
@@ -38,6 +39,12 @@ const Experiences = () => {
   // Search & Filter State
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
+  
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const searchTimeout = useRef(null);
 
   // Full Details Modal State (for viewing complete experience details)
   const [selectedExperienceDetails, setSelectedExperienceDetails] = useState(null);
@@ -67,13 +74,25 @@ const Experiences = () => {
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState(null);
 
-  const fetchExperiences = async () => {
+  const fetchExperiences = async (currentPage) => {
+    setLoading(true);
+
     try {
-      setLoading(true);
-      const res = await fetch('http://127.0.0.1:3001/api/experiences');
+      let url = new URL('http://127.0.0.1:3001/api/experiences');
+      if (searchTerm) url.searchParams.append('search', searchTerm);
+      if (selectedCategory && selectedCategory !== 'All') url.searchParams.append('category', selectedCategory);
+      url.searchParams.append('page', currentPage);
+      url.searchParams.append('limit', 6);
+
+      const res = await fetch(url.toString());
       if (!res.ok) throw new Error('Failed to load experiences');
       const data = await res.json();
-      setDbExperiences(data.response || []);
+      
+      const newExperiences = data.response || [];
+      setDbExperiences(newExperiences);
+      
+      setTotal(data.total || newExperiences.length);
+      setTotalPages(data.totalPages || 1);
     } catch (err) {
       console.error("Fetch experiences error:", err);
       setError(err.message);
@@ -83,7 +102,19 @@ const Experiences = () => {
   };
 
   useEffect(() => {
-    fetchExperiences();
+    setPage(1);
+  }, [searchTerm, selectedCategory]);
+
+  useEffect(() => {
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    searchTimeout.current = setTimeout(() => {
+      fetchExperiences(page);
+    }, 500);
+    
+    return () => clearTimeout(searchTimeout.current);
+  }, [searchTerm, selectedCategory, page]);
+
+  useEffect(() => {
     if (searchParams.get('openAddModal') === 'true') {
       setModalOpen(true);
     }
@@ -229,16 +260,7 @@ const Experiences = () => {
 
   // Experiences loaded from database
   const allExperiences = dbExperiences;
-
-  // Filter experiences by category and search keyword
-  const filteredExperiences = allExperiences.filter(exp => {
-    const matchesCategory = selectedCategory === 'All' || exp.category?.toLowerCase() === selectedCategory.toLowerCase();
-    const matchesSearch = !searchTerm.trim() || 
-      exp.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      exp.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      exp.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const filteredExperiences = allExperiences;
 
   return (
     <div className="min-h-screen bg-sunset-dark text-white font-outfit flex flex-col">
@@ -294,7 +316,7 @@ const Experiences = () => {
             </div>
 
             <div className="text-xs text-gray-400 font-semibold px-4 py-3 bg-white/5 rounded-2xl border border-white/10 shrink-0 self-start sm:self-auto">
-              Showing <span className="text-[#FF8C00] font-bold">{filteredExperiences.length}</span> of {allExperiences.length} experiences
+              Showing <span className="text-[#FF8C00] font-bold">{total}</span> experiences
             </div>
           </div>
 
@@ -303,9 +325,6 @@ const Experiences = () => {
             {categories.map((cat) => {
               const Icon = cat.icon;
               const isActive = selectedCategory === cat.id;
-              const count = cat.id === 'All' 
-                ? allExperiences.length 
-                : allExperiences.filter(e => e.category?.toLowerCase() === cat.id.toLowerCase()).length;
 
               return (
                 <button
@@ -319,11 +338,6 @@ const Experiences = () => {
                 >
                   <Icon size={16} className={isActive ? 'text-white' : 'text-[#FF8C00]'} />
                   <span>{cat.label}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                    isActive ? 'bg-white/25 text-white' : 'bg-white/5 text-gray-400'
-                  }`}>
-                    {count}
-                  </span>
                 </button>
               );
             })}
@@ -372,21 +386,18 @@ const Experiences = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-left">
-            {filteredExperiences.map(experience => {
-              // Convert LKR price to active currency
-              const convertedPrice = convertPrice(experience.pricePerPerson);
+            {dbExperiences.map((experience) => {
+              const convertedPrice = convertPrice(experience.pricePerPerson || 0);
               const symbol = getCurrencySymbol();
-
-              // Safe check if logged-in user is the provider who created this experience
-              const canEdit = user && experience.providedBy && (
-                experience.providedBy._id === user._id || 
-                experience.providedBy === user._id
-              );
+              
+              const isOwner = user && user.role === 'tour_guide' && experience.ownerId === user._id;
+              const canEdit = isOwner || (user && user.role === 'admin');
 
               return (
                 <div 
                   key={experience._id} 
-                  className="bg-[#1a1a1f]/60 backdrop-blur-md border border-white/10 rounded-3xl overflow-hidden hover:shadow-[#FF8C00]/10 hover:shadow-2xl hover:border-white/20 transition-all duration-300 group flex flex-col h-full hover:-translate-y-1"
+                  className="bg-[#1a1a1f]/80 backdrop-blur-md border border-white/10 rounded-3xl overflow-hidden hover:border-[#FF8C00]/50 transition-all duration-300 shadow-2xl hover:shadow-[#FF8C00]/10 group flex flex-col cursor-pointer h-full hover:-translate-y-1"
+                  onClick={() => setSelectedExperienceDetails(experience)}
                 >
                   {/* Card Image */}
                   <div 
@@ -512,6 +523,53 @@ const Experiences = () => {
                 </div>
               );
             })}
+            
+
+          </div>
+        )}
+        
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-12 mb-8">
+            <button
+              disabled={page === 1}
+              onClick={() => {
+                setPage(prev => prev - 1);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-gray-300 font-bold hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+            >
+              Previous
+            </button>
+            
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                <button
+                  key={pageNum}
+                  onClick={() => {
+                    setPage(pageNum);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className={`w-10 h-10 rounded-xl font-bold transition-colors shadow-sm ${
+                    page === pageNum 
+                      ? 'bg-[#FF8C00] text-white border-transparent' 
+                      : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              ))}
+            </div>
+
+            <button
+              disabled={page === totalPages}
+              onClick={() => {
+                setPage(prev => prev + 1);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-gray-300 font-bold hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+            >
+              Next
+            </button>
           </div>
         )}
       </main>
@@ -888,6 +946,12 @@ const Experiences = () => {
                   {selectedExperienceDetails.description}
                 </p>
               </div>
+
+              {/* Weather & Safety Advisory Widget */}
+              <WeatherWidget 
+                location={selectedExperienceDetails.location} 
+                name={selectedExperienceDetails.title} 
+              />
 
               {/* Price Details */}
               <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between">

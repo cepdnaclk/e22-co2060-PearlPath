@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Filter, SlidersHorizontal, Lock } from 'lucide-react';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 import TourGuideCard from './TourGuideCard';
+import SkeletonCard from '../SkeletonCard';
 import { useCurrency } from '../../context/CurrencyContext';
 
 const LANGUAGE_FILTERS = ["English", "Sinhala", "Tamil", "French", "German", "Spanish", "Russian"];
@@ -11,81 +12,85 @@ const LANGUAGE_FILTERS = ["English", "Sinhala", "Tamil", "French", "German", "Sp
 const TourGuides = () => {
   const [user, setUser] = useState(null);
   const { convertPrice, getCurrencySymbol } = useCurrency();
+  
   const [loading, setLoading] = useState(true);
-
+  
   const [guides, setGuides] = useState([]);
-  const [filteredGuides, setFilteredGuides] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   const [searchLocation, setSearchLocation] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [selectedLanguages, setSelectedLanguages] = useState([]);
   const [sortBy, setSortBy] = useState('recommended');
 
+  const [page, setPage] = useState(1);
+  
+  const searchTimeout = useRef(null);
+
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
-
-    const fetchGuides = async () => {
-      try {
-        const response = await fetch('http://127.0.0.1:3001/api/tour-guides');
-        const data = await response.json();
-        
-        let backendGuides = [];
-        if (Array.isArray(data)) {
-           backendGuides = data.map(g => ({
-            id: g._id,
-            name: g.name,
-            location: g.location,
-            pricePerDay: g.pricePerDay || 0,
-            experienceYears: g.experienceYears || 0,
-            languages: g.languages && g.languages.length > 0 ? g.languages : ["English"],
-            bio: g.bio,
-            profilePictureUrl: g.profilePictureUrl || "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=800&auto=format&fit=crop"
-          }));
-        }
-        
-        setGuides(backendGuides);
-        setFilteredGuides(backendGuides);
-      } catch (error) {
-        console.error("Failed to fetch tour guides:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchGuides();
   }, []);
 
-  // Filtering Logic
+  const fetchGuides = async (currentPage) => {
+    setLoading(true);
+
+    try {
+      let url = new URL('http://127.0.0.1:3001/api/tour-guides');
+      
+      if (searchLocation) url.searchParams.append('search', searchLocation);
+      if (maxPrice) url.searchParams.append('maxPrice', maxPrice);
+      if (selectedLanguages.length > 0) url.searchParams.append('languages', selectedLanguages.join(','));
+      if (sortBy) url.searchParams.append('sortBy', sortBy);
+      
+      url.searchParams.append('page', currentPage);
+      url.searchParams.append('limit', 6);
+      
+      const response = await fetch(url.toString());
+      const data = await response.json();
+      
+      let backendGuides = [];
+      if (Array.isArray(data.response)) {
+         backendGuides = data.response.map(g => ({
+          id: g._id,
+          name: g.name,
+          location: g.location,
+          pricePerDay: g.pricePerDay || 0,
+          experienceYears: g.experienceYears || 0,
+          languages: g.languages && g.languages.length > 0 ? g.languages : ["English"],
+          bio: g.bio,
+          profilePictureUrl: g.profilePictureUrl || "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=800&auto=format&fit=crop"
+        }));
+      }
+      
+      setGuides(backendGuides);
+      
+      setTotal(data.total || backendGuides.length);
+      setTotalPages(data.totalPages || 1);
+      
+    } catch (error) {
+      console.error("Failed to fetch tour guides:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    let result = guides;
+    setPage(1);
+  }, [searchLocation, maxPrice, selectedLanguages, sortBy]);
 
-    if (searchLocation) {
-      result = result.filter(g => g.location.toLowerCase().includes(searchLocation.toLowerCase()));
-    }
-
-    if (maxPrice) {
-      result = result.filter(g => convertPrice(g.pricePerDay) <= parseInt(maxPrice));
-    }
-
-    if (selectedLanguages.length > 0) {
-      result = result.filter(g => 
-        selectedLanguages.some(lang => g.languages.includes(lang))
-      );
-    }
-
-    if (sortBy === 'price_asc') {
-      result.sort((a, b) => a.pricePerDay - b.pricePerDay);
-    } else if (sortBy === 'price_desc') {
-      result.sort((a, b) => b.pricePerDay - a.pricePerDay);
-    } else if (sortBy === 'experience') {
-      result.sort((a, b) => b.experienceYears - a.experienceYears);
-    }
-
-    setFilteredGuides([...result]);
-  }, [guides, searchLocation, maxPrice, selectedLanguages, sortBy]);
+  useEffect(() => {
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    
+    searchTimeout.current = setTimeout(() => {
+      fetchGuides(page);
+    }, 500);
+    
+    return () => clearTimeout(searchTimeout.current);
+  }, [searchLocation, maxPrice, selectedLanguages, sortBy, page]);
 
   const handleLanguageChange = (lang) => {
     setSelectedLanguages(prev => 
@@ -94,8 +99,6 @@ const TourGuides = () => {
         : [...prev, lang]
     );
   };
-
-  if (loading) return null;
 
   if (!user) {
     return (
@@ -146,12 +149,12 @@ const TourGuides = () => {
 
               {/* Location Search */}
               <div className="mb-6">
-                <label className="block text-sm font-bold text-gray-700 mb-2">Location</label>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Location or Name</label>
                 <div className="relative">
                   <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input 
                     type="text" 
-                    placeholder="E.g. Ella, Kandy" 
+                    placeholder="E.g. Ella or Name" 
                     value={searchLocation}
                     onChange={(e) => setSearchLocation(e.target.value)}
                     className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-sunset-teal/50 focus:border-sunset-teal transition-all text-sm"
@@ -201,7 +204,7 @@ const TourGuides = () => {
           <main className="lg:w-3/4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
               <h2 className="text-lg font-bold text-gray-800 mb-4 sm:mb-0 space-x-1">
-                <span>{filteredGuides.length}</span>
+                <span>{total}</span>
                 <span className="text-gray-500 font-medium">guides found</span>
               </h2>
               <div className="flex items-center gap-3">
@@ -220,10 +223,62 @@ const TourGuides = () => {
             </div>
 
             <div className="space-y-6">
-              {filteredGuides.length > 0 ? (
-                filteredGuides.map(guide => (
-                  <TourGuideCard key={guide.id} guide={guide} />
-                ))
+              {loading ? (
+                <>
+                  <SkeletonCard />
+                  <SkeletonCard />
+                </>
+              ) : guides.length > 0 ? (
+                <>
+                  {guides.map((guide) => (
+                    <TourGuideCard key={guide.id} guide={guide} />
+                  ))}
+                  
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-2 mt-8">
+                      <button
+                        disabled={page === 1}
+                        onClick={() => {
+                          setPage(prev => prev - 1);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                      >
+                        Previous
+                      </button>
+                      
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                          <button
+                            key={pageNum}
+                            onClick={() => {
+                              setPage(pageNum);
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            className={`w-10 h-10 rounded-xl font-bold transition-colors shadow-sm ${
+                              page === pageNum 
+                                ? 'bg-sunset-teal text-white border-transparent' 
+                                : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        ))}
+                      </div>
+
+                      <button
+                        disabled={page === totalPages}
+                        onClick={() => {
+                          setPage(prev => prev + 1);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="bg-white p-12 rounded-3xl text-center border border-gray-100 shadow-sm">
                   <Filter size={48} className="text-gray-300 mx-auto mb-4" />

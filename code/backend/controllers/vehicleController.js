@@ -16,8 +16,45 @@ const createVehicle = async (req, res) => {
 // Get all vehicles (for Tourists discovery page)
 const getAllVehicles = async (req, res) => {
     try {
-        const vehicles = await Vehicle.find({ isAvailable: true, status: 'approved' }).populate('ownerId', 'firstName lastName email');
-        res.status(200).json(vehicles);
+        const query = { isAvailable: true, status: 'approved' };
+        
+        if (req.query.search) {
+            query.$text = { $search: req.query.search };
+        }
+        
+        if (req.query.type && req.query.type !== 'All') {
+            query.vehicleType = req.query.type;
+        }
+        
+        if (req.query.maxPrice) {
+            query.pricePerDay = { $lte: Number(req.query.maxPrice) };
+        }
+        
+        if (req.query.autoOnly === 'true') {
+            query.transmission = 'Auto';
+        }
+        
+        if (req.query.acOnly === 'true') {
+            query.hasAC = true;
+        }
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 12;
+        const skip = (page - 1) * limit;
+
+        const vehicles = await Vehicle.find(query)
+            .skip(skip)
+            .limit(limit)
+            .populate('ownerId', 'firstName lastName email');
+            
+        const total = await Vehicle.countDocuments(query);
+
+        res.status(200).json({
+            response: vehicles,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit)
+        });
     } catch (error) {
         console.error('Error fetching all vehicles:', error);
         res.status(500).json({ message: 'Error fetching vehicles', error: error.message });
