@@ -1,4 +1,5 @@
 const Hotel = require('../models/Hotel');
+const Booking = require('../models/Booking');
 
 const getHotels = async (req, res) => {
     try {
@@ -146,4 +147,60 @@ const updateHotel = async (req, res) => {
     }
 };
 
-module.exports = { getHotels, createHotel, getHotelById, getProviderHotels, updateHotel };
+const getHotelAvailability = async (req, res) => {
+    try {
+        const hotel = await Hotel.findById(req.params.id);
+        if (!hotel) return res.status(404).json({ message: 'Hotel not found' });
+
+        const unavailableDates = hotel.unavailableDates ? hotel.unavailableDates.map(d => d.toISOString().split('T')[0]) : [];
+
+        const bookings = await Booking.find({ hotelId: req.params.id, bookingStatus: 'confirmed' });
+        
+        let bookedDates = [];
+        bookings.forEach(b => {
+            let curr = new Date(b.startDate);
+            const end = new Date(b.endDate);
+            while (curr <= end) {
+                bookedDates.push(curr.toISOString().split('T')[0]);
+                curr.setDate(curr.getDate() + 1);
+            }
+        });
+
+        const allDisabledDates = [...new Set([...unavailableDates, ...bookedDates])];
+        res.status(200).json({ disabledDates: allDisabledDates, unavailableDates });
+    } catch (error) {
+        console.error("Get hotel availability error:", error);
+        res.status(500).json({ message: 'An error occurred while fetching availability' });
+    }
+};
+
+const manageHotelAvailability = async (req, res) => {
+    try {
+        const hotel = await Hotel.findById(req.params.id);
+        if (!hotel) return res.status(404).json({ message: 'Hotel not found' });
+
+        const isOwner = hotel.ownerId && hotel.ownerId.toString() === req.user._id.toString();
+        if (!isOwner && req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Not authorized to manage availability for this hotel' });
+        }
+
+        const { date, action } = req.body; // action: 'add' or 'remove'
+        const targetDate = new Date(date).toISOString().split('T')[0];
+
+        let currentDates = hotel.unavailableDates ? hotel.unavailableDates.map(d => d.toISOString().split('T')[0]) : [];
+
+        if (action === 'add' && !currentDates.includes(targetDate)) {
+            hotel.unavailableDates.push(new Date(date));
+        } else if (action === 'remove' && currentDates.includes(targetDate)) {
+            hotel.unavailableDates = hotel.unavailableDates.filter(d => d.toISOString().split('T')[0] !== targetDate);
+        }
+
+        await hotel.save();
+        res.status(200).json({ message: 'Availability updated', unavailableDates: hotel.unavailableDates });
+    } catch (error) {
+        console.error("Manage hotel availability error:", error);
+        res.status(500).json({ message: 'An error occurred while updating availability' });
+    }
+};
+
+module.exports = { getHotels, createHotel, getHotelById, getProviderHotels, updateHotel, getHotelAvailability, manageHotelAvailability };
