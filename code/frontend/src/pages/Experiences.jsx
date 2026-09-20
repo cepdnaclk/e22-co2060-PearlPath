@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import Navbar from '../components/Navbar/Navbar';
 import Footer from '../components/Footer/Footer';
+import WeatherWidget from '../components/Weather/WeatherWidget';
 import { 
   Plus, 
   Clock, 
@@ -888,6 +889,12 @@ const Experiences = () => {
                   {selectedExperienceDetails.description}
                 </p>
               </div>
+
+              {/* Weather & Safety Advisory Widget */}
+              <WeatherWidget 
+                location={selectedExperienceDetails.location} 
+                name={selectedExperienceDetails.title} 
+              />
 
               {/* Price Details */}
               <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between">

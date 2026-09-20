@@ -5,6 +5,7 @@ import Navbar from '../Navbar/Navbar';
 import { destinations } from '../../data/destinations';
 import HotelCard from '../Hotels/HotelCard';
 import TourGuideCard from '../TourGuides/TourGuideCard';
+import WeatherWidget from '../Weather/WeatherWidget';
 
 const DestinationDetails = () => {
   const { id } = useParams();
@@ -160,7 +161,9 @@ const DestinationDetails = () => {
           </div>
 
           {/* Sidebar / Extra Info */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 space-y-6">
+            <WeatherWidget location={destination.location} name={destination.name} />
+
             <div className="bg-[#1a1a1f] p-6 rounded-3xl border border-white/5 sticky top-24">
               <h3 className="font-bold text-xl mb-4">Plan Your Visit</h3>
               <p className="text-gray-400 mb-6">Discover the best experiences, accommodations, and guided tours around {destination.name}.</p>
