@@ -6,6 +6,7 @@ import Footer from '../Footer/Footer';
 import { MapPin, Star, Wifi, Coffee, Wind, Waves, Calendar, Users, Home, User, Phone, MessageSquare } from 'lucide-react';
 import ReviewSection from '../Reviews/ReviewSection';
 import { useCurrency } from '../../context/CurrencyContext';
+import PaymentModal from '../Payment/PaymentModal';
 
 const HotelDetails = () => {
   const { id } = useParams();
@@ -25,6 +26,10 @@ const HotelDetails = () => {
   });
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingMessage, setBookingMessage] = useState('');
+
+  // Payment Modal State
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [currentBooking, setCurrentBooking] = useState(null);
 
   useEffect(() => {
     const fetchHotelDetails = async () => {
@@ -93,8 +98,8 @@ const HotelDetails = () => {
       
       const data = await response.json();
       if (response.ok) {
-        setBookingMessage('Booking request sent successfully!');
-        setTimeout(() => navigate('/my-bookings'), 2000);
+        setBookingMessage('Booking requested successfully. Please wait for the provider to confirm your booking.');
+        setTimeout(() => navigate('/my-bookings'), 2500);
       } else {
         setBookingMessage(data.message || 'Booking failed.');
       }

@@ -6,6 +6,7 @@ import Footer from '../Footer/Footer';
 import { Car, Users, Settings, Wind, Calendar, User, MapPin } from 'lucide-react';
 import ReviewSection from '../Reviews/ReviewSection';
 import { useCurrency } from '../../context/CurrencyContext';
+import PaymentModal from '../Payment/PaymentModal';
 
 const VehicleDetails = () => {
   const { id } = useParams();
@@ -23,6 +24,10 @@ const VehicleDetails = () => {
   });
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingMessage, setBookingMessage] = useState('');
+  
+  // Payment Modal State
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [currentBooking, setCurrentBooking] = useState(null);
 
   useEffect(() => {
     const fetchVehicleDetails = async () => {
@@ -95,8 +100,8 @@ const VehicleDetails = () => {
       
       const data = await response.json();
       if (response.ok) {
-        setBookingMessage('Booking request sent successfully!');
-        setTimeout(() => navigate('/my-bookings'), 2000);
+        setBookingMessage('Booking requested successfully. Please wait for the provider to confirm your booking.');
+        setTimeout(() => navigate('/my-bookings'), 2500);
       } else {
         setBookingMessage(data.message || 'Booking failed.');
       }

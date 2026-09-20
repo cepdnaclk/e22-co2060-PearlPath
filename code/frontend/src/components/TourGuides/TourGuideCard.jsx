@@ -3,13 +3,13 @@ import { Link } from 'react-router-dom';
 import { MapPin, Briefcase, Languages, DollarSign } from 'lucide-react';
 import { useCurrency } from '../../context/CurrencyContext';
 
-const TourGuideCard = ({ guide }) => {
+const TourGuideCard = ({ guide, theme = 'light' }) => {
   const { convertPrice, getCurrencySymbol } = useCurrency();
   return (
-    <div className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden flex flex-col sm:flex-row group h-full">
+    <div className={`rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border overflow-hidden flex flex-col sm:flex-row group h-full ${theme === 'dark' ? 'bg-[#1a1a1f] border-white/5' : 'bg-white border-gray-100'}`}>
       
       {/* Image Section */}
-      <div className="sm:w-2/5 relative overflow-hidden h-48 sm:h-auto bg-gray-100">
+      <div className={`sm:w-2/5 relative overflow-hidden h-48 sm:h-auto ${theme === 'dark' ? 'bg-black/20' : 'bg-gray-100'}`}>
         <img 
           src={guide.profilePictureUrl || "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=800&auto=format&fit=crop"} 
           alt={guide.name}
@@ -18,7 +18,7 @@ const TourGuideCard = ({ guide }) => {
         />
         <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm">
           <div className="flex items-center gap-1">
-            <span className="text-gray-800 font-bold text-sm">{guide.experienceYears} yrs exp</span>
+            <span className={`font-bold text-sm ${theme === 'dark' ? 'text-gray-900' : 'text-gray-800'}`}>{guide.experienceYears} yrs exp</span>
           </div>
         </div>
       </div>
@@ -27,40 +27,40 @@ const TourGuideCard = ({ guide }) => {
       <div className="p-6 sm:w-3/5 flex flex-col justify-between">
         <div>
           <div className="flex justify-between items-start mb-2">
-            <h3 className="text-xl font-extrabold text-gray-900 group-hover:text-sunset-teal transition-colors">
+            <h3 className={`text-xl font-extrabold group-hover:text-sunset-teal transition-colors ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               {guide.name}
             </h3>
             <div className="flex flex-col items-end">
               <span className="text-2xl font-black text-sunset-orange">{getCurrencySymbol()} {convertPrice(guide.pricePerDay || 0).toLocaleString()}</span>
-              <span className="text-xs text-gray-500 font-medium">per day</span>
+              <span className={`text-xs font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>per day</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 text-gray-600 mb-4 text-sm font-medium">
+          <div className={`flex items-center gap-1.5 mb-4 text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
             <MapPin size={16} className="text-sunset-teal shrink-0" />
             <span>{guide.location}</span>
           </div>
 
-          <p className="text-gray-600 text-sm line-clamp-2 mb-5 leading-relaxed">
+          <p className={`text-sm line-clamp-2 mb-5 leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
             {guide.bio || "No biography provided."}
           </p>
 
           <div className="flex flex-wrap gap-2 mb-4">
             {guide.languages && guide.languages.slice(0, 3).map((lang, index) => (
-              <span key={index} className="flex items-center gap-1 bg-teal-50 text-sunset-teal px-2.5 py-1 rounded-md text-xs font-bold border border-teal-100">
+              <span key={index} className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold border ${theme === 'dark' ? 'bg-teal-900/30 text-teal-300 border-teal-800/50' : 'bg-teal-50 text-sunset-teal border-teal-100'}`}>
                 <Languages size={12} />
                 {lang}
               </span>
             ))}
             {guide.languages && guide.languages.length > 3 && (
-              <span className="bg-gray-50 text-gray-600 px-2.5 py-1 rounded-md text-xs font-bold border border-gray-100">
+              <span className={`px-2.5 py-1 rounded-md text-xs font-bold border ${theme === 'dark' ? 'bg-white/5 text-gray-300 border-white/10' : 'bg-gray-50 text-gray-600 border-gray-100'}`}>
                 +{guide.languages.length - 3} more
               </span>
             )}
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-auto">
+        <div className={`flex items-center justify-between pt-4 border-t mt-auto ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
           <Link 
             to={`/tour-guide/${guide._id || guide.id}`}
             className="w-full text-center bg-gradient-to-r from-sunset-dark to-sunset-teal text-white font-bold py-2.5 px-4 rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all text-sm"

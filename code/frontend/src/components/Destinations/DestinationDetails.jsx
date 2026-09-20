@@ -120,9 +120,9 @@ const DestinationDetails = () => {
                 {loading ? (
                   <div className="text-gray-400">Loading hotels...</div>
                 ) : hotels.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 gap-6">
                     {hotels.map(hotel => (
-                      <HotelCard key={hotel._id} hotel={hotel} />
+                      <HotelCard key={hotel._id} hotel={hotel} theme="dark" />
                     ))}
                   </div>
                 ) : (
@@ -147,9 +147,9 @@ const DestinationDetails = () => {
                 {loading ? (
                   <div className="text-gray-400">Loading guides...</div>
                 ) : tourGuides.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 gap-6">
                     {tourGuides.map(guide => (
-                      <TourGuideCard key={guide._id} guide={guide} />
+                      <TourGuideCard key={guide._id} guide={guide} theme="dark" />
                     ))}
                   </div>
                 ) : (

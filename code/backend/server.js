@@ -15,10 +15,12 @@ const chatRouter = require('./routers/chatRouter');
 const reviewRouter = require('./routers/reviewRouter');
 const experienceRouter = require('./routers/experienceRouter');
 const tripPlannerRouter = require('./routers/tripPlannerRouter');
-
+const paymentRouter = require('./routers/paymentRouter');
+const path = require('path');
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use((req, res, next) => {
     console.log(`[Request] ${req.method} ${req.url}`);
@@ -57,3 +59,4 @@ app.use('/api', chatRouter);
 app.use('/api', reviewRouter);
 app.use('/api', experienceRouter);
 app.use('/api/trip-planner', tripPlannerRouter);
+app.use('/api/payments', paymentRouter);

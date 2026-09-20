@@ -1,6 +1,8 @@
 const Booking = require('../models/Booking');
 const Notification = require('../models/Notification');
 const Hotel = require('../models/Hotel');
+const Vehicle = require('../models/Vehicle');
+const Tour = require('../models/Tour');
 const User = require('../models/User');
 const nodemailer = require('nodemailer');
 
@@ -88,9 +90,9 @@ const checkRoomAvailability = async (hotelId, startDate, endDate, requestedRooms
     return { available: true };
 };
 
-const createBooking = async (req, res) => {
+    const createBooking = async (req, res) => {
     try {
-        const { hotelId, vehicleId, tourId, providerId, startDate, endDate, rooms, guests, totalPrice } = req.body;
+        const { hotelId, vehicleId, tourId, startDate, endDate, rooms, guests } = req.body;
         const userId = req.user._id;
 
         // Validation for dates and numbers
@@ -103,15 +105,36 @@ const createBooking = async (req, res) => {
             return res.status(400).json({ message: 'Rooms and guests must be at least 1' });
         }
 
-        // Room availability check if it is a hotel booking
+        const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+        let providerId = null;
+        let totalPrice = 0;
+
         if (hotelId) {
-            const availCheck = await checkRoomAvailability(hotelId, startDate, endDate, rooms);
-            if (!availCheck.available) {
-                return res.status(400).json({ 
-                    message: `Not enough rooms available at this hotel for the selected dates. There are only ${availCheck.maxAvailable} rooms available.` 
-                });
+            const hotel = await Hotel.findById(hotelId);
+            if (!hotel) return res.status(404).json({ message: 'Hotel not found' });
+            providerId = hotel.ownerId;
+            totalPrice = days * hotel.pricePerNight * (rooms || 1);
+        } else if (vehicleId) {
+            const vehicle = await Vehicle.findById(vehicleId);
+            if (!vehicle) return res.status(404).json({ message: 'Vehicle not found' });
+            providerId = vehicle.ownerId;
+            totalPrice = days * vehicle.pricePerDay;
+        } else if (tourId) {
+            const tour = await Tour.findById(tourId);
+            if (!tour) return res.status(404).json({ message: 'Tour not found' });
+            providerId = tour.ownerId;
+            totalPrice = tour.price; // or per person? Let's assume flat price or update later if needed
+            if (tour.pricePerPerson) {
+               totalPrice = tour.pricePerPerson * (guests || 1);
             }
         }
+
+        if (!providerId) {
+            return res.status(400).json({ message: 'Invalid service ID provided' });
+        }
+
+        // Note: No availability check on create anymore, since it's just a pending request.
+        // We will check availability when the provider accepts the booking.
 
         const booking = new Booking({
             userId,
@@ -175,7 +198,7 @@ const createBooking = async (req, res) => {
                             <p>Best regards,<br/>PearlPath Team</p>
                         </div>
                     `;
-                    await sendEmail(provider.email, subject, text, html);
+                    sendEmail(provider.email, subject, text, html).catch(console.error);
                 }
             }
         } catch (notifErr) {
@@ -215,24 +238,51 @@ const updateBooking = async (req, res) => {
             return res.status(404).json({ message: 'Booking not found' });
         }
 
-        // Check availability if confirming a hotel booking
-        if (updates.bookingStatus === 'confirmed' && (existingBooking.hotelId || updates.hotelId)) {
-            const hotelId = updates.hotelId || existingBooking.hotelId;
+        // Check availability if accepting a booking
+        if (updates.bookingStatus === 'accepted') {
             const startDate = updates.startDate || existingBooking.startDate;
             const endDate = updates.endDate || existingBooking.endDate;
-            const rooms = updates.rooms || existingBooking.rooms || 1;
+            
+            if (existingBooking.hotelId || updates.hotelId) {
+                const hotelId = updates.hotelId || existingBooking.hotelId;
+                const rooms = updates.rooms || existingBooking.rooms || 1;
 
-            const availCheck = await checkRoomAvailability(
-                hotelId,
-                startDate,
-                endDate,
-                rooms,
-                existingBooking._id
-            );
-            if (!availCheck.available) {
-                return res.status(400).json({ 
-                    message: `Cannot confirm booking. Not enough rooms available. Only ${availCheck.maxAvailable} rooms available.` 
+                const availCheck = await checkRoomAvailability(
+                    hotelId,
+                    startDate,
+                    endDate,
+                    rooms,
+                    existingBooking._id
+                );
+                if (!availCheck.available) {
+                    return res.status(400).json({ 
+                        message: `Cannot accept booking. Not enough rooms available. Only ${availCheck.maxAvailable} rooms available.` 
+                    });
+                }
+            } else if (existingBooking.vehicleId || updates.vehicleId) {
+                const vehicleId = updates.vehicleId || existingBooking.vehicleId;
+                const overlappingBookings = await Booking.find({
+                    vehicleId,
+                    bookingStatus: { $in: ['accepted', 'confirmed'] },
+                    _id: { $ne: existingBooking._id },
+                    startDate: { $lt: endDate },
+                    endDate: { $gt: startDate }
                 });
+                if (overlappingBookings.length > 0) {
+                    return res.status(400).json({ message: 'Cannot accept booking. Vehicle is not available for the selected dates.' });
+                }
+            } else if (existingBooking.tourId || updates.tourId) {
+                const tourId = updates.tourId || existingBooking.tourId;
+                const overlappingBookings = await Booking.find({
+                    tourId,
+                    bookingStatus: { $in: ['accepted', 'confirmed'] },
+                    _id: { $ne: existingBooking._id },
+                    startDate: { $lt: endDate },
+                    endDate: { $gt: startDate }
+                });
+                if (overlappingBookings.length > 0) {
+                    return res.status(400).json({ message: 'Cannot accept booking. Tour is not available for the selected dates.' });
+                }
             }
         }
 
@@ -253,24 +303,24 @@ const updateBooking = async (req, res) => {
                 itemName = booking.tourId.title || 'tour booking';
             }
 
-            if (updates.bookingStatus === 'confirmed') {
+            if (updates.bookingStatus === 'accepted') {
                 await Notification.create({
                     userId: booking.userId?._id || booking.userId,
                     bookingId: booking._id,
-                    message: `Your booking for ${itemName} has been confirmed!`,
-                    type: 'booking_confirmed'
+                    message: `Your booking for ${itemName} has been accepted! You can now make the payment.`,
+                    type: 'booking_accepted'
                 });
 
                 // Send email to tourist
                 if (booking.userId && booking.userId.email) {
                     const guestName = booking.userId.firstName || 'Valued Guest';
-                    const subject = `Booking Confirmed! - ${itemName}`;
-                    const text = `Dear ${guestName},\n\nYour booking for "${itemName}" has been successfully confirmed by the host!\nDates: ${new Date(booking.startDate).toDateString()} to ${new Date(booking.endDate).toDateString()}\nGuests: ${booking.guests}\nTotal Price: LKR ${booking.totalPrice}\n\nThank you for choosing PearlPath!`;
+                    const subject = `Booking Accepted! - ${itemName}`;
+                    const text = `Dear ${guestName},\n\nYour booking for "${itemName}" has been successfully accepted by the host! You can now proceed with the payment.\nDates: ${new Date(booking.startDate).toDateString()} to ${new Date(booking.endDate).toDateString()}\nGuests: ${booking.guests}\nTotal Price: LKR ${booking.totalPrice}\n\nThank you for choosing PearlPath!`;
                     const html = `
                         <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; line-height: 1.6;">
                             <h2 style="color: #10b981;">Your Booking is Confirmed!</h2>
                             <p>Dear ${guestName},</p>
-                            <p>We are excited to inform you that your booking request for <strong>${itemName}</strong> has been approved and confirmed by the host!</p>
+                            <p>We are excited to inform you that your booking request for <strong>${itemName}</strong> has been accepted by the host!</p>
                             <div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin: 20px 0;">
                                 <ul style="list-style: none; padding: 0; margin: 0;">
                                     <li style="margin-bottom: 8px;"><strong>Listing/Service:</strong> ${itemName}</li>
@@ -284,7 +334,7 @@ const updateBooking = async (req, res) => {
                             <p>Have an amazing journey in Sri Lanka!<br/>PearlPath Team</p>
                         </div>
                     `;
-                    await sendEmail(booking.userId.email, subject, text, html);
+                    sendEmail(booking.userId.email, subject, text, html).catch(console.error);
                 }
             } else if (updates.bookingStatus === 'rejected') {
                 await Notification.create({
@@ -309,7 +359,7 @@ const updateBooking = async (req, res) => {
                             <p>Warm regards,<br/>PearlPath Team</p>
                         </div>
                     `;
-                    await sendEmail(booking.userId.email, subject, text, html);
+                    sendEmail(booking.userId.email, subject, text, html).catch(console.error);
                 }
             }
         }
@@ -353,4 +403,48 @@ const getProviderBookings = async (req, res) => {
     }
 };
 
-module.exports = { createBooking, getBookings, getProviderBookings, updateBooking, cancelBooking };
+const acceptBooking = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const booking = await Booking.findById(id);
+        if (!booking) return res.status(404).json({ message: 'Booking not found' });
+        
+        if (booking.providerId.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Not authorized to accept this booking' });
+        }
+        
+        if (booking.bookingStatus !== 'pending') {
+            return res.status(400).json({ message: 'Only pending bookings can be accepted' });
+        }
+
+        req.body = { bookingStatus: 'accepted' };
+        req.params.id = id;
+        return updateBooking(req, res);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+const rejectBookingRequest = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const booking = await Booking.findById(id);
+        if (!booking) return res.status(404).json({ message: 'Booking not found' });
+        
+        if (booking.providerId.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Not authorized to reject this booking' });
+        }
+        
+        if (booking.bookingStatus !== 'pending') {
+            return res.status(400).json({ message: 'Only pending bookings can be rejected' });
+        }
+
+        req.body = { bookingStatus: 'rejected' };
+        req.params.id = id;
+        return updateBooking(req, res);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+module.exports = { createBooking, getBookings, getProviderBookings, updateBooking, cancelBooking, acceptBooking, rejectBookingRequest };

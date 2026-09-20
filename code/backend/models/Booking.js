@@ -12,7 +12,7 @@ const bookingSchema = new Schema({
     rooms: { type: Number, default: 1 },
     guests: { type: Number, default: 1 },
     totalPrice: { type: Number, required: true },
-    bookingStatus: { type: String, default: 'pending', enum: ['pending', 'confirmed', 'rejected', 'cancelled'] },
+    bookingStatus: { type: String, default: 'pending', enum: ['pending', 'accepted', 'confirmed', 'rejected', 'cancelled'] },
     createdAt: { type: Date, default: Date.now }
 });
 

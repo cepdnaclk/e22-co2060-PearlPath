@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Users, CheckCircle, XCircle, Activity, Building, Car, Compass, Edit, Trash2, MapPin, Calendar, Menu, Eye } from 'lucide-react';
+import { Users, CheckCircle, XCircle, Activity, Building, Car, Compass, Edit, Trash2, MapPin, Calendar, Menu, Eye, CreditCard } from 'lucide-react';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 import Swal from 'sweetalert2';
@@ -10,6 +10,7 @@ const AdminDashboard = () => {
     const [stats, setStats] = useState(null);
     const [activeTab, setActiveTab] = useState('stats');
     const [roleData, setRoleData] = useState([]);
+    const [payments, setPayments] = useState([]);
     const [loadingData, setLoadingData] = useState(false);
     const [error, setError] = useState(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -17,10 +18,64 @@ const AdminDashboard = () => {
     useEffect(() => {
         if (activeTab === 'stats') {
             fetchStats();
+        } else if (activeTab === 'payments') {
+            fetchPayments();
         } else {
             fetchRoleData(activeTab);
         }
     }, [activeTab]);
+
+    const fetchPayments = async () => {
+        setLoadingData(true);
+        setError(null);
+        setPayments([]);
+        try {
+            const res = await authFetch('http://127.0.0.1:3001/api/payments/admin?status=submitted');
+            if (res.ok) {
+                setPayments(await res.json());
+            } else {
+                setError('Failed to fetch payments');
+            }
+        } catch (error) {
+            setError('Network error');
+        } finally {
+            setLoadingData(false);
+        }
+    };
+
+    const handlePaymentAction = async (id, action) => {
+        try {
+            let body = {};
+            if (action === 'reject') {
+                const { value: reason } = await Swal.fire({
+                    title: 'Reject Payment',
+                    input: 'text',
+                    inputLabel: 'Reason for rejection',
+                    showCancelButton: true,
+                    inputValidator: (value) => {
+                        if (!value) return 'You need to write something!';
+                    }
+                });
+                if (!reason) return;
+                body.rejectionReason = reason;
+            }
+
+            const res = await authFetch(`http://127.0.0.1:3001/api/payments/admin/${id}/${action}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            if (res.ok) {
+                Swal.fire('Success', `Payment ${action}ed successfully`, 'success');
+                fetchPayments();
+            } else {
+                Swal.fire('Error', `Failed to ${action} payment`, 'error');
+            }
+        } catch (err) {
+            Swal.fire('Error', 'Network error', 'error');
+        }
+    };
 
     const fetchStats = async () => {
         setLoadingData(true);
@@ -282,6 +337,7 @@ const AdminDashboard = () => {
 
     const tabs = [
         { id: 'stats', label: 'Platform Stats', icon: Activity },
+        { id: 'payments', label: 'Payment Verifications', icon: CreditCard },
         { id: 'tourist', label: 'Tourists', icon: Users },
         { id: 'hotel_owner', label: 'Hotel Owners', icon: Building },
         { id: 'vehicle_owner', label: 'Vehicle Owners', icon: Car },
@@ -538,6 +594,36 @@ const AdminDashboard = () => {
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    ) : activeTab === 'payments' ? (
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 overflow-hidden w-full">
+                            <h2 className="text-2xl font-extrabold text-gray-900 mb-6">Pending Payments</h2>
+                            {payments.length === 0 ? (
+                                <p className="text-gray-500 font-medium">No pending payments found.</p>
+                            ) : (
+                                <div className="space-y-4">
+                                    {payments.map(payment => (
+                                        <div key={payment._id} className="flex flex-col sm:flex-row justify-between p-5 border border-gray-100 rounded-xl bg-gray-50">
+                                            <div>
+                                                <p className="font-extrabold text-lg text-gray-900">User: {payment.userId?.firstName} {payment.userId?.lastName}</p>
+                                                <p className="text-sm font-medium text-gray-500">Booking Type: <span className="uppercase">{payment.bookingType}</span></p>
+                                                <p className="text-sm font-bold text-sunset-orange mt-1">Amount: {payment.currency} {payment.amount.toLocaleString()}</p>
+                                            </div>
+                                            <div className="flex flex-wrap gap-3 mt-4 sm:mt-0 justify-end items-center">
+                                                <a href={`http://127.0.0.1:3001${payment.bankSlipUrl}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-bold">
+                                                    <Eye size={18} /> View Slip
+                                                </a>
+                                                <button onClick={() => handlePaymentAction(payment._id, 'verify')} className="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-4 py-2 rounded-lg font-bold">
+                                                    <CheckCircle size={18} /> Verify
+                                                </button>
+                                                <button onClick={() => handlePaymentAction(payment._id, 'reject')} className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-lg font-bold">
+                                                    <XCircle size={18} /> Reject
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     ) : (
                         renderRoleContent()

@@ -3,8 +3,9 @@ import { useAuth } from '../../context/AuthContext';
 import { Link, useSearchParams } from 'react-router-dom';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
-import { Calendar, Home, Car, User, MapPin, CreditCard, ChevronRight, Trash2, X, Hash, Clock, Phone, MessageSquare, Download, FileText } from 'lucide-react';
+import { Calendar, Home, Car, User, MapPin, CreditCard, ChevronRight, Trash2, X, Hash, Clock, Phone, MessageSquare, Download, FileText, AlertCircle } from 'lucide-react';
 import { buildBookingVoucherHTML, triggerPDFPrint } from '../../utils/pdfVoucherService';
+import PaymentModal from '../Payment/PaymentModal';
 
 const MyBookings = () => {
   const { user, authFetch } = useAuth();
@@ -13,6 +14,9 @@ const MyBookings = () => {
   const [error, setError] = useState(null);
   const [activeFilter, setActiveFilter] = useState('hotels');
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [payments, setPayments] = useState([]);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [activePaymentBooking, setActivePaymentBooking] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const searchBookingId = searchParams.get('bookingId');
 
@@ -28,6 +32,11 @@ const MyBookings = () => {
       try {
         const response = await authFetch('http://127.0.0.1:3001/api/bookings/user');
         const data = await response.json();
+        
+        const payRes = await authFetch('http://127.0.0.1:3001/api/payments/my');
+        if (payRes.ok) {
+            setPayments(await payRes.json());
+        }
 
         if (response.ok) {
           // Sort bookings by createdAt descending
@@ -112,6 +121,7 @@ const MyBookings = () => {
   const getStatusStyle = (status) => {
     switch (status) {
       case 'confirmed': return 'bg-green-100 text-green-700 border-green-200';
+      case 'accepted': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
       case 'rejected': return 'bg-red-100 text-red-700 border-red-200';
       case 'cancelled': return 'bg-gray-100 text-gray-700 border-gray-200';
       case 'pending':
@@ -255,7 +265,53 @@ const MyBookings = () => {
                         <div className="p-6 flex-1 flex flex-col justify-between">
                           <div>
                             <div className="flex justify-between items-start mb-2">
-                              <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
+                              <div>
+                                <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
+                                {(() => {
+                                  const payment = payments.find(p => (p.bookingId?._id || p.bookingId) === booking._id);
+                                  
+                                  if (booking.bookingStatus === 'pending') {
+                                    return <p className="text-sm font-bold text-yellow-600 mt-1">Waiting for Provider Confirmation</p>;
+                                  }
+                                  
+                                  if (booking.bookingStatus === 'accepted') {
+                                    if (!payment || payment.paymentStatus === 'rejected') {
+                                      return (
+                                        <div className="mt-2">
+                                          <button 
+                                            onClick={(e) => { e.stopPropagation(); setActivePaymentBooking(booking); setShowPaymentModal(true); }}
+                                            className="text-sm bg-gradient-to-r from-sunset-orange to-sunset-gold text-white px-4 py-1.5 rounded-lg font-bold hover:shadow-lg transition-all"
+                                          >
+                                            Pay Now
+                                          </button>
+                                          {payment?.paymentStatus === 'rejected' && payment?.rejectionReason && (
+                                            <p className="text-xs text-red-600 mt-2 font-medium flex items-center gap-1"><AlertCircle size={12}/> {payment.rejectionReason}</p>
+                                          )}
+                                        </div>
+                                      );
+                                    } else if (payment) {
+                                      return (
+                                        <div className="mt-1 flex items-center gap-2">
+                                          <span className={`px-2 py-0.5 rounded text-xs font-bold border ${payment.paymentStatus === 'verified' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
+                                            Payment: {payment.paymentStatus.toUpperCase()}
+                                          </span>
+                                        </div>
+                                      );
+                                    }
+                                  }
+
+                                  if (payment) {
+                                    return (
+                                      <div className="mt-1 flex items-center gap-2">
+                                        <span className={`px-2 py-0.5 rounded text-xs font-bold border ${payment.paymentStatus === 'verified' ? 'bg-green-50 text-green-700 border-green-200' : payment.paymentStatus === 'rejected' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
+                                          Payment: {payment.paymentStatus.toUpperCase()}
+                                        </span>
+                                      </div>
+                                    );
+                                  }
+                                  return null;
+                                })()}
+                              </div>
                               <span className={`px-4 py-1.5 rounded-full text-sm font-bold border capitalize ${getStatusStyle(booking.bookingStatus)}`}>
                                 {booking.bookingStatus}
                               </span>
@@ -474,6 +530,21 @@ const MyBookings = () => {
           </div>
         );
       })()}
+      {/* Payment Modal */}
+      {showPaymentModal && activePaymentBooking && (
+        <PaymentModal
+          bookingId={activePaymentBooking._id}
+          bookingType={activePaymentBooking.hotelId ? 'hotel' : activePaymentBooking.vehicleId ? 'vehicle' : 'tour'}
+          totalPrice={activePaymentBooking.totalPrice}
+          onClose={() => { setShowPaymentModal(false); setActivePaymentBooking(null); }}
+          onSuccess={() => {
+            setShowPaymentModal(false);
+            setActivePaymentBooking(null);
+            window.location.reload();
+          }}
+        />
+      )}
+
     </div>
   );
 };

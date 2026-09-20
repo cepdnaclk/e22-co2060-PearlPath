@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Navbar from '../Navbar/Navbar';
-import { Building, Car, Map, User, Mail, Phone, Calendar, Users, Home, CheckCircle2, XCircle, Clock, BedDouble, TrendingUp } from 'lucide-react';
+import { Building, Car, Map, User, Mail, Phone, Calendar, Users, Home, CheckCircle2, XCircle, Clock, BedDouble, TrendingUp, FileText } from 'lucide-react';
 import { useCurrency } from '../../context/CurrencyContext';
+import ProviderPayments from './ProviderPayments';
 
 const ProviderBookings = () => {
     const { authFetch } = useAuth();
@@ -13,6 +14,7 @@ const ProviderBookings = () => {
     const [searchParams] = useSearchParams();
     const searchBookingId = searchParams.get('bookingId');
     const [filterStatus, setFilterStatus] = useState('all');
+    const [activeTab, setActiveTab] = useState('bookings');
 
     useEffect(() => {
         fetchBookings();
@@ -43,16 +45,22 @@ const ProviderBookings = () => {
 
     const handleUpdateStatus = async (id, status) => {
         try {
-            const res = await authFetch(`http://127.0.0.1:3001/api/bookings/${id}`, {
+            const endpoint = status === 'accepted' ? 'accept' : status === 'rejected' ? 'reject' : null;
+            if (!endpoint) return;
+
+            const res = await authFetch(`http://127.0.0.1:3001/api/bookings/${id}/${endpoint}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ bookingStatus: status })
+                headers: { 'Content-Type': 'application/json' }
             });
             if (res.ok) {
                 setBookings(bookings.map(b => b._id === id ? { ...b, bookingStatus: status } : b));
+            } else {
+                const data = await res.json();
+                Swal.fire('Error', data.message || `Failed to ${endpoint} booking`, 'error');
             }
         } catch (error) {
             console.error("Error updating booking", error);
+            Swal.fire('Error', 'Network error', 'error');
         }
     };
 
@@ -66,6 +74,7 @@ const ProviderBookings = () => {
     const getStatusStyle = (status) => {
         switch (status) {
             case 'pending': return { icon: Clock, color: 'text-yellow-600', bg: 'bg-yellow-50', border: 'border-yellow-200' };
+            case 'accepted': return { icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' };
             case 'confirmed': return { icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' };
             case 'rejected': return { icon: XCircle, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' };
             default: return { icon: Clock, color: 'text-gray-600', bg: 'bg-gray-50', border: 'border-gray-200' };
@@ -112,9 +121,39 @@ const ProviderBookings = () => {
 
             <div className="max-w-7xl mx-auto px-4 py-8 w-full flex-1">
                 
-                {/* Filter Tabs */}
-                <div className="flex items-center gap-2 mb-8 border-b border-gray-200 pb-px">
-                    {['all', 'pending', 'confirmed', 'rejected'].map(status => (
+                {/* Main Tabs */}
+                <div className="flex gap-4 mb-8">
+                    <button 
+                        onClick={() => setActiveTab('bookings')}
+                        className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${
+                            activeTab === 'bookings' 
+                                ? 'bg-sunset-orange text-white shadow-md' 
+                                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                        }`}
+                    >
+                        <Calendar size={20} />
+                        Booking Requests
+                    </button>
+                    <button 
+                        onClick={() => setActiveTab('payments')}
+                        className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${
+                            activeTab === 'payments' 
+                                ? 'bg-sunset-orange text-white shadow-md' 
+                                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                        }`}
+                    >
+                        <FileText size={20} />
+                        Payment Verifications
+                    </button>
+                </div>
+
+                {activeTab === 'payments' ? (
+                    <ProviderPayments />
+                ) : (
+                    <>
+                        {/* Filter Tabs */}
+                        <div className="flex items-center gap-2 mb-8 border-b border-gray-200 pb-px">
+                            {['all', 'pending', 'accepted', 'confirmed', 'rejected'].map(status => (
                         <button
                             key={status}
                             onClick={() => setFilterStatus(status)}
@@ -234,7 +273,7 @@ const ProviderBookings = () => {
                                             {booking.bookingStatus === 'pending' && (
                                                 <div className="flex lg:flex-col gap-2 w-full">
                                                     <button 
-                                                        onClick={() => handleUpdateStatus(booking._id, 'confirmed')}
+                                                        onClick={() => handleUpdateStatus(booking._id, 'accepted')}
                                                         className="flex-1 lg:w-full bg-sunset-teal text-white px-4 py-2.5 rounded-xl hover:bg-teal-700 font-bold transition-colors shadow-sm flex items-center justify-center gap-2"
                                                     >
                                                         <CheckCircle2 size={18} />
@@ -256,6 +295,8 @@ const ProviderBookings = () => {
                             );
                         })}
                     </div>
+                )}
+                </>
                 )}
             </div>
         </div>
