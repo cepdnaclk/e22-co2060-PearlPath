@@ -5,7 +5,8 @@ import 'leaflet/dist/leaflet.css';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
 import WeatherWidget from '../Weather/WeatherWidget';
-import { Search, MapPin, Navigation, Clock, Compass, Info, Locate } from 'lucide-react';
+import { Search, MapPin, Navigation, Clock, Compass, Info, Locate, Download } from 'lucide-react';
+import { buildTripItineraryHTML, buildRouteGuideHTML, triggerPDFPrint } from '../../utils/pdfVoucherService';
 
 // Fix Leaflet Default Marker Icon issue in React
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -599,11 +600,25 @@ const RoutesPage = ({ embedded = false }) => {
 
                   {/* Destination Weather & Seasonal Safety Widget */}
                   {selectedRoute?._id === route._id && (
-                    <div className="mt-2 pt-2 border-t border-white/10">
+                    <div className="mt-2 pt-2 border-t border-white/10 space-y-3">
                       <WeatherWidget 
                         location={getRouteDestinationLocation(route)} 
                         name={getDisplayRouteName(route)} 
                       />
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const html = buildRouteGuideHTML(route, startPoint, searchQuery, liveRouteInfo);
+                          const routeTitle = getDisplayRouteName(route);
+                          triggerPDFPrint(html, `PearlPath_Route_${routeTitle.replace(/\s+/g, '_')}`);
+                        }}
+                        className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-sunset-orange to-sunset-gold text-white font-extrabold py-3 px-4 rounded-2xl shadow-md hover:opacity-95 transition-all text-xs cursor-pointer"
+                      >
+                        <Download size={16} />
+                        Download Route Guide (PDF)
+                      </button>
                     </div>
                   )}
                 </div>
@@ -882,11 +897,25 @@ const RoutesPage = ({ embedded = false }) => {
 
                   {/* Destination Weather & Seasonal Safety Widget */}
                   {selectedRoute?._id === route._id && (
-                    <div className="mt-2 pt-2 border-t border-white/10">
+                    <div className="mt-2 pt-2 border-t border-white/10 space-y-3">
                       <WeatherWidget 
                         location={getRouteDestinationLocation(route)} 
                         name={getDisplayRouteName(route)} 
                       />
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const html = buildRouteGuideHTML(route, startPoint, searchQuery, liveRouteInfo);
+                          const routeTitle = getDisplayRouteName(route);
+                          triggerPDFPrint(html, `PearlPath_Route_${routeTitle.replace(/\s+/g, '_')}`);
+                        }}
+                        className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-sunset-orange to-sunset-gold text-white font-extrabold py-3 px-4 rounded-2xl shadow-md hover:opacity-95 transition-all text-xs cursor-pointer"
+                      >
+                        <Download size={16} />
+                        Download Route Guide (PDF)
+                      </button>
                     </div>
                   )}
                 </div>

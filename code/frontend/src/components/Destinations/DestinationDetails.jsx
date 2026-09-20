@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { MapPin, Star, ArrowLeft } from 'lucide-react';
+import { MapPin, Star, ArrowLeft, Download } from 'lucide-react';
 import Navbar from '../Navbar/Navbar';
 import { destinations } from '../../data/destinations';
 import HotelCard from '../Hotels/HotelCard';
 import TourGuideCard from '../TourGuides/TourGuideCard';
 import WeatherWidget from '../Weather/WeatherWidget';
+import { buildTripItineraryHTML, triggerPDFPrint } from '../../utils/pdfVoucherService';
 
 const DestinationDetails = () => {
   const { id } = useParams();
@@ -168,7 +169,7 @@ const DestinationDetails = () => {
               <h3 className="font-bold text-xl mb-4">Plan Your Visit</h3>
               <p className="text-gray-400 mb-6">Discover the best experiences, accommodations, and guided tours around {destination.name}.</p>
               
-              <div className="space-y-4">
+              <div className="space-y-4 mb-6">
                 <div className="flex justify-between items-center p-3 bg-white/5 rounded-xl">
                   <span className="text-gray-300">Popularity</span>
                   <span className="text-sunset-gold font-bold">{destination.popular ? 'High' : 'Moderate'}</span>
@@ -178,6 +179,18 @@ const DestinationDetails = () => {
                   <span className="text-sunset-teal font-bold">{destination.category}</span>
                 </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const html = buildTripItineraryHTML(destination.name, destination.location, destination.description, destination.category);
+                  triggerPDFPrint(html, `PearlPath_Itinerary_${destination.name.replace(/\s+/g, '_')}`);
+                }}
+                className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-sunset-orange to-sunset-gold text-white font-extrabold py-3.5 px-4 rounded-2xl shadow-lg hover:opacity-95 transition-all text-sm cursor-pointer"
+              >
+                <Download size={18} />
+                Export Trip Guide (PDF)
+              </button>
             </div>
           </div>
         </div>
