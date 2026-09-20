@@ -10,7 +10,8 @@ const tourGuideSchema = new Schema({
     pricePerDay: { type: Number },
     profilePictureUrl: { type: String },
     experienceYears: { type: Number, default: 0 },
-    contactEmail: { type: String }
+    contactEmail: { type: String },
+    unavailableDates: [{ type: Date }]
 }, { timestamps: true });
 
 tourGuideSchema.index({ name: 'text', location: 'text' });
