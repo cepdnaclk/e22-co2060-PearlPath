@@ -56,7 +56,10 @@ const ProviderBookings = () => {
             }
             if (user?.role === 'tour_guide') {
                 const res = await fetch(`http://127.0.0.1:3001/api/tour-guides/user/${user._id}`);
-                if (res.ok) tourGuides = [await res.json()] || [];
+                if (res.ok) {
+                    const data = await res.json();
+                    tourGuides = data ? [data] : [];
+                }
             }
             setListings({ hotels, vehicles, tourGuides });
         } catch (error) {

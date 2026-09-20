@@ -3,9 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
-import { Car, Users, Settings, Wind, Calendar, User, MapPin } from 'lucide-react';
+import { Car, Users, Settings, Wind, User, MapPin } from 'lucide-react';
 import ReviewSection from '../Reviews/ReviewSection';
 import { useCurrency } from '../../context/CurrencyContext';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
+import '../ProviderCalendar/ProviderCalendar.css';
 
 const VehicleDetails = () => {
   const { id } = useParams();
@@ -16,11 +19,12 @@ const VehicleDetails = () => {
   const [vehicle, setVehicle] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  // Booking Form State
   const [bookingData, setBookingData] = useState({
     startDate: '',
     endDate: ''
   });
+  const [dateRange, setDateRange] = useState([null, null]);
+  const [disabledDates, setDisabledDates] = useState([]);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingMessage, setBookingMessage] = useState('');
 
@@ -39,11 +43,33 @@ const VehicleDetails = () => {
       }
     };
 
+    const fetchAvailability = async () => {
+        try {
+            const res = await fetch(`http://127.0.0.1:3001/api/vehicles/${id}/availability`);
+            if (res.ok) {
+                const data = await res.json();
+                setDisabledDates(data.disabledDates || []);
+            }
+        } catch (error) {
+            console.error("Error fetching availability:", error);
+        }
+    };
+
     fetchVehicleDetails();
+    fetchAvailability();
   }, [id]);
 
-  const handleBookingChange = (e) => {
-    setBookingData({ ...bookingData, [e.target.name]: e.target.value });
+
+
+  const handleDateChange = (range) => {
+    setDateRange(range);
+    if (range && range.length === 2) {
+        const start = new Date(range[0].getTime() - (range[0].getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+        const end = new Date(range[1].getTime() - (range[1].getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+        setBookingData(prev => ({ ...prev, startDate: start, endDate: end }));
+    } else {
+        setBookingData(prev => ({ ...prev, startDate: '', endDate: '' }));
+    }
   };
 
   const calculateTotalPrice = () => {
@@ -75,6 +101,24 @@ const VehicleDetails = () => {
     if (totalPrice <= 0) {
       setBookingMessage('Please select valid dates.');
       return;
+    }
+
+    const start = new Date(bookingData.startDate);
+    const end = new Date(bookingData.endDate);
+    let curr = new Date(start);
+    let hasDisabled = false;
+    while (curr <= end) {
+        const dStr = curr.toISOString().split('T')[0];
+        if (disabledDates.includes(dStr)) {
+            hasDisabled = true;
+            break;
+        }
+        curr.setDate(curr.getDate() + 1);
+    }
+
+    if (hasDisabled) {
+        setBookingMessage('Your selected range includes unavailable dates. Please choose different dates.');
+        return;
     }
 
     setBookingLoading(true);
@@ -247,18 +291,21 @@ const VehicleDetails = () => {
                 <form onSubmit={handleBookingSubmit} className="space-y-5">
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1">Pickup Date</label>
-                      <div className="relative">
-                        <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                        <input type="date" name="startDate" value={bookingData.startDate} onChange={handleBookingChange} required min={new Date().toISOString().split('T')[0]} className="w-full pl-9 pr-3 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-sunset-teal outline-none text-sm font-medium" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1">Return Date</label>
-                      <div className="relative">
-                        <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                        <input type="date" name="endDate" value={bookingData.endDate} onChange={handleBookingChange} required min={bookingData.startDate || new Date().toISOString().split('T')[0]} className="w-full pl-9 pr-3 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-sunset-teal outline-none text-sm font-medium" />
-                      </div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Select Rental Dates</label>
+                      <Calendar 
+                        selectRange={true}
+                        minDate={new Date()}
+                        onChange={handleDateChange}
+                        value={dateRange}
+                        tileDisabled={({ date, view }) => {
+                            if (view === 'month') {
+                                const dStr = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+                                return disabledDates.includes(dStr);
+                            }
+                            return false;
+                        }}
+                        className="custom-calendar w-full border-gray-200 rounded-xl"
+                      />
                     </div>
                   </div>
 
