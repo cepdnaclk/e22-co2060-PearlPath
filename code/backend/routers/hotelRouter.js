@@ -10,4 +10,7 @@ router.get('/hotels/:id', hotelController.getHotelById);
 router.post('/hotels', protect, authorize('hotel_owner'), hotelController.createHotel);
 router.put('/hotels/:id', protect, authorize('hotel_owner'), hotelController.updateHotel);
 
+router.get('/hotels/:id/availability', hotelController.getHotelAvailability);
+router.post('/hotels/:id/manage-availability', protect, authorize('hotel_owner'), hotelController.manageHotelAvailability);
+
 module.exports = router;

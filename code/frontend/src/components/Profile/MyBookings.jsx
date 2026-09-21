@@ -12,7 +12,7 @@ const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeFilter, setActiveFilter] = useState('hotels');
+  const [activeFilter, setActiveFilter] = useState('all');
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [payments, setPayments] = useState([]);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -136,12 +136,14 @@ const MyBookings = () => {
   };
 
   const filters = [
+    { id: 'all', label: 'All Bookings', icon: Calendar },
     { id: 'hotels', label: 'Hotels', icon: Home },
     { id: 'vehicles', label: 'Vehicles', icon: Car },
     { id: 'tours', label: 'Tour Guides', icon: User },
   ];
 
   const filteredBookings = bookings.filter(booking => {
+    if (activeFilter === 'all') return true;
     if (activeFilter === 'hotels') return !!booking.hotelId;
     if (activeFilter === 'vehicles') return !!booking.vehicleId;
     if (activeFilter === 'tours') return !!booking.tourId;
@@ -204,12 +206,15 @@ const MyBookings = () => {
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">No {activeFilter !== 'all' ? filters.find(f => f.id === activeFilter)?.label : ''} Bookings Found</h2>
                 <p className="text-gray-500 text-lg mb-8 max-w-md mx-auto">It looks like you don't have any reservations in this category yet. Start exploring for your next adventure!</p>
-                <div className="flex gap-4 justify-center">
+                <div className="flex flex-wrap gap-4 justify-center">
                   <Link to="/hotels" className="bg-gradient-to-r from-sunset-orange to-sunset-gold text-white font-bold py-3 px-8 rounded-xl hover:shadow-lg transform transition hover:-translate-y-1">
                     Explore Hotels
                   </Link>
                   <Link to="/vehicles" className="bg-white border-2 border-sunset-orange text-sunset-orange font-bold py-3 px-8 rounded-xl hover:bg-orange-50 transform transition hover:-translate-y-1">
                     Find Vehicles
+                  </Link>
+                  <Link to="/tour-guides" className="bg-white border-2 border-sunset-teal text-sunset-teal font-bold py-3 px-8 rounded-xl hover:bg-teal-50 transform transition hover:-translate-y-1">
+                    Find Tour Guides
                   </Link>
                 </div>
               </div>

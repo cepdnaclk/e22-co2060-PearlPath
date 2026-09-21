@@ -163,7 +163,7 @@ const checkRoomAvailability = async (hotelId, startDate, endDate, requestedRooms
                 let itemName = 'your listing';
                 if (populatedBooking.hotelId) itemName = populatedBooking.hotelId.name;
                 else if (populatedBooking.vehicleId) itemName = populatedBooking.vehicleId.makeAndModel || 'vehicle';
-                else if (populatedBooking.tourId) itemName = populatedBooking.tourId.title || 'tour';
+                else if (populatedBooking.tourId) itemName = populatedBooking.tourId.name || 'tour';
 
                 const guestName = `${populatedBooking.userId?.firstName || ''} ${populatedBooking.userId?.lastName || ''}`.trim() || 'A guest';
 
@@ -300,7 +300,7 @@ const updateBooking = async (req, res) => {
             } else if (booking.vehicleId) {
                 itemName = booking.vehicleId.makeAndModel || 'vehicle booking';
             } else if (booking.tourId) {
-                itemName = booking.tourId.title || 'tour booking';
+                itemName = booking.tourId.name || 'tour booking';
             }
 
             if (updates.bookingStatus === 'accepted') {
@@ -374,11 +374,59 @@ const updateBooking = async (req, res) => {
 const cancelBooking = async (req, res) => {
     try {
         const { id } = req.params;
-        // Just hard delete for now, or could update status to 'cancelled'
-        const booking = await Booking.findByIdAndDelete(id);
+        
+        const booking = await Booking.findById(id)
+            .populate('userId', 'firstName lastName')
+            .populate('hotelId')
+            .populate('vehicleId')
+            .populate('tourId');
 
         if (!booking) {
             return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        let itemName = 'a listing';
+        if (booking.hotelId) {
+            itemName = booking.hotelId.name;
+        } else if (booking.vehicleId) {
+            itemName = booking.vehicleId.makeAndModel || 'vehicle';
+        } else if (booking.tourId) {
+            itemName = booking.tourId.name || 'tour';
+        }
+
+        const guestName = `${booking.userId?.firstName || ''} ${booking.userId?.lastName || ''}`.trim() || 'A guest';
+
+        await Booking.findByIdAndDelete(id);
+
+        if (booking.providerId) {
+            try {
+                await Notification.create({
+                    userId: booking.providerId,
+                    bookingId: booking._id,
+                    message: `Booking for ${itemName} by ${guestName} has been cancelled by the guest.`,
+                    type: 'booking_cancelled'
+                });
+
+                const provider = await User.findById(booking.providerId);
+                if (provider && provider.email) {
+                    const subject = `Booking Cancelled - ${itemName}`;
+                    const text = `Hello ${provider.firstName || 'Partner'},\n\nThe guest ${guestName} has cancelled their booking for "${itemName}".\nDates: ${new Date(booking.startDate).toDateString()} to ${new Date(booking.endDate).toDateString()}.\n\nBest regards,\nPearlPath Team`;
+                    const html = `
+                        <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; line-height: 1.6;">
+                            <h2 style="color: #ef4444;">Booking Cancelled by Guest</h2>
+                            <p>Hello ${provider.firstName || 'Partner'},</p>
+                            <p>We wanted to let you know that <strong>${guestName}</strong> has cancelled their booking for <strong>${itemName}</strong>.</p>
+                            <p><strong>Dates:</strong> ${new Date(booking.startDate).toDateString()} to ${new Date(booking.endDate).toDateString()}</p>
+                            <p>No further action is required from you for this booking.</p>
+                            <br/>
+                            <p>Best regards,<br/>PearlPath Team</p>
+                        </div>
+                    `;
+                    await sendEmail(provider.email, subject, text, html);
+                }
+            } catch (err) {
+                console.error("Error sending cancellation notification to provider:", err);
+            }
         }
 
         res.status(200).json({ message: 'Booking cancelled successfully' });

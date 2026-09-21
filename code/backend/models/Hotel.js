@@ -18,7 +18,8 @@ const hotelSchema = new Schema({
         type: String,
         enum: ['pending', 'approved', 'rejected'],
         default: 'pending'
-    }
+    },
+    unavailableDates: [{ type: Date }]
 }, { timestamps: true });
 
 hotelSchema.index({ name: 'text', location: 'text' });

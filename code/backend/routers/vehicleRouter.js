@@ -11,4 +11,7 @@ router.get('/vehicles/:id', vehicleController.getVehicleById);
 router.put('/vehicles/:id', protect, authorize('vehicle_owner'), vehicleController.updateVehicle);
 router.delete('/vehicles/:id', protect, authorize('vehicle_owner'), vehicleController.deleteVehicle);
 
+router.get('/vehicles/:id/availability', vehicleController.getVehicleAvailability);
+router.post('/vehicles/:id/manage-availability', protect, authorize('vehicle_owner'), vehicleController.manageVehicleAvailability);
+
 module.exports = router;

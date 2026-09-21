@@ -45,7 +45,8 @@ const vehicleSchema = new mongoose.Schema({
         type: String,
         enum: ['pending', 'approved', 'rejected'],
         default: 'pending'
-    }
+    },
+    unavailableDates: [{ type: Date }]
 }, { timestamps: true });
 
 vehicleSchema.index({ makeAndModel: 'text' });

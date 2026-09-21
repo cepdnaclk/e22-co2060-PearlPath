@@ -1,4 +1,5 @@
 const Vehicle = require('../models/Vehicle');
+const Booking = require('../models/Booking');
 
 // Create a new vehicle
 const createVehicle = async (req, res) => {
@@ -121,11 +122,69 @@ const deleteVehicle = async (req, res) => {
     }
 };
 
+const getVehicleAvailability = async (req, res) => {
+    try {
+        const vehicle = await Vehicle.findById(req.params.id);
+        if (!vehicle) return res.status(404).json({ message: 'Vehicle not found' });
+
+        const unavailableDates = vehicle.unavailableDates ? vehicle.unavailableDates.map(d => d.toISOString().split('T')[0]) : [];
+
+        const bookings = await Booking.find({ vehicleId: req.params.id, bookingStatus: 'confirmed' });
+        
+        let bookedDates = [];
+        bookings.forEach(b => {
+            let curr = new Date(b.startDate);
+            const end = new Date(b.endDate);
+            while (curr <= end) {
+                bookedDates.push(curr.toISOString().split('T')[0]);
+                curr.setDate(curr.getDate() + 1);
+            }
+        });
+
+        const allDisabledDates = [...new Set([...unavailableDates, ...bookedDates])];
+        res.status(200).json({ disabledDates: allDisabledDates, unavailableDates });
+    } catch (error) {
+        console.error("Get vehicle availability error:", error);
+        res.status(500).json({ message: 'An error occurred while fetching availability' });
+    }
+};
+
+const manageVehicleAvailability = async (req, res) => {
+    try {
+        const vehicle = await Vehicle.findById(req.params.id);
+        if (!vehicle) return res.status(404).json({ message: 'Vehicle not found' });
+
+        const isOwner = vehicle.ownerId && vehicle.ownerId.toString() === req.user._id.toString();
+        if (!isOwner && req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Not authorized to manage availability for this vehicle' });
+        }
+
+        const { date, action } = req.body;
+        const targetDate = new Date(date).toISOString().split('T')[0];
+
+        let currentDates = vehicle.unavailableDates ? vehicle.unavailableDates.map(d => d.toISOString().split('T')[0]) : [];
+
+        if (action === 'add' && !currentDates.includes(targetDate)) {
+            vehicle.unavailableDates.push(new Date(date));
+        } else if (action === 'remove' && currentDates.includes(targetDate)) {
+            vehicle.unavailableDates = vehicle.unavailableDates.filter(d => d.toISOString().split('T')[0] !== targetDate);
+        }
+
+        await vehicle.save();
+        res.status(200).json({ message: 'Availability updated', unavailableDates: vehicle.unavailableDates });
+    } catch (error) {
+        console.error("Manage vehicle availability error:", error);
+        res.status(500).json({ message: 'An error occurred while updating availability' });
+    }
+};
+
 module.exports = {
     createVehicle,
     getAllVehicles,
     getVehicleById,
     getVehiclesByOwner,
     updateVehicle,
-    deleteVehicle
+    deleteVehicle,
+    getVehicleAvailability,
+    manageVehicleAvailability
 };

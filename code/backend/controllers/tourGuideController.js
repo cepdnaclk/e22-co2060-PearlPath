@@ -1,4 +1,5 @@
 const TourGuide = require('../models/TourGuide');
+const Booking = require('../models/Booking');
 
 // Create or update a tour guide profile
 const createOrUpdateProfile = async (req, res) => {
@@ -137,10 +138,68 @@ const deleteTourGuide = async (req, res) => {
     }
 };
 
+const getTourGuideAvailability = async (req, res) => {
+    try {
+        const guide = await TourGuide.findById(req.params.id);
+        if (!guide) return res.status(404).json({ message: 'Tour guide not found' });
+
+        const unavailableDates = guide.unavailableDates ? guide.unavailableDates.map(d => d.toISOString().split('T')[0]) : [];
+
+        const bookings = await Booking.find({ tourId: req.params.id, bookingStatus: 'confirmed' });
+        
+        let bookedDates = [];
+        bookings.forEach(b => {
+            let curr = new Date(b.startDate);
+            const end = new Date(b.endDate);
+            while (curr <= end) {
+                bookedDates.push(curr.toISOString().split('T')[0]);
+                curr.setDate(curr.getDate() + 1);
+            }
+        });
+
+        const allDisabledDates = [...new Set([...unavailableDates, ...bookedDates])];
+        res.status(200).json({ disabledDates: allDisabledDates, unavailableDates });
+    } catch (error) {
+        console.error("Get tour guide availability error:", error);
+        res.status(500).json({ message: 'An error occurred while fetching availability' });
+    }
+};
+
+const manageTourGuideAvailability = async (req, res) => {
+    try {
+        const guide = await TourGuide.findById(req.params.id);
+        if (!guide) return res.status(404).json({ message: 'Tour guide not found' });
+
+        const isOwner = guide.userId && guide.userId.toString() === req.user._id.toString();
+        if (!isOwner && req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Not authorized to manage availability for this tour guide' });
+        }
+
+        const { date, action } = req.body;
+        const targetDate = new Date(date).toISOString().split('T')[0];
+
+        let currentDates = guide.unavailableDates ? guide.unavailableDates.map(d => d.toISOString().split('T')[0]) : [];
+
+        if (action === 'add' && !currentDates.includes(targetDate)) {
+            guide.unavailableDates.push(new Date(date));
+        } else if (action === 'remove' && currentDates.includes(targetDate)) {
+            guide.unavailableDates = guide.unavailableDates.filter(d => d.toISOString().split('T')[0] !== targetDate);
+        }
+
+        await guide.save();
+        res.status(200).json({ message: 'Availability updated', unavailableDates: guide.unavailableDates });
+    } catch (error) {
+        console.error("Manage tour guide availability error:", error);
+        res.status(500).json({ message: 'An error occurred while updating availability' });
+    }
+};
+
 module.exports = {
     createOrUpdateProfile,
     getAllTourGuides,
     getTourGuideById,
     getTourGuideByUserId,
-    deleteTourGuide
+    deleteTourGuide,
+    getTourGuideAvailability,
+    manageTourGuideAvailability
 };

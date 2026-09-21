@@ -6,7 +6,7 @@ const bookingSchema = new Schema({
     providerId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     hotelId: { type: Schema.Types.ObjectId, ref: 'Hotel' },
     vehicleId: { type: Schema.Types.ObjectId, ref: 'Vehicle' },
-    tourId: { type: Schema.Types.ObjectId, ref: 'Tour' },
+    tourId: { type: Schema.Types.ObjectId, ref: 'TourGuide' },
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
     rooms: { type: Number, default: 1 },

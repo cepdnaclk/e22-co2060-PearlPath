@@ -1,0 +1,46 @@
+.custom-calendar {
+    font-family: 'Outfit', sans-serif !important;
+    border: none !important;
+}
+
+.provider-calendar-wrapper .react-calendar__tile--active {
+    background-color: transparent !important;
+    color: black !important;
+}
+
+.tourist-calendar .react-calendar__tile--active {
+    background-color: #006d77 !important;
+    color: white !important;
+    border-radius: 4px;
+}
+
+.tourist-calendar .react-calendar__tile--active:enabled:hover,
+.tourist-calendar .react-calendar__tile--active:enabled:focus {
+    background-color: #00565e !important;
+}
+
+.tourist-calendar .react-calendar__tile--active.react-calendar__tile--rangeStart,
+.tourist-calendar .react-calendar__tile--active.react-calendar__tile--rangeEnd {
+    background-color: #fca311 !important;
+    color: white !important;
+}
+
+.booked-date {
+    background-color: #ffa94d !important;
+    color: white !important;
+    border-radius: 4px;
+}
+
+.blocked-date {
+    background-color: #ff6b6b !important;
+    color: white !important;
+    border-radius: 4px;
+}
+
+.react-calendar__tile:hover {
+    background-color: #e6fcf5 !important;
+}
+
+.booked-date:hover, .blocked-date:hover {
+    opacity: 0.8;
+}

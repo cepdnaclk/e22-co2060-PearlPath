@@ -5,12 +5,15 @@ import Navbar from '../Navbar/Navbar';
 import { Building, Car, Map, User, Mail, Phone, Calendar, Users, Home, CheckCircle2, XCircle, Clock, BedDouble, TrendingUp, FileText } from 'lucide-react';
 import { useCurrency } from '../../context/CurrencyContext';
 import ProviderPayments from './ProviderPayments';
+import ProviderCalendar from '../ProviderCalendar/ProviderCalendar';
 
 const ProviderBookings = () => {
-    const { authFetch } = useAuth();
+    const { authFetch, user } = useAuth();
     const { convertPrice, getCurrencySymbol } = useCurrency();
     const [bookings, setBookings] = useState([]);
+    const [listings, setListings] = useState({ hotels: [], vehicles: [], tourGuides: [] });
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState('bookings');
     const [searchParams] = useSearchParams();
     const searchBookingId = searchParams.get('bookingId');
     const [filterStatus, setFilterStatus] = useState('all');
@@ -18,7 +21,10 @@ const ProviderBookings = () => {
 
     useEffect(() => {
         fetchBookings();
-    }, []);
+        if (user) {
+            fetchListings();
+        }
+    }, [user]);
 
     useEffect(() => {
         if (!loading && searchBookingId) {
@@ -40,6 +46,30 @@ const ProviderBookings = () => {
             console.error("Error fetching provider bookings", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchListings = async () => {
+        try {
+            let hotels = [], vehicles = [], tourGuides = [];
+            if (user?.role === 'hotel_owner') {
+                const res = await authFetch('http://127.0.0.1:3001/api/hotels/provider');
+                if (res.ok) hotels = (await res.json()).response || [];
+            }
+            if (user?.role === 'vehicle_owner') {
+                const res = await authFetch('http://127.0.0.1:3001/api/vehicles/owner');
+                if (res.ok) vehicles = await res.json() || [];
+            }
+            if (user?.role === 'tour_guide') {
+                const res = await fetch(`http://127.0.0.1:3001/api/tour-guides/user/${user._id}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    tourGuides = data ? [data] : [];
+                }
+            }
+            setListings({ hotels, vehicles, tourGuides });
+        } catch (error) {
+            console.error("Error fetching listings", error);
         }
     };
 
@@ -122,7 +152,7 @@ const ProviderBookings = () => {
             <div className="max-w-7xl mx-auto px-4 py-8 w-full flex-1">
                 
                 {/* Main Tabs */}
-                <div className="flex gap-4 mb-8">
+                <div className="flex flex-wrap gap-4 mb-8">
                     <button 
                         onClick={() => setActiveTab('bookings')}
                         className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${
@@ -145,10 +175,36 @@ const ProviderBookings = () => {
                         <FileText size={20} />
                         Payment Verifications
                     </button>
+                    <button 
+                        onClick={() => setActiveTab('calendar')}
+                        className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${
+                            activeTab === 'calendar' 
+                                ? 'bg-sunset-orange text-white shadow-md' 
+                                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                        }`}
+                    >
+                        <Calendar size={20} />
+                        Availability Calendar
+                    </button>
                 </div>
 
                 {activeTab === 'payments' ? (
                     <ProviderPayments />
+                ) : activeTab === 'calendar' ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {listings.hotels.map(hotel => (
+                            <ProviderCalendar key={hotel._id} serviceType="hotels" serviceId={hotel._id} title={`Hotel: ${hotel.name}`} />
+                        ))}
+                        {listings.vehicles.map(vehicle => (
+                            <ProviderCalendar key={vehicle._id} serviceType="vehicles" serviceId={vehicle._id} title={`Vehicle: ${vehicle.makeAndModel}`} />
+                        ))}
+                        {listings.tourGuides.map(guide => guide && guide._id ? (
+                            <ProviderCalendar key={guide._id} serviceType="tour-guides" serviceId={guide._id} title="Tour Guide Profile" />
+                        ) : null)}
+                        {listings.hotels.length === 0 && listings.vehicles.length === 0 && listings.tourGuides.length === 0 && (
+                            <p className="col-span-full text-center text-gray-500 bg-white p-8 rounded-xl border border-gray-200">You do not have any active listings to manage availability for.</p>
+                        )}
+                    </div>
                 ) : (
                     <>
                         {/* Filter Tabs */}
