@@ -17,7 +17,6 @@ const ProviderBookings = () => {
     const [searchParams] = useSearchParams();
     const searchBookingId = searchParams.get('bookingId');
     const [filterStatus, setFilterStatus] = useState('all');
-    const [activeTab, setActiveTab] = useState('bookings');
 
     useEffect(() => {
         fetchBookings();
