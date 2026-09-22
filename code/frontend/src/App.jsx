@@ -1,5 +1,5 @@
 import React from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import Home from './components/Home/Home'
 import SignInPage from './components/Auth/SignInPage'
 import RegisterPage from './components/Auth/RegisterPage'
@@ -78,6 +78,8 @@ function App() {
             <Route path="/add-vehicle" element={<ProtectedRoute roles={['vehicle_owner']}><AddVehicle /></ProtectedRoute>} />
             <Route path="/experiences" element={<Experiences />} />
             <Route path="/trip-planner" element={<TripPlanner />} />
+            {/* Catch-all route for invalid URLs */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           <TravelChatWidget onSendMessage={handleSendMessage} />
         </Router>

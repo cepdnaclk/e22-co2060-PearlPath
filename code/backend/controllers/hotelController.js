@@ -154,20 +154,33 @@ const getHotelAvailability = async (req, res) => {
 
         const unavailableDates = hotel.unavailableDates ? hotel.unavailableDates.map(d => d.toISOString().split('T')[0]) : [];
 
-        const bookings = await Booking.find({ hotelId: req.params.id, bookingStatus: 'confirmed' });
+        const bookings = await Booking.find({ 
+            hotelId: req.params.id, 
+            bookingStatus: { $in: ['pending', 'accepted', 'confirmed'] } 
+        });
         
-        let bookedDates = [];
+        let bookedRoomsPerDate = {};
         bookings.forEach(b => {
             let curr = new Date(b.startDate);
             const end = new Date(b.endDate);
-            while (curr <= end) {
-                bookedDates.push(curr.toISOString().split('T')[0]);
+            // Don't count the checkout day as a booked night
+            while (curr < end) {
+                const dStr = curr.toISOString().split('T')[0];
+                bookedRoomsPerDate[dStr] = (bookedRoomsPerDate[dStr] || 0) + (b.rooms || 1);
                 curr.setDate(curr.getDate() + 1);
             }
         });
 
-        const allDisabledDates = [...new Set([...unavailableDates, ...bookedDates])];
-        res.status(200).json({ disabledDates: allDisabledDates, unavailableDates });
+        let fullyBookedDates = [];
+        const totalRooms = hotel.rooms || 1;
+        for (const [date, count] of Object.entries(bookedRoomsPerDate)) {
+            if (count >= totalRooms) {
+                fullyBookedDates.push(date);
+            }
+        }
+
+        const allDisabledDates = [...new Set([...unavailableDates, ...fullyBookedDates])];
+        res.status(200).json({ disabledDates: allDisabledDates, unavailableDates, bookedRoomsPerDate });
     } catch (error) {
         console.error("Get hotel availability error:", error);
         res.status(500).json({ message: 'An error occurred while fetching availability' });

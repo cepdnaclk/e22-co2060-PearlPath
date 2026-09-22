@@ -386,7 +386,7 @@ const MyBookings = () => {
 
       {/* Booking Detail Modal */}
       {selectedBooking && (() => {
-        const { booking, title, Icon, image, location, isHotel, isVehicle, targetLink } = selectedBooking;
+        const { booking, title, Icon, image, location, isHotel, isVehicle, isTour, targetLink } = selectedBooking;
         return (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -394,7 +394,7 @@ const MyBookings = () => {
             onClick={handleCloseModal}
           >
             <div
-              className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden"
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]"
               style={{ animation: 'slideUp 0.25s ease-out' }}
               onClick={e => e.stopPropagation()}
             >
@@ -426,7 +426,7 @@ const MyBookings = () => {
               </div>
 
               {/* Details Body */}
-              <div className="p-6 space-y-4">
+              <div className="p-6 space-y-4 overflow-y-auto">
                 {location && (
                   <div className="flex items-center gap-2 text-gray-500 font-medium">
                     <MapPin size={16} className="text-sunset-orange" />
@@ -461,7 +461,22 @@ const MyBookings = () => {
                       <span className="font-bold text-gray-800">{booking.guests || 1} Day(s)</span>
                     </div>
                   )}
+                  {isTour && (
+                    <div className="bg-gray-50 rounded-2xl p-4">
+                      <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Duration</span>
+                      <span className="font-bold text-gray-800">{Math.ceil((new Date(booking.endDate) - new Date(booking.startDate)) / (1000 * 60 * 60 * 24))} Days</span>
+                    </div>
+                  )}
                 </div>
+
+                {booking.bookingStatus === 'rejected' && booking.rejectionReason && (
+                  <div className="bg-red-50 border border-red-200 rounded-xl p-4 mt-4">
+                    <p className="text-sm text-red-700 font-medium flex gap-2">
+                      <AlertCircle size={18} className="shrink-0 mt-0.5" />
+                      <span><strong>Rejection Reason:</strong> {booking.rejectionReason}</span>
+                    </p>
+                  </div>
+                )}
 
                 <div className="flex items-center justify-between bg-gradient-to-r from-sunset-orange to-sunset-gold rounded-2xl p-4 text-white">
                   <div className="flex items-center gap-2">

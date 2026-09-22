@@ -137,7 +137,7 @@ const TourGuideDetails = () => {
           providerId: guide.userId,
           startDate: bookingData.startDate,
           endDate: bookingData.endDate,
-          guests: 1,
+          guests: 2,
           totalPrice
         })
       });

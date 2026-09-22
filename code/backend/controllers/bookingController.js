@@ -48,10 +48,10 @@ const checkRoomAvailability = async (hotelId, startDate, endDate, requestedRooms
 
     const totalRooms = hotel.rooms || 1;
 
-    // Query for overlapping bookings that are confirmed
+    // Query for overlapping bookings that are confirmed, accepted, or pending
     const query = {
         hotelId,
-        bookingStatus: 'confirmed',
+        bookingStatus: { $in: ['pending', 'accepted', 'confirmed'] },
         startDate: { $lt: end },
         endDate: { $gt: start }
     };
@@ -337,10 +337,11 @@ const updateBooking = async (req, res) => {
                     sendEmail(booking.userId.email, subject, text, html).catch(console.error);
                 }
             } else if (updates.bookingStatus === 'rejected') {
+                const reasonText = updates.rejectionReason ? ` Reason: ${updates.rejectionReason}` : '';
                 await Notification.create({
                     userId: booking.userId?._id || booking.userId,
                     bookingId: booking._id,
-                    message: `Your booking for ${itemName} has been rejected.`,
+                    message: `Your booking for ${itemName} has been rejected.${reasonText}`,
                     type: 'booking_rejected'
                 });
 
@@ -348,12 +349,16 @@ const updateBooking = async (req, res) => {
                 if (booking.userId && booking.userId.email) {
                     const guestName = booking.userId.firstName || 'Valued Guest';
                     const subject = `Update on your Booking Request - ${itemName}`;
-                    const text = `Dear ${guestName},\n\nWe regret to inform you that your booking request for "${itemName}" was declined by the host. Any payments made will be fully refunded.\n\nBest regards,\nPearlPath Team`;
+                    const reasonHtml = updates.rejectionReason ? `<p><strong>Reason provided by the host:</strong> ${updates.rejectionReason}</p>` : '';
+                    const reasonTextEmail = updates.rejectionReason ? `\nReason provided by the host: ${updates.rejectionReason}` : '';
+                    
+                    const text = `Dear ${guestName},\n\nWe regret to inform you that your booking request for "${itemName}" was declined by the host.${reasonTextEmail}\n\nAny payments made will be fully refunded.\n\nBest regards,\nPearlPath Team`;
                     const html = `
                         <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; line-height: 1.6;">
                             <h2 style="color: #ef4444;">Booking Request Declined</h2>
                             <p>Dear ${guestName},</p>
                             <p>Thank you for requesting to book <strong>${itemName}</strong>. Unfortunately, the host was unable to accept your request at this time.</p>
+                            ${reasonHtml}
                             <p>Any payments made will be fully refunded to your original payment method. We invite you to browse other available options on PearlPath to find a suitable match!</p>
                             <br/>
                             <p>Warm regards,<br/>PearlPath Team</p>
@@ -487,7 +492,10 @@ const rejectBookingRequest = async (req, res) => {
             return res.status(400).json({ message: 'Only pending bookings can be rejected' });
         }
 
-        req.body = { bookingStatus: 'rejected' };
+        req.body = { 
+            bookingStatus: 'rejected',
+            ...(req.body.rejectionReason && { rejectionReason: req.body.rejectionReason })
+        };
         req.params.id = id;
         return updateBooking(req, res);
     } catch (err) {
