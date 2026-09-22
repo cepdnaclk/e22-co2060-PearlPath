@@ -48,6 +48,8 @@ const RoutesPage = ({ embedded = false }) => {
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [searchNotFound, setSearchNotFound] = useState(false);
+  const [unmatchedQuery, setUnmatchedQuery] = useState('');
 
   // Travel Mode state: 'car', 'bus', 'bike', 'foot'
   const [travelMode, setTravelMode] = useState('car');
@@ -183,9 +185,15 @@ const RoutesPage = ({ embedded = false }) => {
 
           setRoutes([customRoute]);
           setSelectedRoute(customRoute);
+          setSearchNotFound(false);
           setLoading(false);
           return;
+        } else {
+          setSearchNotFound(true);
+          setUnmatchedQuery(qTrim);
         }
+      } else {
+        setSearchNotFound(false);
       }
 
       // If no search query, fetch predefined routes from local database
@@ -214,7 +222,7 @@ const RoutesPage = ({ embedded = false }) => {
       const cleanDest = route.destination.replace(/ Start$/i, '');
       return `${startPoint.name} to ${cleanDest}`;
     }
-    const activeWps = getActiveWaypoints(route.waypoints, startPoint, searchQuery);
+    const activeWps = getActiveWaypoints(route.waypoints, startPoint, searchQuery, route?.destination);
     const destination = activeWps.length > 0 ? activeWps[activeWps.length - 1].name : '';
     if (destination && startPoint?.name) {
       const cleanDest = destination.replace(/ Start$/i, '');
@@ -229,7 +237,7 @@ const RoutesPage = ({ embedded = false }) => {
       const cleanDest = route.destination.replace(/ Start$/i, '');
       return `Direct optimal road route from ${startPoint.name} to ${cleanDest}, Sri Lanka.`;
     }
-    const activeWps = getActiveWaypoints(route.waypoints, startPoint, searchQuery);
+    const activeWps = getActiveWaypoints(route.waypoints, startPoint, searchQuery, route?.destination);
     const destination = activeWps.length > 0 ? activeWps[activeWps.length - 1].name : '';
     if (destination && startPoint?.name) {
       const cleanDest = destination.replace(/ Start$/i, '');
@@ -239,33 +247,36 @@ const RoutesPage = ({ embedded = false }) => {
   };
 
   const getRouteDestinationLocation = (route) => {
-    if (!route) return 'Ella';
+    if (!route) return 'Galle';
     if (route.destination) return route.destination;
-    const activeWps = getActiveWaypoints(route.waypoints, startPoint, searchQuery);
+    const activeWps = getActiveWaypoints(route.waypoints, startPoint, searchQuery, route?.destination);
     if (activeWps.length > 0) return activeWps[activeWps.length - 1].name;
     if (searchQuery && searchQuery.trim()) return searchQuery.trim();
-    return route.name || 'Ella';
+    return route.name || 'Galle';
   };
 
-  // Helper to filter and truncate waypoints based on current start point and active search target
-  const getActiveWaypoints = (waypoints, start, searchTarget = '') => {
+  // Helper to filter and truncate waypoints based on current start point, active search target, or route destination
+  const getActiveWaypoints = (waypoints, start, searchTarget = '', routeDestination = '') => {
     if (!waypoints || waypoints.length === 0) return [];
 
     let active = [...waypoints];
 
-    // 1. If user searched for a specific target city (e.g. "Kandy"), truncate waypoints after the searched city!
-    if (searchTarget && searchTarget.trim()) {
-      const searchLower = searchTarget.trim().toLowerCase();
-      const matchIndex = active.findIndex(wp => 
-        wp.name.toLowerCase().includes(searchLower)
-      );
+    // Priority target: search target if provided, otherwise routeDestination
+    const target = (searchTarget && searchTarget.trim()) ? searchTarget.trim() : (routeDestination || '');
+
+    if (target) {
+      const targetLower = target.toLowerCase();
+      const matchIndex = active.findIndex(wp => {
+        const wpLower = wp.name.toLowerCase();
+        const cleanWpName = wpLower.replace(/ \((start|cultural capital|little england|scenic ending|unesco world heritage site)\)$/i, '').replace(/ (fort|lion rock|start)$/i, '');
+        return wpLower.includes(targetLower) || targetLower.includes(cleanWpName) || cleanWpName.includes(targetLower);
+      });
       if (matchIndex !== -1) {
         active = active.slice(0, matchIndex + 1);
       }
     }
 
-    // 2. Filter out origin start markers (e.g. "Colombo Start" or any marker designated as "Start")
-    // so the path goes directly from the user's selected startPoint to destination stops.
+    // Filter out origin start markers (e.g. "Colombo Start")
     const filtered = active.filter(wp => {
       if (wp.name.toLowerCase().includes("start")) {
         return false;
@@ -280,10 +291,10 @@ const RoutesPage = ({ embedded = false }) => {
   };
 
   // Fetch real-world road directions from OSRM
-  const getLiveRoutePath = async (start, waypoints, searchTarget = '') => {
+  const getLiveRoutePath = async (start, waypoints, searchTarget = '', routeDestination = '') => {
     if (!start || !waypoints || waypoints.length === 0) return;
 
-    const filteredWps = getActiveWaypoints(waypoints, start, searchTarget);
+    const filteredWps = getActiveWaypoints(waypoints, start, searchTarget, routeDestination);
 
     const coordsString = [
       `${start.lng},${start.lat}`,
@@ -343,7 +354,7 @@ const RoutesPage = ({ embedded = false }) => {
 
   useEffect(() => {
     if (selectedRoute && startPoint) {
-      getLiveRoutePath(startPoint, selectedRoute.waypoints, searchQuery);
+      getLiveRoutePath(startPoint, selectedRoute.waypoints, searchQuery, selectedRoute.destination);
     }
   }, [selectedRoute, startPoint, travelMode, searchQuery]);
 
@@ -550,6 +561,12 @@ const RoutesPage = ({ embedded = false }) => {
 
           {/* Routes List */}
           <div className="flex-1 flex flex-col gap-4 overflow-y-auto overflow-x-hidden max-h-[550px] lg:max-h-[680px] pr-1">
+            {searchNotFound && (
+              <div className="bg-amber-500/10 border border-amber-500/30 text-amber-200 p-3 rounded-xl text-xs flex items-center justify-between gap-2">
+                <span>⚠️ Location "<strong>{unmatchedQuery}</strong>" not found in route network. Showing popular routes below:</span>
+                <button onClick={() => setSearchNotFound(false)} className="text-amber-400 hover:text-white font-bold text-sm">✕</button>
+              </div>
+            )}
             {loading ? (
               <div className="flex flex-col items-center justify-center py-16 bg-[#18181b] rounded-2xl border border-white/5">
                 <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-sunset-orange mb-3"></div>
@@ -594,7 +611,7 @@ const RoutesPage = ({ embedded = false }) => {
                       {selectedRoute?._id === route._id ? liveRouteInfo.distance || route.distance : route.distance}
                     </span>
                     <span className="ml-auto text-sunset-gold bg-sunset-gold/10 px-2 py-0.5 rounded text-[10px] uppercase">
-                      {selectedRoute?._id === route._id ? getActiveWaypoints(route.waypoints, startPoint, searchQuery).length : route.waypoints.length} Stops
+                      {selectedRoute?._id === route._id ? getActiveWaypoints(route.waypoints, startPoint, searchQuery, route.destination).length : route.waypoints.length} Stops
                     </span>
                   </div>
 
@@ -673,7 +690,7 @@ const RoutesPage = ({ embedded = false }) => {
                 </Marker>
 
                 {/* Waypoint Markers */}
-                {getActiveWaypoints(selectedRoute.waypoints, startPoint, searchQuery)
+                {getActiveWaypoints(selectedRoute.waypoints, startPoint, searchQuery, selectedRoute.destination)
                   .map((stop, index, arr) => (
                     <Marker 
                       key={index} 
@@ -847,6 +864,12 @@ const RoutesPage = ({ embedded = false }) => {
 
           {/* Routes List */}
           <div className="flex-1 flex flex-col gap-4 overflow-y-auto overflow-x-hidden max-h-[550px] lg:max-h-[680px] pr-1">
+            {searchNotFound && (
+              <div className="bg-amber-500/10 border border-amber-500/30 text-amber-200 p-3 rounded-xl text-xs flex items-center justify-between gap-2">
+                <span>⚠️ Location "<strong>{unmatchedQuery}</strong>" not found in route network. Showing popular routes below:</span>
+                <button onClick={() => setSearchNotFound(false)} className="text-amber-400 hover:text-white font-bold text-sm">✕</button>
+              </div>
+            )}
             {loading ? (
               <div className="flex flex-col items-center justify-center py-16 bg-[#18181b] rounded-2xl border border-white/5">
                 <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-sunset-orange mb-3"></div>
@@ -891,7 +914,7 @@ const RoutesPage = ({ embedded = false }) => {
                       {selectedRoute?._id === route._id ? liveRouteInfo.distance || route.distance : route.distance}
                     </span>
                     <span className="ml-auto text-sunset-gold bg-sunset-gold/10 px-2 py-0.5 rounded text-[10px] uppercase">
-                      {selectedRoute?._id === route._id ? getActiveWaypoints(route.waypoints, startPoint, searchQuery).length : route.waypoints.length} Stops
+                      {selectedRoute?._id === route._id ? getActiveWaypoints(route.waypoints, startPoint, searchQuery, route.destination).length : route.waypoints.length} Stops
                     </span>
                   </div>
 
@@ -970,7 +993,7 @@ const RoutesPage = ({ embedded = false }) => {
                 </Marker>
 
                 {/* Waypoint Markers */}
-                {getActiveWaypoints(selectedRoute.waypoints, startPoint, searchQuery)
+                {getActiveWaypoints(selectedRoute.waypoints, startPoint, searchQuery, selectedRoute.destination)
                   .map((stop, index, arr) => (
                     <Marker 
                       key={index} 
