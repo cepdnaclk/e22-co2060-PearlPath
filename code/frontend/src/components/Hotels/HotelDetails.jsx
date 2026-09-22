@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Navbar from '../Navbar/Navbar';
 import Footer from '../Footer/Footer';
-import { MapPin, Star, Wifi, Coffee, Wind, Waves, Users, Home, User, Phone, MessageSquare } from 'lucide-react';
+import { MapPin, Star, Wifi, Coffee, Wind, Waves, Users, Home, User, Phone, MessageSquare, AlertCircle } from 'lucide-react';
 import ReviewSection from '../Reviews/ReviewSection';
 import { useCurrency } from '../../context/CurrencyContext';
 import PaymentModal from '../Payment/PaymentModal';
@@ -24,11 +24,12 @@ const HotelDetails = () => {
   const [bookingData, setBookingData] = useState({
     startDate: '',
     endDate: '',
-    guests: 1,
+    guests: 2,
     rooms: 1
   });
   const [dateRange, setDateRange] = useState([null, null]);
   const [disabledDates, setDisabledDates] = useState([]);
+  const [bookedRoomsPerDate, setBookedRoomsPerDate] = useState({});
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingMessage, setBookingMessage] = useState('');
 
@@ -57,6 +58,7 @@ const HotelDetails = () => {
             if (res.ok) {
                 const data = await res.json();
                 setDisabledDates(data.disabledDates || []);
+                setBookedRoomsPerDate(data.bookedRoomsPerDate || {});
             }
         } catch (error) {
             console.error("Error fetching availability:", error);
@@ -68,19 +70,82 @@ const HotelDetails = () => {
   }, [id]);
 
   const handleBookingChange = (e) => {
-    setBookingData({ ...bookingData, [e.target.name]: e.target.value });
+    let value = e.target.value;
+    if (e.target.name === 'rooms' && value !== '') {
+        const max = calculateMaxRooms();
+        if (parseInt(value) > max) {
+            value = max;
+        }
+    }
+    setBookingData({ ...bookingData, [e.target.name]: value });
   };
 
   const handleDateChange = (range) => {
-    setDateRange(range);
     if (range && range.length === 2) {
         // Adjust for timezone offsets before storing ISO string
         const start = new Date(range[0].getTime() - (range[0].getTimezoneOffset() * 60000)).toISOString().split('T')[0];
         const end = new Date(range[1].getTime() - (range[1].getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-        setBookingData(prev => ({ ...prev, startDate: start, endDate: end }));
+        
+        let currCheck = new Date(start);
+        const endDate = new Date(end);
+        let hasDisabled = false;
+        
+        // Check if range spans any disabled dates
+        while(currCheck <= endDate) {
+            const dStr = currCheck.toISOString().split('T')[0];
+            if (disabledDates.includes(dStr)) {
+                hasDisabled = true;
+                break;
+            }
+            currCheck.setDate(currCheck.getDate() + 1);
+        }
+
+        if (hasDisabled) {
+            setBookingMessage('You cannot book across unavailable dates. Please select a valid range.');
+            setDateRange([null, null]);
+            setBookingData(prev => ({ ...prev, startDate: '', endDate: '' }));
+            return;
+        }
+
+        setDateRange(range);
+        setBookingMessage('');
+        
+        let curr = new Date(start);
+        let maxBooked = 0;
+        while(curr < endDate) {
+            const dStr = curr.toISOString().split('T')[0];
+            const booked = bookedRoomsPerDate[dStr] || 0;
+            if (booked > maxBooked) maxBooked = booked;
+            curr.setDate(curr.getDate() + 1);
+        }
+        const available = hotel ? hotel.rooms - maxBooked : 1;
+        const finalAvailable = available >= 0 ? available : 0;
+
+        setBookingData(prev => ({ 
+            ...prev, 
+            startDate: start, 
+            endDate: end,
+            rooms: prev.rooms > finalAvailable ? finalAvailable : prev.rooms
+        }));
     } else {
+        setDateRange(range);
         setBookingData(prev => ({ ...prev, startDate: '', endDate: '' }));
     }
+  };
+
+  const calculateMaxRooms = () => {
+    if (!bookingData.startDate || !bookingData.endDate || !hotel) return hotel ? hotel.rooms : 1;
+    let curr = new Date(bookingData.startDate);
+    const endDate = new Date(bookingData.endDate);
+    let maxBooked = 0;
+    while(curr < endDate) {
+        const dStr = curr.toISOString().split('T')[0];
+        const booked = bookedRoomsPerDate[dStr] || 0;
+        if (booked > maxBooked) maxBooked = booked;
+        curr.setDate(curr.getDate() + 1);
+    }
+    const available = hotel.rooms - maxBooked;
+    return available >= 0 ? available : 0;
   };
 
   const calculateTotalPrice = () => {
@@ -104,8 +169,8 @@ const HotelDetails = () => {
     setBookingMessage('');
     const totalPrice = calculateTotalPrice();
     
-    if (totalPrice <= 0) {
-      setBookingMessage('Please select valid dates.');
+    if (totalPrice <= 0 || bookingData.rooms <= 0 || calculateMaxRooms() <= 0) {
+      setBookingMessage('Please select valid dates and at least 1 room.');
       return;
     }
 
@@ -346,13 +411,20 @@ const HotelDetails = () => {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1">Rooms</label>
+                      <label className="block text-sm font-bold text-gray-700 mb-1">Rooms (Max: {calculateMaxRooms()})</label>
                       <div className="relative">
                         <Home size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                        <input type="number" name="rooms" value={bookingData.rooms} onChange={handleBookingChange} required min="1" className="w-full pl-9 pr-3 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-sunset-teal outline-none text-sm font-medium" />
+                        <input type="number" name="rooms" value={bookingData.rooms} onChange={handleBookingChange} required min="1" max={calculateMaxRooms()} className="w-full pl-9 pr-3 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-sunset-teal outline-none text-sm font-medium" />
                       </div>
                     </div>
                   </div>
+
+                  {bookingData.startDate && bookingData.endDate && calculateMaxRooms() <= 0 && (
+                    <div className="p-3 mt-2 rounded-xl text-sm font-bold text-center bg-red-50 text-red-500 border border-red-100 flex items-center justify-center gap-2">
+                      <AlertCircle size={16} />
+                      No rooms are available for these dates!
+                    </div>
+                  )}
 
                   {calculateTotalPrice() > 0 && (
                     <div className="pt-4 border-t border-gray-100 flex justify-between items-center text-lg font-bold">

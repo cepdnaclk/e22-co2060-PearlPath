@@ -6,13 +6,16 @@ import { destinations } from '../../data/destinations';
 
 const Destinations = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const navigate = useNavigate();
 
-  const filteredDestinations = destinations.filter(dest => 
-    dest.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    dest.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    dest.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredDestinations = destinations.filter(dest => {
+    const matchesSearch = dest.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          dest.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          dest.category.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'All' || dest.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="min-h-screen bg-[#0f0f11] text-white">
@@ -73,7 +76,8 @@ const Destinations = () => {
             {['All', 'Beaches', 'Historic', 'Nature & Wildlife', 'Landmarks', 'Temples'].map((cat, idx) => (
               <button 
                 key={idx} 
-                className={`whitespace-nowrap px-5 py-2 rounded-full text-sm font-medium transition-all ${idx === 0 ? 'bg-white/10 text-white border border-white/20' : 'bg-transparent text-gray-400 hover:text-white hover:bg-white/5 border border-transparent'}`}
+                onClick={() => setSelectedCategory(cat)}
+                className={`whitespace-nowrap px-5 py-2 rounded-full text-sm font-medium transition-all ${selectedCategory === cat ? 'bg-white/10 text-white border border-white/20' : 'bg-transparent text-gray-400 hover:text-white hover:bg-white/5 border border-transparent'}`}
               >
                 {cat}
               </button>

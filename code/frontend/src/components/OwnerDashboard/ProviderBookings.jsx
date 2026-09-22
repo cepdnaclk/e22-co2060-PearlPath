@@ -77,9 +77,28 @@ const ProviderBookings = () => {
             const endpoint = status === 'accepted' ? 'accept' : status === 'rejected' ? 'reject' : null;
             if (!endpoint) return;
 
+            let rejectionReason = null;
+            if (status === 'rejected') {
+                const { value: reason } = await Swal.fire({
+                    title: 'Reject Booking',
+                    input: 'text',
+                    inputLabel: 'Reason for rejection (Optional but recommended)',
+                    inputPlaceholder: 'Enter reason...',
+                    showCancelButton: true
+                });
+                
+                // If user clicks cancel (value is undefined)
+                if (reason === undefined) return;
+                
+                rejectionReason = reason;
+            }
+
+            const bodyData = rejectionReason ? { rejectionReason } : {};
+
             const res = await authFetch(`http://127.0.0.1:3001/api/bookings/${id}/${endpoint}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(bodyData)
             });
             if (res.ok) {
                 setBookings(bookings.map(b => b._id === id ? { ...b, bookingStatus: status } : b));
