@@ -3,10 +3,16 @@ export const LOCATION_COORDINATES = {
   'sigiriya': { lat: 7.9570, lon: 80.7603, region: 'Cultural Triangle', name: 'Sigiriya' },
   'central province': { lat: 7.9570, lon: 80.7603, region: 'Cultural Triangle', name: 'Sigiriya' },
   'ella': { lat: 6.8667, lon: 81.0466, region: 'Hill Country', name: 'Ella' },
-  'badulla': { lat: 6.8667, lon: 81.0466, region: 'Hill Country', name: 'Ella' },
+  'badulla': { lat: 6.9897, lon: 81.0560, region: 'Hill Country', name: 'Badulla' },
   'yala': { lat: 6.3725, lon: 81.5170, region: 'South-East', name: 'Yala National Park' },
   'southern province': { lat: 6.0535, lon: 80.2210, region: 'South Coast', name: 'Galle / Mirissa' },
+  'kegalle': { lat: 7.2513, lon: 80.3464, region: 'Sabaragamuwa', name: 'Kegalle' },
   'galle': { lat: 6.0535, lon: 80.2210, region: 'South Coast', name: 'Galle' },
+  'hambantota': { lat: 6.1429, lon: 81.1212, region: 'South Coast', name: 'Hambantota' },
+  'matara': { lat: 5.9485, lon: 80.5353, region: 'South Coast', name: 'Matara' },
+  'kuliyapitiya': { lat: 7.4689, lon: 80.0401, region: 'Wayamba', name: 'Kuliyapitiya' },
+  'kurunegala': { lat: 7.4863, lon: 80.3647, region: 'Wayamba', name: 'Kurunegala' },
+  'ratnapura': { lat: 6.6828, lon: 80.4012, region: 'Sabaragamuwa', name: 'Ratnapura' },
   'kandy': { lat: 7.2906, lon: 80.6337, region: 'Hill Country', name: 'Kandy' },
   'mirissa': { lat: 5.9483, lon: 80.4716, region: 'South Coast', name: 'Mirissa' },
   'nuwara eliya': { lat: 6.9497, lon: 80.7891, region: 'Hill Country', name: 'Nuwara Eliya' },
@@ -24,21 +30,43 @@ export const LOCATION_COORDINATES = {
 };
 
 /**
- * Calculates Sri Lanka Seasonality & Safety Advisory based on location region and current month.
- * Sri Lanka has two main monsoon seasons:
- * 1. Yala Monsoon (South-West): May to September - affects South & West coasts + Hill Country.
- * 2. Maha Monsoon (North-East): October to January - affects East Coast, North & Cultural Triangle.
+ * Exact whole-word matcher to prevent "kegalle" from matching "galle"
  */
-export const getSeasonalityAdvisory = (locationName, currentMonth = new Date().getMonth() + 1) => {
-  const normalized = (locationName || '').toLowerCase().trim();
-  let matchedLocation = null;
+export const findLocationMatch = (locationName) => {
+  if (!locationName) return null;
+  const normalized = locationName.toLowerCase().trim();
+  const words = normalized.split(/[^a-z0-9]+/);
 
+  // 1. Exact full string match first
   for (const key in LOCATION_COORDINATES) {
-    if (normalized.includes(key) || key.includes(normalized)) {
-      matchedLocation = LOCATION_COORDINATES[key];
-      break;
+    if (key === normalized) {
+      return LOCATION_COORDINATES[key];
     }
   }
+
+  // 2. Exact word match
+  for (const key in LOCATION_COORDINATES) {
+    if (words.includes(key)) {
+      return LOCATION_COORDINATES[key];
+    }
+  }
+
+  // 3. Multi-word key match
+  for (const key in LOCATION_COORDINATES) {
+    const keyWords = key.split(/[^a-z0-9]+/);
+    if (keyWords.every(kw => words.includes(kw))) {
+      return LOCATION_COORDINATES[key];
+    }
+  }
+
+  return null;
+};
+
+/**
+ * Calculates Sri Lanka Seasonality & Safety Advisory based on location region and current month.
+ */
+export const getSeasonalityAdvisory = (locationName, currentMonth = new Date().getMonth() + 1) => {
+  const matchedLocation = findLocationMatch(locationName);
 
   const region = matchedLocation ? matchedLocation.region : 'South Coast';
 
@@ -159,15 +187,7 @@ export const decodeWeatherCode = (code) => {
  * Fetches real-time weather & 3-day forecast from Open-Meteo API.
  */
 export const fetchWeatherData = async (locationName) => {
-  const normalized = (locationName || 'Colombo').toLowerCase().trim();
-  let coords = null;
-
-  for (const key in LOCATION_COORDINATES) {
-    if (normalized.includes(key) || key.includes(normalized)) {
-      coords = LOCATION_COORDINATES[key];
-      break;
-    }
-  }
+  let coords = findLocationMatch(locationName);
 
   // Dynamic Open-Meteo Geocoding Lookup if location not in pre-configured dictionary
   if (!coords && locationName) {
