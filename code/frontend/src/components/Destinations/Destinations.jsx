@@ -1,13 +1,22 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { MapPin, Search, Star, ArrowRight, Compass, Filter } from 'lucide-react';
 import Navbar from '../Navbar/Navbar';
 import { destinations } from '../../data/destinations';
 
 const Destinations = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const initialSearch = searchParams.get('search') || '';
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const navigate = useNavigate();
+
+  // If search param changes in URL while already on the page, update state
+  useEffect(() => {
+    const currentSearch = new URLSearchParams(location.search).get('search') || '';
+    setSearchTerm(currentSearch);
+  }, [location.search]);
 
   const filteredDestinations = destinations.filter(dest => {
     const matchesSearch = dest.name.toLowerCase().includes(searchTerm.toLowerCase()) || 

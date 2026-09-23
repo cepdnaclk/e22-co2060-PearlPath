@@ -29,6 +29,7 @@ import { CurrencyProvider } from './context/CurrencyContext'
 import Experiences from './pages/Experiences'
 import TripPlanner from './components/TripPlanner/TripPlanner'
 import RevenueDashboard from './components/OwnerDashboard/RevenueDashboard'
+import ScrollToTop from './components/ScrollToTop'
 
 function App() {
   const handleSendMessage = async (message, history) => {
@@ -50,6 +51,7 @@ function App() {
     <CurrencyProvider>
       <VehicleProvider>
         <Router>
+          <ScrollToTop />
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/home" element={<Home />} />
