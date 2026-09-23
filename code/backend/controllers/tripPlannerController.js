@@ -20,7 +20,7 @@ const generateTrip = async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields: destination, startDate, endDate' });
     }
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
     
     const prompt = `You are an expert travel planner. Create a day-by-day itinerary for a trip to ${destination}, Sri Lanka from ${startDate} to ${endDate} for ${guests} guests.
 The budget is ${budget}.

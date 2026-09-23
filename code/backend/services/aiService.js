@@ -30,7 +30,7 @@ if (process.env.GEMINI_API_KEY && GoogleGenerativeAI) {
 async function getIntent(message) {
   try {
     if (!genAI) return "general_chat";
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
     const prompt = `Classify the user's message into exactly one of these categories:
 - tour_recommendation
 - booking_status
@@ -135,7 +135,7 @@ If the user asks how to use the website, provide these instructions:
 
 Answer factual claims ONLY from the given Context Information. If the context information does not cover it, do not guess. Instead, politely say "Let me connect you with support for more specific details." Maintain a warm, welcoming tone. Keep responses concise and helpful.]${contextString}`;
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
 
     let sanitizedHistory = [];
     let lastRole = null;
