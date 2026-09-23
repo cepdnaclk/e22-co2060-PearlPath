@@ -25,7 +25,7 @@ const Navbar = () => {
   const fetchNotifications = async () => {
     if (!user) return;
     try {
-      const res = await authFetch('http://127.0.0.1:3001/api/notifications');
+      const res = await authFetch('https://pearlpath-backend.onrender.com/api/notifications');
       if (res.ok) {
         const data = await res.json();
         setNotifications(data.response || []);
@@ -43,7 +43,7 @@ const Navbar = () => {
 
   const handleMarkAsRead = async (id) => {
     try {
-      const res = await authFetch(`http://127.0.0.1:3001/api/notifications/${id}/read`, {
+      const res = await authFetch(`https://pearlpath-backend.onrender.com/api/notifications/${id}/read`, {
         method: 'PUT'
       });
       if (res.ok) {
@@ -56,7 +56,7 @@ const Navbar = () => {
 
   const handleMarkAllAsRead = async () => {
     try {
-      const res = await authFetch('http://127.0.0.1:3001/api/notifications/read-all', {
+      const res = await authFetch('https://pearlpath-backend.onrender.com/api/notifications/read-all', {
         method: 'PUT'
       });
       if (res.ok) {

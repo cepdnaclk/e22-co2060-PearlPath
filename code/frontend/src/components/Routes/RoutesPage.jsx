@@ -151,7 +151,7 @@ const RoutesPage = ({ embedded = false }) => {
         // 3. Fallback to checking predefined backend database routes for waypoint match
         if (!destLat) {
           try {
-            const res = await fetch(`http://127.0.0.1:3001/api/routes?to=${encodeURIComponent(qTrim)}`);
+            const res = await fetch(`https://pearlpath-backend.onrender.com/api/routes?to=${encodeURIComponent(qTrim)}`);
             const data = await res.json();
             if (data.success && data.response && data.response.length > 0) {
               const matchedDbRoute = data.response[0];
@@ -197,7 +197,7 @@ const RoutesPage = ({ embedded = false }) => {
       }
 
       // If no search query, fetch predefined routes from local database
-      const res = await fetch(`http://127.0.0.1:3001/api/routes`);
+      const res = await fetch(`https://pearlpath-backend.onrender.com/api/routes`);
       const data = await res.json();
       
       if (data.success && data.response && data.response.length > 0) {

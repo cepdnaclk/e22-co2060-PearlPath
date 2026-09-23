@@ -59,7 +59,7 @@ const TripPlanner = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3001/api/trip-planner/generate', {
+      const response = await fetch('https://pearlpath-backend.onrender.com/api/trip-planner/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -80,7 +80,7 @@ const TripPlanner = () => {
     if (!isLoggedIn) return;
     setSaving(true);
     try {
-      const response = await fetch('http://localhost:3001/api/trip-planner/save', {
+      const response = await fetch('https://pearlpath-backend.onrender.com/api/trip-planner/save', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

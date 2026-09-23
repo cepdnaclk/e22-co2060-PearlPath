@@ -30,7 +30,7 @@ const AdminDashboard = () => {
         setError(null);
         setPayments([]);
         try {
-            const res = await authFetch('http://127.0.0.1:3001/api/payments/admin?status=submitted');
+            const res = await authFetch('https://pearlpath-backend.onrender.com/api/payments/admin?status=submitted');
             if (res.ok) {
                 setPayments(await res.json());
             } else {
@@ -60,7 +60,7 @@ const AdminDashboard = () => {
                 body.rejectionReason = reason;
             }
 
-            const res = await authFetch(`http://127.0.0.1:3001/api/payments/admin/${id}/${action}`, {
+            const res = await authFetch(`https://pearlpath-backend.onrender.com/api/payments/admin/${id}/${action}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
@@ -81,7 +81,7 @@ const AdminDashboard = () => {
         setLoadingData(true);
         setError(null);
         try {
-            const statsRes = await authFetch('http://127.0.0.1:3001/api/admin/stats');
+            const statsRes = await authFetch('https://pearlpath-backend.onrender.com/api/admin/stats');
             if (statsRes.ok) {
                 setStats(await statsRes.json());
             } else {
@@ -101,7 +101,7 @@ const AdminDashboard = () => {
         setError(null);
         setRoleData([]);
         try {
-            const res = await authFetch(`http://127.0.0.1:3001/api/admin/roles/${role}`);
+            const res = await authFetch(`https://pearlpath-backend.onrender.com/api/admin/roles/${role}`);
             if (res.ok) {
                 const data = await res.json();
                 setRoleData(data);
@@ -119,7 +119,7 @@ const AdminDashboard = () => {
 
     const handleUserAction = async (id, status) => {
         try {
-            const res = await authFetch(`http://127.0.0.1:3001/api/admin/users/${id}/status`, {
+            const res = await authFetch(`https://pearlpath-backend.onrender.com/api/admin/users/${id}/status`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status })
@@ -135,7 +135,7 @@ const AdminDashboard = () => {
 
     const handleListingAction = async (type, id, status, userId) => {
         try {
-            const res = await authFetch(`http://127.0.0.1:3001/api/admin/listings/${type}/${id}/status`, {
+            const res = await authFetch(`https://pearlpath-backend.onrender.com/api/admin/listings/${type}/${id}/status`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status })
@@ -166,7 +166,7 @@ const AdminDashboard = () => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    const res = await authFetch(`http://127.0.0.1:3001/api/admin/users/${id}`, { method: 'DELETE' });
+                    const res = await authFetch(`https://pearlpath-backend.onrender.com/api/admin/users/${id}`, { method: 'DELETE' });
                     if (res.ok) {
                         setRoleData(roleData.filter(u => u._id !== id));
                         Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'User deleted!', showConfirmButton: false, timer: 3000 });
@@ -232,7 +232,7 @@ const AdminDashboard = () => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    const res = await authFetch(`http://127.0.0.1:3001/api/admin/users/${user._id}`, {
+                    const res = await authFetch(`https://pearlpath-backend.onrender.com/api/admin/users/${user._id}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ ...result.value, status: user.status })
@@ -610,7 +610,7 @@ const AdminDashboard = () => {
                                                 <p className="text-sm font-bold text-sunset-orange mt-1">Amount: {payment.currency} {payment.amount.toLocaleString()}</p>
                                             </div>
                                             <div className="flex flex-wrap gap-3 mt-4 sm:mt-0 justify-end items-center">
-                                                <a href={`http://127.0.0.1:3001${payment.bankSlipUrl}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-bold">
+                                                <a href={`https://pearlpath-backend.onrender.com${payment.bankSlipUrl}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-bold">
                                                     <Eye size={18} /> View Slip
                                                 </a>
                                                 <button onClick={() => handlePaymentAction(payment._id, 'verify')} className="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-4 py-2 rounded-lg font-bold">

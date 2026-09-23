@@ -33,7 +33,7 @@ import RevenueDashboard from './components/OwnerDashboard/RevenueDashboard'
 function App() {
   const handleSendMessage = async (message, history) => {
     try {
-      const response = await fetch('http://localhost:3001/api/chat', {
+      const response = await fetch('https://pearlpath-backend.onrender.com/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message, conversationHistory: history })

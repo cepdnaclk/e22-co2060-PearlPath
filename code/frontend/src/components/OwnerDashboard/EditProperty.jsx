@@ -45,7 +45,7 @@ const EditProperty = () => {
   useEffect(() => {
     const fetchProperty = async () => {
       try {
-        const response = await fetch(`http://127.0.0.1:3001/api/hotels/${id}`);
+        const response = await fetch(`https://pearlpath-backend.onrender.com/api/hotels/${id}`);
         if (response.ok) {
           const data = await response.json();
           const hotel = data.response;
@@ -161,7 +161,7 @@ const EditProperty = () => {
         whatsappNumber: formData.whatsappNumber
       };
 
-      const response = await authFetch(`http://127.0.0.1:3001/api/hotels/${id}`, {
+      const response = await authFetch(`https://pearlpath-backend.onrender.com/api/hotels/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

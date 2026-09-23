@@ -41,9 +41,9 @@ const Hotels = () => {
     try {
       let url;
       if (user && user.role === 'hotel_owner') {
-        url = new URL('http://127.0.0.1:3001/api/hotels/provider');
+        url = new URL('https://pearlpath-backend.onrender.com/api/hotels/provider');
       } else {
-        url = new URL('http://127.0.0.1:3001/api/hotels');
+        url = new URL('https://pearlpath-backend.onrender.com/api/hotels');
         if (searchCity) url.searchParams.append('search', searchCity);
         if (minPrice) url.searchParams.append('minPrice', minPrice);
         if (maxPrice) url.searchParams.append('maxPrice', maxPrice);

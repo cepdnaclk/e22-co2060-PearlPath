@@ -28,7 +28,7 @@ const ForgotPassword = () => {
     setError('');
     setLoading(true);
     try {
-      const response = await fetch('http://127.0.0.1:3001/api/auth/forgot-password', {
+      const response = await fetch('https://pearlpath-backend.onrender.com/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
@@ -78,7 +78,7 @@ const ForgotPassword = () => {
     setError('');
     setLoading(true);
     try {
-      const response = await fetch('http://127.0.0.1:3001/api/auth/verify-code', {
+      const response = await fetch('https://pearlpath-backend.onrender.com/api/auth/verify-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, code: otpValue })
@@ -112,7 +112,7 @@ const ForgotPassword = () => {
     setLoading(true);
     try {
       const otpValue = otp.join('');
-      const response = await fetch('http://127.0.0.1:3001/api/auth/reset-password', {
+      const response = await fetch('https://pearlpath-backend.onrender.com/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, code: otpValue, newPassword })

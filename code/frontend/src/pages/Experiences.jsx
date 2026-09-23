@@ -78,7 +78,7 @@ const Experiences = () => {
     setLoading(true);
 
     try {
-      let url = new URL('http://127.0.0.1:3001/api/experiences');
+      let url = new URL('https://pearlpath-backend.onrender.com/api/experiences');
       if (searchTerm) url.searchParams.append('search', searchTerm);
       if (selectedCategory && selectedCategory !== 'All') url.searchParams.append('category', selectedCategory);
       url.searchParams.append('page', currentPage);
@@ -147,7 +147,7 @@ const Experiences = () => {
       return;
     }
     try {
-      const response = await authFetch(`http://127.0.0.1:3001/api/experiences/${experience._id}`, {
+      const response = await authFetch(`https://pearlpath-backend.onrender.com/api/experiences/${experience._id}`, {
         method: 'DELETE'
       });
       const data = await response.json();
@@ -205,13 +205,13 @@ const Experiences = () => {
     try {
       let response;
       if (editingExperienceId) {
-        response = await authFetch(`http://127.0.0.1:3001/api/experiences/${editingExperienceId}`, {
+        response = await authFetch(`https://pearlpath-backend.onrender.com/api/experiences/${editingExperienceId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(submissionData)
         });
       } else {
-        response = await authFetch('http://127.0.0.1:3001/api/experiences', {
+        response = await authFetch('https://pearlpath-backend.onrender.com/api/experiences', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(submissionData)

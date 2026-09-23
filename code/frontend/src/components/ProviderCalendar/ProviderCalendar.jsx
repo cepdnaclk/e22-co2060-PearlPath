@@ -13,7 +13,7 @@ const ProviderCalendar = ({ serviceType, serviceId, title }) => {
     const fetchAvailability = async () => {
         try {
             setLoading(true);
-            const res = await fetch(`http://127.0.0.1:3001/api/${serviceType}/${serviceId}/availability`);
+            const res = await fetch(`https://pearlpath-backend.onrender.com/api/${serviceType}/${serviceId}/availability`);
             if (res.ok) {
                 const data = await res.json();
                 setDisabledDates(data.disabledDates || []);
@@ -44,7 +44,7 @@ const ProviderCalendar = ({ serviceType, serviceId, title }) => {
         const action = unavailableDates.includes(dateStr) ? 'remove' : 'add';
         
         try {
-            const res = await authFetch(`http://127.0.0.1:3001/api/${serviceType}/${serviceId}/manage-availability`, {
+            const res = await authFetch(`https://pearlpath-backend.onrender.com/api/${serviceType}/${serviceId}/manage-availability`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ date: dateStr, action })

@@ -36,7 +36,7 @@ const ProviderBookings = () => {
 
     const fetchBookings = async () => {
         try {
-            const res = await authFetch('http://127.0.0.1:3001/api/bookings/provider');
+            const res = await authFetch('https://pearlpath-backend.onrender.com/api/bookings/provider');
             if (res.ok) {
                 const data = await res.json();
                 setBookings(data.response);
@@ -52,15 +52,15 @@ const ProviderBookings = () => {
         try {
             let hotels = [], vehicles = [], tourGuides = [];
             if (user?.role === 'hotel_owner') {
-                const res = await authFetch('http://127.0.0.1:3001/api/hotels/provider');
+                const res = await authFetch('https://pearlpath-backend.onrender.com/api/hotels/provider');
                 if (res.ok) hotels = (await res.json()).response || [];
             }
             if (user?.role === 'vehicle_owner') {
-                const res = await authFetch('http://127.0.0.1:3001/api/vehicles/owner');
+                const res = await authFetch('https://pearlpath-backend.onrender.com/api/vehicles/owner');
                 if (res.ok) vehicles = await res.json() || [];
             }
             if (user?.role === 'tour_guide') {
-                const res = await fetch(`http://127.0.0.1:3001/api/tour-guides/user/${user._id}`);
+                const res = await fetch(`https://pearlpath-backend.onrender.com/api/tour-guides/user/${user._id}`);
                 if (res.ok) {
                     const data = await res.json();
                     tourGuides = data ? [data] : [];
@@ -95,7 +95,7 @@ const ProviderBookings = () => {
 
             const bodyData = rejectionReason ? { rejectionReason } : {};
 
-            const res = await authFetch(`http://127.0.0.1:3001/api/bookings/${id}/${endpoint}`, {
+            const res = await authFetch(`https://pearlpath-backend.onrender.com/api/bookings/${id}/${endpoint}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(bodyData)

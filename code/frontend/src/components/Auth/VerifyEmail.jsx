@@ -42,7 +42,7 @@ const VerifyEmail = () => {
     setError('');
     setResendLoading(true);
     try {
-      const response = await fetch('http://127.0.0.1:3001/api/auth/resend-verification', {
+      const response = await fetch('https://pearlpath-backend.onrender.com/api/auth/resend-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
@@ -81,7 +81,7 @@ const VerifyEmail = () => {
     setError('');
     setLoading(true);
     try {
-      const response = await fetch('http://127.0.0.1:3001/api/auth/verify-email', {
+      const response = await fetch('https://pearlpath-backend.onrender.com/api/auth/verify-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, code: otpValue })

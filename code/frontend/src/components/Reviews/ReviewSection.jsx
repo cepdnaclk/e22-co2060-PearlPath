@@ -19,7 +19,7 @@ const ReviewSection = ({ targetId, targetModel }) => {
 
   const fetchReviews = async () => {
     try {
-      const response = await fetch(`http://127.0.0.1:3001/api/reviews/${targetId}`);
+      const response = await fetch(`https://pearlpath-backend.onrender.com/api/reviews/${targetId}`);
       const data = await response.json();
       if (response.ok && data.response) {
         setReviews(data.response);
@@ -42,7 +42,7 @@ const ReviewSection = ({ targetId, targetModel }) => {
     setError('');
 
     try {
-      const response = await authFetch('http://127.0.0.1:3001/api/reviews', {
+      const response = await authFetch('https://pearlpath-backend.onrender.com/api/reviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -20,7 +20,7 @@ const Profile = () => {
 
     const fetchNotifications = async () => {
         try {
-            const res = await authFetch('http://127.0.0.1:3001/api/notifications');
+            const res = await authFetch('https://pearlpath-backend.onrender.com/api/notifications');
             if (res.ok) {
                 const data = await res.json();
                 setNotifications(data.response || []);
@@ -47,7 +47,7 @@ const Profile = () => {
 
     const handleMarkAsRead = async (id) => {
         try {
-            const res = await authFetch(`http://127.0.0.1:3001/api/notifications/${id}/read`, {
+            const res = await authFetch(`https://pearlpath-backend.onrender.com/api/notifications/${id}/read`, {
                 method: 'PUT'
             });
             if (res.ok) {
@@ -60,7 +60,7 @@ const Profile = () => {
 
     const handleMarkAllAsRead = async () => {
         try {
-            const res = await authFetch('http://127.0.0.1:3001/api/notifications/read-all', {
+            const res = await authFetch('https://pearlpath-backend.onrender.com/api/notifications/read-all', {
                 method: 'PUT'
             });
             if (res.ok) {
@@ -73,7 +73,7 @@ const Profile = () => {
 
     const handleDeleteNotification = async (id) => {
         try {
-            const res = await authFetch(`http://127.0.0.1:3001/api/notifications/${id}`, {
+            const res = await authFetch(`https://pearlpath-backend.onrender.com/api/notifications/${id}`, {
                 method: 'DELETE'
             });
             if (res.ok) {
@@ -101,7 +101,7 @@ const Profile = () => {
         setLoading(true);
 
         try {
-            const response = await authFetch(`http://127.0.0.1:3001/api/users/${user._id}`, {
+            const response = await authFetch(`https://pearlpath-backend.onrender.com/api/users/${user._id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

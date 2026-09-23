@@ -36,7 +36,7 @@ const VehicleDetails = () => {
   useEffect(() => {
     const fetchVehicleDetails = async () => {
       try {
-        const response = await fetch(`http://127.0.0.1:3001/api/vehicles/${id}`);
+        const response = await fetch(`https://pearlpath-backend.onrender.com/api/vehicles/${id}`);
         const data = await response.json();
         if (response.ok) {
           setVehicle(data.response);
@@ -50,7 +50,7 @@ const VehicleDetails = () => {
 
     const fetchAvailability = async () => {
         try {
-            const res = await fetch(`http://127.0.0.1:3001/api/vehicles/${id}/availability`);
+            const res = await fetch(`https://pearlpath-backend.onrender.com/api/vehicles/${id}/availability`);
             if (res.ok) {
                 const data = await res.json();
                 setDisabledDates(data.disabledDates || []);
@@ -129,7 +129,7 @@ const VehicleDetails = () => {
     setBookingLoading(true);
     
     try {
-      const response = await authFetch('http://127.0.0.1:3001/api/bookings', {
+      const response = await authFetch('https://pearlpath-backend.onrender.com/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

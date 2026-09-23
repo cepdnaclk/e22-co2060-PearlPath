@@ -40,7 +40,7 @@ const HotelDetails = () => {
   useEffect(() => {
     const fetchHotelDetails = async () => {
       try {
-        const response = await fetch(`http://127.0.0.1:3001/api/hotels/${id}`);
+        const response = await fetch(`https://pearlpath-backend.onrender.com/api/hotels/${id}`);
         const data = await response.json();
         if (response.ok) {
           setHotel(data.response);
@@ -54,7 +54,7 @@ const HotelDetails = () => {
 
     const fetchAvailability = async () => {
         try {
-            const res = await fetch(`http://127.0.0.1:3001/api/hotels/${id}/availability`);
+            const res = await fetch(`https://pearlpath-backend.onrender.com/api/hotels/${id}/availability`);
             if (res.ok) {
                 const data = await res.json();
                 setDisabledDates(data.disabledDates || []);
@@ -196,7 +196,7 @@ const HotelDetails = () => {
     setBookingLoading(true);
     
     try {
-      const response = await authFetch('http://127.0.0.1:3001/api/bookings', {
+      const response = await authFetch('https://pearlpath-backend.onrender.com/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

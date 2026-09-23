@@ -17,7 +17,7 @@ const RevenueDashboard = () => {
 
     const fetchBookings = async () => {
         try {
-            const res = await authFetch('http://127.0.0.1:3001/api/bookings/provider');
+            const res = await authFetch('https://pearlpath-backend.onrender.com/api/bookings/provider');
             if (res.ok) {
                 const data = await res.json();
                 setBookings(data.response);
