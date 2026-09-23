@@ -47,20 +47,13 @@ Ensure the output is ONLY valid JSON, without any markdown formatting or extra t
     const result = await model.generateContent(prompt);
     let text = result.response.text().trim();
     
-    // Remove markdown code blocks if present
-    if (text.startsWith('```json')) {
-      text = text.substring(7);
-      if (text.endsWith('```')) {
-        text = text.substring(0, text.length - 3);
-      }
-    } else if (text.startsWith('```')) {
-      text = text.substring(3);
-      if (text.endsWith('```')) {
-        text = text.substring(0, text.length - 3);
-      }
+    // Robustly extract the JSON array from the response
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) {
+      throw new Error("Could not find JSON array in Gemini response");
     }
-
-    const itinerary = JSON.parse(text);
+    
+    const itinerary = JSON.parse(jsonMatch[0]);
 
     // Fetch actual hotels and tour guides from the database to prevent hallucination
     const regex = new RegExp(destination, 'i');
