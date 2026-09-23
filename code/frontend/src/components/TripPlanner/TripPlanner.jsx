@@ -98,7 +98,7 @@ const TripPlanner = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-200 font-outfit flex flex-col">
+    <div className="min-h-screen bg-orange-50 font-outfit flex flex-col">
       <Navbar />
       <div className="flex-1 max-w-7xl w-full mx-auto px-4 py-8 mt-20">
         <div className="text-center mb-10">
@@ -118,14 +118,20 @@ const TripPlanner = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Destination</label>
-                <select 
-                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-sunset-orange focus:border-sunset-orange outline-none"
-                  value={formData.destination}
-                  onChange={e => setFormData({...formData, destination: e.target.value})}
-                >
-                  <option value="">Select a destination...</option>
-                  {DESTINATIONS.map(d => <option key={d} value={d}>{d}</option>)}
-                </select>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-3 text-gray-400" size={20} />
+                  <input 
+                    type="text"
+                    placeholder="Search a destination..."
+                    className="w-full p-3 pl-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-sunset-orange focus:border-sunset-orange outline-none"
+                    value={formData.destination}
+                    onChange={e => setFormData({...formData, destination: e.target.value})}
+                    list="destinations-list"
+                  />
+                  <datalist id="destinations-list">
+                    {DESTINATIONS.map(d => <option key={d} value={d} />)}
+                  </datalist>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
