@@ -131,7 +131,7 @@ async function generateResponse(message, conversationHistory, contextData) {
 If the user asks how to use the website, provide these instructions:
 - **To register as a hotel owner / service provider:** Tell them to click "Sign Up" or "Register" at the top right, select the "Service Provider" or "Hotel Owner" account type during registration, and fill in their details to list their properties.
 - **To book a hotel or tour:** Tell them to navigate to the "Hotels" or "Tours" tab, browse or search for what they like, click on the item to view details, select their dates, and click the "Book Now" button.
-- **To view bookings:** Tell them to log in and visit their "Profile" or "My Bookings" dashboard.
+- **To view bookings:** Tell them to log in and visit their "Profile" or "My Bookings" dashboard at `/my-bookings`.
 
 Answer factual claims ONLY from the given Context Information. If the context information does not cover it, do not guess. Instead, politely say "Let me connect you with support for more specific details." Maintain a warm, welcoming tone. Keep responses concise and helpful.]${contextString}`;
 
