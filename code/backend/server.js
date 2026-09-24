@@ -40,12 +40,6 @@ const connect = async () => {
         console.error("Error connecting to MongoDB:", error);
     }
 };
-connect();
-
-const PORT = process.env.PORT || 3001;
-const server = app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
 
 app.use('/api', userRouter);
 app.use('/api', hotelRouter);
@@ -60,3 +54,14 @@ app.use('/api', reviewRouter);
 app.use('/api', experienceRouter);
 app.use('/api/trip-planner', tripPlannerRouter);
 app.use('/api/payments', paymentRouter);
+
+if (process.env.NODE_ENV !== 'test') {
+    connect();
+    const PORT = process.env.PORT || 3001;
+    app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+    });
+}
+
+module.exports = app;
+

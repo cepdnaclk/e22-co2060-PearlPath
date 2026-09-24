@@ -4,15 +4,24 @@ const TourGuide = require('../models/TourGuide');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 let genAI = null;
-if (process.env.GEMINI_API_KEY) {
-  genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-}
+
+const getGenAI = () => {
+  if (process.env.GEMINI_API_KEY) {
+    return new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  }
+  if (process.env.NODE_ENV === 'test') {
+    return new GoogleGenerativeAI('test_mock_key');
+  }
+  return null;
+};
 
 const generateTrip = async (req, res) => {
   try {
     const { destination, startDate, endDate, guests, budget, interests } = req.body;
 
-    if (!genAI) {
+    const activeGenAI = getGenAI();
+
+    if (!activeGenAI) {
       return res.status(500).json({ error: 'AI service is not configured.' });
     }
 
@@ -20,7 +29,8 @@ const generateTrip = async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields: destination, startDate, endDate' });
     }
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
+    const model = activeGenAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
+
     
     const prompt = `You are an expert travel planner. Create a day-by-day itinerary for a trip to ${destination}, Sri Lanka from ${startDate} to ${endDate} for ${guests} guests.
 The budget is ${budget}.
