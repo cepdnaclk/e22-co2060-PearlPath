@@ -59,21 +59,52 @@ The system follows a **three-tier architecture**:
  
 The project was developed collaboratively, with each team member contributing to both frontend and backend development while taking primary responsibility for specific modules. Regular communication and integration of completed work ensured that all system components functioned together successfully.
  
-### 👤 R.G. Gunawardana (E/22/124)
-- **Backend Infrastructure:** Primarily responsible for developing the backend routing infrastructure, including implementing and configuring API routes that connect the frontend with the database.
-- **Testing & Quality Assurance:** Carried out extensive API testing using Postman to verify data flow, validate responses, and identify edge cases.
-- **Frontend UI:** Designed and implemented UI components to improve the usability and overall user experience of the web application.
-### 👤 W.M.S. Manujitha (E/22/228)
-- **Exploration & Discovery:** Developed the travel exploration and discovery modules, including advanced search and dynamic filtering for hotels and vehicles using MongoDB aggregation pipelines.
-- **UX Enhancements:** Built the experience pages with user-friendly features such as infinite scrolling, asynchronous loading states, and efficient pagination.
-- **Real-Time Currency Conversion:** Implemented a currency conversion feature to allow international tourists to easily view prices in their preferred currencies.
 ### 👤 D.F.A.T.D. Mathangadeera (E/22/232)
-- **Backend Architecture:** Led the design of the backend structure, developed RESTful APIs, and managed database interactions essential for system functionality.
-- **AI Integration:** Conducted research on AI technologies and successfully integrated an AI chatbot into the system to provide automated, real-time travel assistance and answer user queries.
+- Backend Architecture
+- REST APIs
+- AI Chatbot
+
+### 👤 W.M.S. Manujitha (E/22/228)
+- Discovery Modules
+- Search Aggregation
+- UI/UX Design
+- Currency Conversion
+
+### 👤 R.G. Gunawardana (E/22/124)
+- Routing Infrastructure
+- Postman API Testing
+- Frontend Integration
+
 ### 👤 Y.M.C.J. Yagabamunu (E/22/452)
-- **Route Planning & Mapping:** Developed the route planning and interactive map module utilizing the Google Maps API.
-- **Authentication & Notifications:** Implemented secure user login, OTP-based email verification, and password recovery. Integrated automated email notifications using Nodemailer and developed a notification synchronization feature in the admin dashboard.
-- **System Validation & Version Control:** Built the booking availability validation system, managed provider functionalities, and maintained a stable codebase by resolving Git merge conflicts and integrating project modules.
+- Interactive Map Module
+- Authentication / OTP
+- Booking Validation
+- Git Branching Strategy
+---
+ 
+## 🎯 Milestone 4: Comprehensive System Testing
+
+Testing was performed across multiple levels, employing both automated scripts and manual evaluation, resulting in **158 passed test cases across 11 suites**.
+
+### 1. Unit Testing (Jest)
+- Validated individual components in isolation using the **AAA (Arrange, Act, Assert)** pattern.
+- Implemented robust unit tests for all major database models (`User.js`, `Booking.js`, `Hotel.js`, `Vehicle.js`, etc.).
+- Verified Mongoose schema validation, default assignments, Enum enforcement, and Bcrypt password hashing logic.
+
+### 2. Integration Testing (Jest & Supertest)
+- Verified the interaction between REST API endpoints, the database, and third-party services.
+- Extensively tested the `/api/login` endpoint against 100+ edge cases (missing fields, invalid formats, unauthenticated requests).
+- Utilized **Test Doubles (Mocking)** for external dependencies like the Gemini AI Trip Planner to ensure deterministic and fast execution without hitting API rate limits.
+
+### 3. API Testing (Postman)
+- Executed manual end-to-end API validations.
+- Verified accurate status codes (200, 400, 401, 404, 500) and response structures.
+- Tested JWT token generation and Bearer authorization across protected routes.
+
+### 4. End-to-End (E2E) & Usability Testing
+- **UI Workflows:** Verified full user flows on the frontend (Registration, Interactive Dashboards, Booking creation).
+- **Usability Feedback:** Distributed targeted feedback forms (Tourist, Hotel Owner, Vehicle Owner, Tour Guide) to gather real-world user feedback and ensure an intuitive user experience.
+
 ---
  
 ## 📁 Repository Structure (Initial)

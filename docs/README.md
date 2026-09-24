@@ -11,11 +11,29 @@ title: PearlPath
 
 ---
 
-## Team
-- E/22/124, R.G. Gunawardana – [e22124@eng.pdn.ac.lk](mailto:e22124@eng.pdn.ac.lk)  
-- E/22/228, W.M.S. Manujitha – [e22228@eng.pdn.ac.lk](mailto:e22228@eng.pdn.ac.lk)  
-- E/22/452, Y.M.C.J. Yagabamunu – [e22452@eng.pdn.ac.lk](mailto:e22452@eng.pdn.ac.lk)  
-- E/22/232, D.F.A.T.D. Mathangadeera – [e22232@eng.pdn.ac.lk](mailto:e22232@eng.pdn.ac.lk)  
+## Development Team & Contributions
+
+### D.F.A.T.D. Mathangadeera (E/22/232)
+- Backend Architecture
+- REST APIs
+- AI Chatbot
+
+### W.M.S. Manujitha (E/22/228)
+- Discovery Modules
+- Search Aggregation
+- UI/UX Design
+- Currency Conversion
+
+### R.G. Gunawardana (E/22/124)
+- Routing Infrastructure
+- Postman API Testing
+- Frontend Integration
+
+### Y.M.C.J. Yagabamunu (E/22/452)
+- Interactive Map Module
+- Authentication / OTP
+- Booking Validation
+- Git Branching Strategy
 
 ---
 
@@ -116,25 +134,27 @@ Providers can:
 
 ## Testing
 
-Testing was performed across multiple levels:
+Testing was performed comprehensively across multiple levels, employing both automated scripts and manual evaluation, resulting in **158 passed test cases across 11 suites**.
 
-### Unit Testing
-- Backend controllers tested individually  
+### 1. Unit Testing (Jest)
+- Validated individual components in isolation using the **AAA (Arrange, Act, Assert)** pattern.
+- Implemented robust unit tests for all major database models (`User.js`, `Booking.js`, `Hotel.js`, `Vehicle.js`, etc.).
+- Verified Mongoose schema validation, default assignments, Enum enforcement, and Bcrypt password hashing logic.
 
-### API Testing
-- Conducted using **Postman**
-- Verified:
-  - Status codes  
-  - API responses  
+### 2. Integration Testing (Jest & Supertest)
+- Verified the interaction between REST API endpoints, the database, and third-party services.
+- Extensively tested the `/api/login` endpoint against 100+ edge cases (missing fields, invalid formats, unauthenticated requests).
+- Utilized **Test Doubles (Mocking)** for external dependencies like the Gemini AI Trip Planner to ensure deterministic and fast execution without hitting API rate limits.
 
-### Integration Testing
-- Ensured seamless frontend-backend interaction  
+### 3. API Testing (Postman)
+- Executed manual end-to-end API validations.
+- Verified accurate status codes (200, 400, 401, 404, 500) and response structures.
+- Tested JWT token generation and Bearer authorization across protected routes.
 
-### Manual Testing
-- Full user workflows tested:
-  - Registration  
-  - Booking  
-  - Dashboard updates  
+### 4. End-to-End (E2E) & Usability Testing
+- **UI Workflows:** Verified full user flows on the frontend (Registration, Interactive Dashboards, Booking creation).
+- **Usability Feedback:** Distributed 4 targeted feedback forms (Tourist, Hotel Owner, Vehicle Owner, Tour Guide) using Google Apps Script to gather real-world user feedback and ensure an intuitive user experience.
+
 
 ---
 
