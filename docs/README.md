@@ -11,29 +11,11 @@ title: PearlPath
 
 ---
 
-## Development Team & Contributions
-
-### D.F.A.T.D. Mathangadeera (E/22/232)
-- Backend Architecture
-- REST APIs
-- AI Chatbot
-
-### W.M.S. Manujitha (E/22/228)
-- Discovery Modules
-- Search Aggregation
-- UI/UX Design
-- Currency Conversion
-
-### R.G. Gunawardana (E/22/124)
-- Routing Infrastructure
-- Postman API Testing
-- Frontend Integration
-
-### Y.M.C.J. Yagabamunu (E/22/452)
-- Interactive Map Module
-- Authentication / OTP
-- Booking Validation
-- Git Branching Strategy
+## Team
+- E/22/124, R.G. Gunawardana – [e22124@eng.pdn.ac.lk](mailto:e22124@eng.pdn.ac.lk)  
+- E/22/228, W.M.S. Manujitha – [e22228@eng.pdn.ac.lk](mailto:e22228@eng.pdn.ac.lk)  
+- E/22/232, D.F.A.T.D. Mathangadeera – [e22232@eng.pdn.ac.lk](mailto:e22232@eng.pdn.ac.lk)  
+- E/22/452, Y.M.C.J. Yagabamunu – [e22452@eng.pdn.ac.lk](mailto:e22452@eng.pdn.ac.lk)  
 
 ---
 
@@ -155,6 +137,32 @@ Testing was performed comprehensively across multiple levels, employing both aut
 - **UI Workflows:** Verified full user flows on the frontend (Registration, Interactive Dashboards, Booking creation).
 - **Usability Feedback:** Distributed 4 targeted feedback forms (Tourist, Hotel Owner, Vehicle Owner, Tour Guide) using Google Apps Script to gather real-world user feedback and ensure an intuitive user experience.
 
+
+---
+
+## Team Contributions
+
+### D.F.A.T.D. Mathangadeera (E/22/232)
+- Backend Architecture
+- REST APIs
+- AI Chatbot
+
+### W.M.S. Manujitha (E/22/228)
+- Discovery Modules
+- Search Aggregation
+- UI/UX Design
+- Currency Conversion
+
+### R.G. Gunawardana (E/22/124)
+- Routing Infrastructure
+- Postman API Testing
+- Frontend Integration
+
+### Y.M.C.J. Yagabamunu (E/22/452)
+- Interactive Map Module
+- Authentication / OTP
+- Booking Validation
+- Git Branching Strategy
 
 ---
 
