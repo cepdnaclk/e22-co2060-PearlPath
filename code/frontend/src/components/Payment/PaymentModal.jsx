@@ -23,7 +23,7 @@ const PaymentModal = ({ bookingId, bookingType, totalPrice, onClose, onSuccess }
 
     const fetchBankDetails = async () => {
         try {
-            const response = await authFetch('https://pearlpath-backend.onrender.com/api/payments/bank-details');
+            const response = await authFetch('http://localhost:3001/api/payments/bank-details');
             if (response.ok) {
                 const data = await response.json();
                 setBankDetails(data);
@@ -60,7 +60,7 @@ const PaymentModal = ({ bookingId, bookingType, totalPrice, onClose, onSuccess }
             // For now, mock online payment success by just proceeding
             // as if it was successfully paid via the gateway.
             // Create verified payment
-            const response = await authFetch('https://pearlpath-backend.onrender.com/api/payments', {
+            const response = await authFetch('http://localhost:3001/api/payments', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -96,7 +96,7 @@ const PaymentModal = ({ bookingId, bookingType, totalPrice, onClose, onSuccess }
 
         try {
             // 1. Create Payment
-            const paymentResponse = await authFetch('https://pearlpath-backend.onrender.com/api/payments', {
+            const paymentResponse = await authFetch('http://localhost:3001/api/payments', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -115,7 +115,7 @@ const PaymentModal = ({ bookingId, bookingType, totalPrice, onClose, onSuccess }
             const formData = new FormData();
             formData.append('bankSlip', file);
 
-            const uploadResponse = await authFetch(`https://pearlpath-backend.onrender.com/api/payments/${paymentData.paymentId}/bank-slip`, {
+            const uploadResponse = await authFetch(`http://localhost:3001/api/payments/${paymentData.paymentId}/bank-slip`, {
                 method: 'POST',
                 body: formData // authFetch handles FormData correctly usually, omitting Content-Type so browser sets it with boundary
             });

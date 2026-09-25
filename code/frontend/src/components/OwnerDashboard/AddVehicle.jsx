@@ -58,7 +58,7 @@ const AddVehicle = () => {
         images: [selectedImage]
       };
 
-      await authFetch('https://pearlpath-backend.onrender.com/api/vehicles', {
+      await authFetch('http://localhost:3001/api/vehicles', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

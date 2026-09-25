@@ -33,7 +33,7 @@ const EditProfile = () => {
 
   const fetchProfile = async (userId) => {
     try {
-      const res = await fetch(`https://pearlpath-backend.onrender.com/api/tour-guides/user/${userId}`);
+      const res = await fetch(`http://localhost:3001/api/tour-guides/user/${userId}`);
       if (res.ok) {
         const data = await res.json();
         setFormData({
@@ -103,7 +103,7 @@ const EditProfile = () => {
         languages: formData.languages.split(',').map(l => l.trim()).filter(l => l)
       };
 
-      const res = await fetch('https://pearlpath-backend.onrender.com/api/tour-guides/profile', {
+      const res = await fetch('http://localhost:3001/api/tour-guides/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

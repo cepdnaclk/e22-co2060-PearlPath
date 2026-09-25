@@ -31,7 +31,7 @@ const TourGuideDetails = () => {
   useEffect(() => {
     const fetchGuide = async () => {
       try {
-        const response = await fetch(`https://pearlpath-backend.onrender.com/api/tour-guides/${id}`);
+        const response = await fetch(`http://localhost:3001/api/tour-guides/${id}`);
         if (response.ok) {
           const data = await response.json();
             setGuide({
@@ -57,7 +57,7 @@ const TourGuideDetails = () => {
     
     const fetchAvailability = async () => {
         try {
-            const res = await fetch(`https://pearlpath-backend.onrender.com/api/tour-guides/${id}/availability`);
+            const res = await fetch(`http://localhost:3001/api/tour-guides/${id}/availability`);
             if (res.ok) {
                 const data = await res.json();
                 setDisabledDates(data.disabledDates || []);
@@ -129,7 +129,7 @@ const TourGuideDetails = () => {
     setBookingLoading(true);
     
     try {
-      const response = await authFetch('https://pearlpath-backend.onrender.com/api/bookings', {
+      const response = await authFetch('http://localhost:3001/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

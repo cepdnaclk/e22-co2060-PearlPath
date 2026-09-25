@@ -29,10 +29,10 @@ const DestinationDetails = () => {
       // Use query parameter to filter by location
       const locationQuery = encodeURIComponent(destination.location);
       
-      const hotelsResponse = await fetch(`https://pearlpath-backend.onrender.com/api/hotels?location=${locationQuery}`);
+      const hotelsResponse = await fetch(`http://localhost:3001/api/hotels?location=${locationQuery}`);
       const hotelsData = await hotelsResponse.json();
       
-      const guidesResponse = await fetch(`https://pearlpath-backend.onrender.com/api/tour-guides?location=${locationQuery}`);
+      const guidesResponse = await fetch(`http://localhost:3001/api/tour-guides?location=${locationQuery}`);
       const guidesData = await guidesResponse.json();
       
       if (hotelsData.response) {

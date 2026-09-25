@@ -30,10 +30,10 @@ const MyBookings = () => {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const response = await authFetch('https://pearlpath-backend.onrender.com/api/bookings/user');
+        const response = await authFetch('http://localhost:3001/api/bookings/user');
         const data = await response.json();
         
-        const payRes = await authFetch('https://pearlpath-backend.onrender.com/api/payments/my');
+        const payRes = await authFetch('http://localhost:3001/api/payments/my');
         if (payRes.ok) {
             setPayments(await payRes.json());
         }
@@ -103,7 +103,7 @@ const MyBookings = () => {
   const handleRemove = async (bookingId) => {
     if (!window.confirm('Are you sure you want to remove this booking?')) return;
     try {
-      const response = await authFetch(`https://pearlpath-backend.onrender.com/api/bookings/${bookingId}`, {
+      const response = await authFetch(`http://localhost:3001/api/bookings/${bookingId}`, {
         method: 'DELETE',
       });
       if (response.ok) {

@@ -69,7 +69,7 @@ const DestinationDetails = () => {
       setHotelsLoading(true);
       setHotelsError(null);
       try {
-        const response = await fetch(`https://pearlpath-backend.onrender.com/api/hotels?location=${encodeURIComponent(destination.location)}`);
+        const response = await fetch(`http://localhost:3001/api/hotels?location=${encodeURIComponent(destination.location)}`);
         if (!response.ok) {
           throw new Error('Failed to fetch nearby stays.');
         }

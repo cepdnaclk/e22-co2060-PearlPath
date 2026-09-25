@@ -34,10 +34,10 @@ const Vehicles = () => {
     setError(null);
 
     try {
-      let url = new URL('https://pearlpath-backend.onrender.com/api/vehicles');
+      let url = new URL('http://localhost:3001/api/vehicles');
       
       if (user && user.role === 'vehicle_owner') {
-        url = new URL('https://pearlpath-backend.onrender.com/api/vehicles/owner');
+        url = new URL('http://localhost:3001/api/vehicles/owner');
       } else {
         if (searchQuery) url.searchParams.append('search', searchQuery);
         if (filters.type !== 'All') url.searchParams.append('type', filters.type);

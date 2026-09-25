@@ -17,7 +17,7 @@ const ProviderPayments = () => {
     const fetchPayments = async () => {
         setLoading(true);
         try {
-            const res = await authFetch('https://pearlpath-backend.onrender.com/api/payments/provider?status=submitted');
+            const res = await authFetch('http://localhost:3001/api/payments/provider?status=submitted');
             if (res.ok) {
                 setPayments(await res.json());
             }
@@ -45,7 +45,7 @@ const ProviderPayments = () => {
                 body.rejectionReason = reason;
             }
 
-            const res = await authFetch(`https://pearlpath-backend.onrender.com/api/payments/admin/${id}/${action}`, {
+            const res = await authFetch(`http://localhost:3001/api/payments/admin/${id}/${action}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
@@ -115,7 +115,7 @@ const ProviderPayments = () => {
                         <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto mt-2">
                             {payment.bankSlipUrl && (
                                 <a
-                                    href={`https://pearlpath-backend.onrender.com${payment.bankSlipUrl}`}
+                                    href={`http://localhost:3001${payment.bankSlipUrl}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="px-4 py-2 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-colors flex-1 lg:flex-none text-center"

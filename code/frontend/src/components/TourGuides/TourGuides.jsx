@@ -41,7 +41,7 @@ const TourGuides = () => {
     setLoading(true);
 
     try {
-      let url = new URL('https://pearlpath-backend.onrender.com/api/tour-guides');
+      let url = new URL('http://localhost:3001/api/tour-guides');
       
       if (searchLocation) url.searchParams.append('search', searchLocation);
       if (maxPrice) url.searchParams.append('maxPrice', maxPrice);
