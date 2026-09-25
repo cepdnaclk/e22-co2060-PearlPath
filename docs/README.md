@@ -24,8 +24,9 @@ title: PearlPath
 2. [Solution Architecture](#solution-architecture)  
 3. [Software Design](#software-design)  
 4. [Testing](#testing)  
-5. [Conclusion](#conclusion)  
-6. [Links](#links)  
+5. [Complete System Guides](#complete-system-guides)  
+6. [Conclusion](#conclusion)  
+7. [Links](#links)  
 
 ---
 
@@ -137,6 +138,16 @@ Testing was performed comprehensively across multiple levels, employing both aut
 - **UI Workflows:** Verified full user flows on the frontend (Registration, Interactive Dashboards, Booking creation).
 - **Usability Feedback:** Distributed 4 targeted feedback forms (Tourist, Hotel Owner, Vehicle Owner, Tour Guide) using Google Apps Script to gather real-world user feedback and ensure an intuitive user experience.
 
+---
+
+## Complete System Guides
+
+- 🛠️ **Developer & Maintainer Guide**: [PDF](docs/Pearl%20Path%20-Developer_Guide.pdf)
+  - Technical architecture, database models, microservice gateway proxy setup, and API reference.
+- 📖 **User Manual & Operating Guide**: [PDF](docs/Pearl%20Path%20-%20User%20Manual%20%26%20Operating%20Guide.pdf)
+  - Role-based step-by-step user manual for Tourists, Hotel Owners, Vehicle Owners, Tour Guides, and Admins.
+- 📝 **Software Testing Report**: [PDF](docs/PearlPath%20Software%20Testing%20Report.pdf)
+  - Automated test execution logs (158 passed test cases across 11 suites), Jest/Supertest results, and Postman API validation evidence.
 
 ---
 
@@ -168,7 +179,7 @@ Testing was performed comprehensively across multiple levels, employing both aut
 
 ## Conclusion
 
-PearlPath provides a **scalable, MERN-based solution** to unify Sri Lanka’s tourism services into a single platform. It significantly improves user convenience, system reliability, and service accessibility.
+PearlPath provides a **scalable, MERN-based solution** to unify Sri Lanka's tourism services into a single platform. It significantly improves user convenience, system reliability, and service accessibility.
 
 ---
 
@@ -185,4 +196,4 @@ PearlPath provides a **scalable, MERN-based solution** to unify Sri Lanka’s to
 - [Project Repository](https://github.com/cepdnaclk/{{ page.repository-name }}){:target="_blank"}  
 - [Project Page](https://cepdnaclk.github.io/{{ page.repository-name}}){:target="_blank"}  
 - [Department of Computer Engineering](http://www.ce.pdn.ac.lk/)  
-- [University of Peradeniya](https://eng.pdn.ac.lk/)  
+- [University of Peradeniya](https://eng.pdn.ac.lk/)
